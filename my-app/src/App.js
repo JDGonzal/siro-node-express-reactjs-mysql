@@ -21,17 +21,17 @@ function App() {
         <nav className="navbar navbar-expand-sm bg-light navbar-dark">
           <ul className="navbar-nav">
             <li className="nav-item- m-1">
-              <NavLink className="btn btn-light btn-outline-primary" to="/login">
+              <NavLink className="btn btn-light btn-outline-primary" to="/sirio/login">
                 Ingreso
               </NavLink>
             </li>
             <li className="nav-item- m-1">
-              <NavLink className="btn btn-light btn-outline-primary" to="/pets">
+              <NavLink className="btn btn-light btn-outline-primary" to="/sirio/pets">
                 Pacientes
               </NavLink>
             </li>
             <li className="nav-item- m-1">
-              <NavLink className="btn btn-light btn-outline-primary" to="/employee">
+              <NavLink className="btn btn-light btn-outline-primary" to="/sirio/employee">
                 Exámen Solicitado
               </NavLink>
             </li>
@@ -39,10 +39,10 @@ function App() {
         </nav>
 
         <Switch>
-          <Route path='/login' component={Home}/>
-          <Route path='/pets' component={Pets}/>
-          <Route path='/employee' component={Employee}/>
-          <Route path='/token' component={Token}/>
+          <Route path='/sirio/login' component={Home}/>
+          <Route path='/sirio/pets' component={Pets}/>
+          <Route path='/sirio/employee' component={Employee}/>
+          <Route path='/sirio/token' component={Token}/>
         </Switch>
       </div>
     </BrowserRouter>
