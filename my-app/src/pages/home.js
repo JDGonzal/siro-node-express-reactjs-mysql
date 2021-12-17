@@ -13,6 +13,7 @@ export class Home extends Component {
     this.state = {
       auth: [],
       modalTitle: '',
+      isLogin: false,
       email: '',
       password: '',
       passwordAgain: '',
@@ -32,12 +33,14 @@ export class Home extends Component {
     this.site = 'auth'
     this.strongPassword = new RegExp('(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})');
     this.mediumPassword = new RegExp('((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{6,}))|((?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9])(?=.{8,}))');
+    this.failedMessage = 'Se ha presentado una falla.\nPor favor avisarle al administrador.';
     this.isFound = true;
   }
 
   submitClick() {
     this.setState({
       modalTitle: 'Registro',
+      isLogin:false,
       email: '',
       password: '',
       passwordAgain: '',
@@ -55,7 +58,8 @@ export class Home extends Component {
 
   loginClick() {
     this.setState({
-      modalTitle: 'Ingreso',
+      modalTitle: 'Inicio Sesión',
+      isLogin:true,
       email: '',
       password: '',
       passwordAgain: '',
@@ -157,7 +161,7 @@ export class Home extends Component {
 
   validateForm() {
     const lim = 5
-    return (this.state.modalTitle === 'Ingreso' ?
+    return (this.state.isLogin ?
       (this.state.email.length > lim && this.state.password.length > lim) :
       (this.state.email.length > lim && this.state.password.length > lim &&
         this.state.medicalCenterId.length > 1 && this.state.medicalCenterName.length > 1 &&
@@ -169,7 +173,7 @@ export class Home extends Component {
   authClick() {
     console.log(this.state.modalTitle);
     console.log(this.state.Viewer, this.state.Editor, this.state.Admin);
-    if (this.state.modalTitle === 'Ingreso') {
+    if (this.state.isLogin) {
       fetch(REACT_APP_API_URL + this.site + '/signin', {
         method: 'POST',
         headers: {
@@ -187,16 +191,16 @@ export class Home extends Component {
           console.log(data);
           if (!this.state.auth.token) {
             !this.state.auth.message
-              ? (!this.state.auth.error ? alert('Failed') : alert(this.state.auth.error))
+              ? (!this.state.auth.error ? alert(this.failedMessage) : alert(this.state.auth.error))
               : alert(this.state.auth.message);
           } else {
-            localStorage.setItem('Token', this.state.auth.token);
+            localStorage.setItem('Token', JSON.stringify(this.state.auth));
             // eslint-disable-next-line react/no-direct-mutation-state
             this.state.Token = this.state.auth.token;
-            alert('Login Successfully \nYou can access the other sites');
+            alert('Inicio de sesión exitoso \nUsted ya puede acceder los otros sitios.');
           }
         }, (error) => {
-          alert('Failed');
+          alert(this.failedMessage);
         });
     } else {
       fetch(REACT_APP_API_URL + this.site + '/signup/' + this.state.email, {
@@ -211,7 +215,7 @@ export class Home extends Component {
           this.setState({ auth: data })
           console.log(data, 'found:', this.state.auth.found);
           if (!data) {
-            alert('Failed');
+            alert(this.failedMessage);
           } else {
             this.isFound = this.state.auth.found > 0;
             console.log(this.state.auth.found, this.isFound);
@@ -240,12 +244,12 @@ export class Home extends Component {
                   console.log(result);
 
                 }, (error) => {
-                  alert('Failed');
+                  alert(this.failedMessage);
                 });
             }
           }
         }, (error) => {
-          alert('Failed');
+          alert(this.failedMessage);
           console.log(error);
         });
     }
@@ -265,6 +269,7 @@ export class Home extends Component {
       medicalCenterId,
       medicalCenterName,
       modalTitle,
+      isLogin,
       strengthBadge,
       backgroundColor,
       Viewer,
@@ -276,11 +281,11 @@ export class Home extends Component {
       <div>
         <button type='submit' className='btn btn-primary m-2 float-end' data-bs-toggle='modal' data-bs-target='#exampleModal'
           onClick={() => this.submitClick()}>
-          Registro
+          Soy Nuevo
         </button>
         <button type='submit' className='btn btn-primary m-2 float-end' data-bs-toggle='modal' data-bs-target='#exampleModal'
           onClick={() => this.loginClick()}>
-          Ingreso
+          Ya Existo
         </button>
 
         <div className='modal fade' id='exampleModal' tabIndex='-1' aria-hidden='true'>
@@ -288,7 +293,7 @@ export class Home extends Component {
             <div className='modal-content'>
               <div className='modal-header'>
                 <h5 className='modal-title'>{(modalTitle)}</h5>
-                <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+                <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Cerrar'></button>
               </div>
               <div className='modal-body'>
                 <div className='Login'>
@@ -296,9 +301,9 @@ export class Home extends Component {
                     <div>
                       <Form.Group size='lg' controlId='email'>
                         <Form.Label>Correo</Form.Label>
-                        <Form.Control autoFocus type='email' value={email} onChange={this.onChangeEmail} placeholder='Email' />
+                        <Form.Control autoFocus type='email' value={email} onChange={this.onChangeEmail} placeholder='correo@electronico.srv' />
                       </Form.Group>
-                      {modalTitle === 'Registro' ?
+                      {!isLogin ?
                         <div>
                           <Form.Label>Centro Médico</Form.Label>
 
@@ -308,15 +313,15 @@ export class Home extends Component {
                         : null}
                       <Form.Group size='lg' controlId='password'>
                         <Form.Label>Contraseña</Form.Label>
-                        <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Password'
+                        <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Contraseña'
                           name='password' aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
                           autoComplete='current-password' spellCheck='false' />
                       </Form.Group>
-                      {modalTitle === 'Registro' ?
+                      {!isLogin ?
                         <Form.Group size='lg' controlId='passwordAgain'>
                           <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
                           <Form.Label>Confirmar Contraseña</Form.Label>
-                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain} placeholder='Confirm Password' />
+                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain} placeholder='Confirmar contraseña' />
                           <div className='ml-3'>
                             <Form.Label>Tipo de Usuario</Form.Label>
                             {['checkbox'].map((type) => (
@@ -342,11 +347,11 @@ export class Home extends Component {
                     </div>
                     <div>
                       <pre> </pre>
-                      {modalTitle === 'Registro' ?
-                        <Button block="true" size='lg' type='submit' disabled={!this.validateForm()} >Sign Up</Button> : null
+                      {!isLogin ?
+                        <Button block="true" size='lg' type='submit' disabled={!this.validateForm()} >Registrarme</Button> : null
                       }
-                      {modalTitle === 'Ingreso' ?
-                        <Button block="true" size='lg' type='submit' disabled={!this.validateForm()} >Sign In</Button> : null
+                      {isLogin ?
+                        <Button block="true" size='lg' type='submit' disabled={!this.validateForm()} >Iniciar Sesión</Button> : null
                       }
                     </div>
 

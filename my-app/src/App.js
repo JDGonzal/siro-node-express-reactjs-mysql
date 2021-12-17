@@ -1,9 +1,9 @@
 // import logo from './logo.svg';
 import './css/App.css';
-import {Home} from './pages/home';
+import {Home} from './pages/home.js';
 import {Pets} from './pages/pets.js';
-import {Employee} from './pages/employee';
-import {Token} from './pages/token';
+import {Exams} from './pages/exams.js';
+import {Token} from './pages/token.js';
 import {BrowserRouter, Route, Switch, NavLink} from 'react-router-dom';
 
 
@@ -21,17 +21,17 @@ function App() {
         <nav className="navbar navbar-expand-sm bg-light navbar-dark">
           <ul className="navbar-nav">
             <li className="nav-item- m-1">
-              <NavLink className="btn btn-light btn-outline-primary" to="/sirio/login">
+              <NavLink className="btn btn-light btn-outline-primary" to="/login">
                 Ingreso
               </NavLink>
             </li>
             <li className="nav-item- m-1">
-              <NavLink className="btn btn-light btn-outline-primary" to="/sirio/pets">
+              <NavLink className="btn btn-light btn-outline-primary" to="/pets">
                 Pacientes
               </NavLink>
             </li>
             <li className="nav-item- m-1">
-              <NavLink className="btn btn-light btn-outline-primary" to="/sirio/employee">
+              <NavLink className="btn btn-light btn-outline-primary" to="/exams">
                 Exámen Solicitado
               </NavLink>
             </li>
@@ -39,10 +39,10 @@ function App() {
         </nav>
 
         <Switch>
-          <Route path='/sirio/login' component={Home}/>
-          <Route path='/sirio/pets' component={Pets}/>
-          <Route path='/sirio/employee' component={Employee}/>
-          <Route path='/sirio/token' component={Token}/>
+          <Route path='/login' component={Home}/>
+          <Route path='/pets' component={Pets}/>
+          <Route path='/exams' component={Exams}/>
+          <Route path='/token' component={Token}/>
         </Switch>
       </div>
     </BrowserRouter>
