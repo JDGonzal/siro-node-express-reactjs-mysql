@@ -17,7 +17,7 @@ function initial() {
   Role.create({ roleId: 3, roleName: 'admin' });
 }
 // the next line to call the 'initial()' method to create each role
-db.sequelize.sync({force: true}).then(() => {
+/*db.sequelize.sync({force: true}).then(() => {
   console.log('Drop and Resync Db');
   initial();
 });/* */

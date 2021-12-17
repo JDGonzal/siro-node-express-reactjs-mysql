@@ -19,9 +19,12 @@ const routeAuth = express.Router();
 
 // On post
 routeAuth.post('/api/auth/signin', async (request, response) => {
-  var query = `SELECT u.*, (SELECT GROUP_CONCAT(ur.roleId SEPARATOR ', ')
+  var query = `SELECT u.*, (SELECT GROUP_CONCAT(ur.roleId SEPARATOR ',')
                             FROM ${process.env.MYSQL_D_B_}.user_roles ur 
-                          WHERE ur.userId = u.userId) AS userRole
+                          WHERE ur.userId = u.userId) AS userRole,
+                          (SELECT GROUP_CONCAT(um.medicalCenterId SEPARATOR ',')
+                            FROM ${process.env.MYSQL_D_B_}.user_medicalcenters um 
+                          WHERE um.userId = u.userId) AS userMedicalCenter
                from ${process.env.MYSQL_D_B_}.Users u
                where email=? or password=?`;
   console.log('/api/auth/signin');
@@ -38,7 +41,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'Validation Failed',
+      message: 'La validación Falló',
       errors: validationResponse
     });
   }
@@ -46,7 +49,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Something went wrong',
+        message: 'Algo ha ido mal...',
         ok: false,
         error: err
       });
@@ -55,7 +58,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
     //Validate an existing email and password from DB
     if (!rows) {
       return response.status(400).json({
-        message: 'Invalid email or password',
+        message: 'El correo electrónico o la contraseña están errados.',
         errors: validationResponse
       });
     }
@@ -64,14 +67,14 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
     const isActive = rows[0].isActive;
     if (!isActive === true) {
       return response.status(400).json({
-        message: 'Account is pending for activate'
+        message: 'La cuenta está pendiente por ser activada.'
       });
     }
     // Compare the password with the password in the database
     const valid = bcrypt.compare(jsonValues.password, rows[0].password);
     if (!valid) {
       return response.status(400).json({
-        message: 'Invalid password or email',
+        message: 'Dato incorrecto de Contraseña o Correo Electrónico.',
         errors: validationResponse
       });
     } else {
@@ -80,15 +83,17 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
       rows[0].userRole.includes('2') ? rolesArray.push('editor') : null;
       rows[0].userRole.includes('3') ? rolesArray.push('admin') : null;
       console.log('role:', rolesArray);
-      const token = getToken('24h', rolesArray, rows[0].userId);//Expires in 24 hours
-
+      const token = getToken('8h', rolesArray, rows[0].userId);//Expires in 8 hours
+      const centralMedicalsArray = rows[0].userMedicalCenter.split(',');
       response.send({
         ok: true,
-        token: token
+        token: token,
+        rolesArray: rolesArray,
+        centralMedicalsArray: centralMedicalsArray
       });
       var date = new Date();
       console.log(date.toLocaleString());
-      console.log(new Date(date.getTime() + 24 * 60 * 60000).toLocaleString());
+      console.log(new Date(date.getTime() + 8 * 60 * 60000).toLocaleString());
       console.log(token);
     }
   });
@@ -107,7 +112,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
   mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Something went wrong',
+        message: 'Algo ha ido mal...',
         ok: false,
         error: err
       });
@@ -118,7 +123,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
       mysqlConnection.query(query, values, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
-            message: 'Something went wrong',
+            message: 'Algo ha ido mal...',
             ok: false,
             error: err
           });
@@ -143,18 +148,18 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
 
 routeAuth.post('/api/auth/signup', async (request, response) => {
   var query = `INSERT into ${process.env.MYSQL_D_B_}.Users
-              (email,password,medicalCenterId,token,createdAt,updatedAt)
-              VALUE (?,?,?,?,NOW(),NOW())`;
-  console.log('body:', request.body);
+              (email,password,token,createdAt,updatedAt)
+              VALUE (?,?,?,NOW(),NOW())`;
   var jsonValues = {
     email: await request.body['email'].toString().toLowerCase(),
     password: await passwordEncrypt(request.body['password']),
-    medicalCenterId: await request.body['medicalCenterId'],
     token: await passwordEncrypt(request.body['email']),
     RolesArray: await request.body['Roles'],
     TokenExternal: await request.body['TokenExternal'],
+    medicalCenterId: await request.body['medicalCenterId'],
     medicalCenterName: await request.body['medicalCenterName'],
   };
+  console.log('body:', jsonValues);
   try {
     if (await jsonValues.RolesArray[0] === true) {
       jsonValues.RolesArray[0] = 'viewer';
@@ -167,22 +172,22 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     }
   } catch (e) {
     console.log('RolesArray:',e);
-  }
+  };
 
   const schema = {
     email: { type: 'string', optional: false, max: '100', min: '5' },
     password: { type: 'string', optional: false, max: '255', min: '60' },
-    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true },
     token: { type: 'string', optional: false, max: '255', min: '60' },
     RolesArray: { type: 'array', optional: false, max: '3', min: '1' },
     TokenExternal: { type: 'string', optional: true },
+    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true },
     medicalCenterName: { type: 'string', optional: true },
   }
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'Validation Failed',
+      message: 'La validación falló',
       errors: validationResponse
     });
   }
@@ -209,17 +214,17 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Something went wrong',
+        message: 'Algo ha ido mal...',
         error: err
       });
     }
     response.status(201).json({
-      message: 'Added Successfully',
+      message: 'Adicionado correctamente',
       roles: rows
     });
     const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken('12h', jsonValues.RolesArray, 0)}`;
-    console.log('sendEmail:', urlRoute, 0);
-    sendEmail(jsonValues.email, 'Activate account.', urlRoute, 0);
+    console.log('To send email:', urlRoute);
+    sendEmail(jsonValues.email, 'Activar Cuenta.', urlRoute, 1);
     var userId = 0;
     fetch(process.env.EMAIL_API_ + 'auth/signup/' + jsonValues.email, {
       method: 'GET',
@@ -333,7 +338,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'Validation Failed',
+      message: 'La validación Falló',
       errors: validationResponse
     });
   }
@@ -341,7 +346,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
   mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Something went wrong',
+        message: 'Algo ha ido mal...',
         ok: false,
         error: err
       });
@@ -354,13 +359,13 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
-            message: 'Something went wrong',
+            message: 'Algo ha ido mal...',
             ok: false,
             error: err
           });
         }
         response.status(201).json({
-          message: 'This account was activated sucessfully.',
+          message: 'Esta cuenta fue activada correctamente.',
           ok: true
         });
 
@@ -368,7 +373,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
     } else {
       response.status(501).json({
         ok: false,
-        error: 'Error: The user could not exist or was activated previoulsy.'
+        error: 'Error: El usuario no existe o fue activado previamente.'
       });
     }
   });

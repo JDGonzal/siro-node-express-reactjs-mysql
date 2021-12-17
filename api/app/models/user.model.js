@@ -13,9 +13,6 @@ module.exports = (sequelize, Sequelize) => {
     password: {
       type: Sequelize.STRING
     },
-    medicalCenterId: {
-      type: Sequelize.BIGINT,
-    },
     isActive: {
       type: Sequelize.BOOLEAN,
       allowNull: false, 
@@ -23,6 +20,11 @@ module.exports = (sequelize, Sequelize) => {
     },
     token: {
       type: Sequelize.STRING,
+    },
+    language: {
+      type: Sequelize.STRING(7),
+      allowNull: false, 
+      defaultValue: 'es',
     },
   });
 
