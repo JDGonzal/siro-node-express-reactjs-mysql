@@ -13,6 +13,7 @@ const auth = require('../middleware/auth.js');
 const { admin, editor, viewer } = require('../middleware/roles.js');
 const mysqlConnection = require('../utils/database.js');
 const getToken = require('../utils/getToken.js');
+const apiMessage = require('../utils/messages.js')
 
 // Setup the express server routeAuth
 const routeAuth = express.Router();
@@ -41,7 +42,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'La validación Falló',
+      message: apiMessage['400'][1],
       errors: validationResponse
     });
   }
@@ -49,7 +50,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         ok: false,
         error: err
       });
@@ -57,8 +58,8 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
     console.log('row ', rows[0].password, rows[0].isActive);
     //Validate an existing email and password from DB
     if (!rows) {
-      return response.status(400).json({
-        message: 'El correo electrónico o la contraseña están errados.',
+      return response.status(401).json({
+        message: apiMessage['401'][1],
         errors: validationResponse
       });
     }
@@ -66,15 +67,15 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
 
     const isActive = rows[0].isActive;
     if (!isActive === true) {
-      return response.status(400).json({
-        message: 'La cuenta está pendiente por ser activada.'
+      return response.status(511).json({
+        message: apiMessage['511'][1],
       });
     }
     // Compare the password with the password in the database
     const valid = bcrypt.compare(jsonValues.password, rows[0].password);
     if (!valid) {
-      return response.status(400).json({
-        message: 'Dato incorrecto de Contraseña o Correo Electrónico.',
+      return response.status(403).json({
+        message: apiMessage['403'][1],
         errors: validationResponse
       });
     } else {
@@ -112,7 +113,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
   mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         ok: false,
         error: err
       });
@@ -123,7 +124,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
       mysqlConnection.query(query, values, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
-            message: 'Algo ha ido mal...',
+            message: apiMessage['501'][1],
             ok: false,
             error: err
           });
@@ -187,7 +188,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'La validación falló',
+      message: apiMessage['400'][1],
       errors: validationResponse
     });
   }
@@ -214,12 +215,12 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         error: err
       });
     }
     response.status(201).json({
-      message: 'Adicionado correctamente',
+      message: apiMessage['201'][1],
       roles: rows
     });
     const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken('12h', jsonValues.RolesArray, 0)}`;
@@ -338,7 +339,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'La validación Falló',
+      message: apiMessage['400'][1],
       errors: validationResponse
     });
   }
@@ -346,7 +347,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
   mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         ok: false,
         error: err
       });
@@ -359,21 +360,21 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
-            message: 'Algo ha ido mal...',
+            message: apiMessage['501'][1],
             ok: false,
             error: err
           });
         }
-        response.status(201).json({
-          message: 'Esta cuenta fue activada correctamente.',
+        response.status(202).json({
+          message: apiMessage['202'][1],
           ok: true
         });
 
       });
     } else {
-      response.status(501).json({
+      response.status(409).json({
         ok: false,
-        error: 'Error: El usuario no existe o fue activado previamente.'
+        error: apiMessage['409'][1],
       });
     }
   });

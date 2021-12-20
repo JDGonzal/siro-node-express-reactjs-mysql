@@ -8,6 +8,16 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: false
     },
+    medicalCenterAddress: { 
+      type: Sequelize.STRING,
+    },
+
+    medicalCenterTelNumber: { 
+      type: Sequelize.BIGINT,
+    },
+    medicalCenterAddress: { 
+      type: Sequelize.STRING,
+    },
   });
 
   return MedicalCenter;
