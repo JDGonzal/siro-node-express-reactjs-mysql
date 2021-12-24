@@ -7,7 +7,7 @@ const mysqlConnection = require('../utils/database.js');
 const apiMessage = require('../utils/messages.js');
 
 routeCity.get('/api/city/:id', (request, response) => {
-  var query = `SELECT CityId,CityName,IF(MOD(CityId,1000)=1,0,1) as CitySort, StateStateId  
+  var query = `SELECT cityId,cityName,IF(MOD(cityId,1000)=1,0,1) as citySort, StateStateId  
             FROM ${process.env.MYSQL_D_B_}.Cities
             WHERE StateStateId = ?
             ORDER BY CitySort, CityName`;

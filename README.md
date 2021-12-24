@@ -89,7 +89,6 @@ To install all the required modules
   heroku logs --tail
   ```
 
-
 ## Steps to work the MY-APP with REACT
   GUI: [React Redux Login, Logout, Registration example with Hooks](https://www.bezkoder.com/react-hooks-redux-login-registration-example/).<br />
   Repository: https://github.com/bezkoder/react-redux-hooks-jwt-auth .

@@ -16,6 +16,8 @@ const apiMessage =
     'Esta cuenta fue activada correctamente.'],
   '409': ['Error: The user could not exist or was activated previoulsy.',
     'Error: El usuario no existe o fue activado previamente.'],
+  '202': ['Updated Successfully.',
+    'Actualización Exitosa.']
 };
 
 module.exports = apiMessage;

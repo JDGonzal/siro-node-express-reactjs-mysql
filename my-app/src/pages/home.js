@@ -1,3 +1,4 @@
+/* eslint-disable react/no-direct-mutation-state */
 import React, { Component } from 'react';
 import { REACT_APP_API_URL } from '../utils/variables.js';
 import Form from 'react-bootstrap/Form';
@@ -12,25 +13,36 @@ export class Home extends Component {
 
     this.state = {
       auth: [],
+      states: [],
+      cities: [],
+      medicalCenters: [],
       modalTitle: '',
       isLogin: false,
       email: '',
       password: '',
       passwordAgain: '',
+      medicalCenterNew: 0,
       medicalCenterId: '',
       medicalCenterName: '',
+      medicalCenterAddress: '',
+      medicalCenterTelNumber: 0,
+      StateStateId: 0,
+      CityCityId: 0,
       ok: '',
       strengthBadge: 'Débil',
-      backgroundColor: 'input-group-text m-1 alert alert-danger', //'input-group-text m-1 text-centred bg_Débil' 
+      backgroundColor: 'input-group-text alert alert-danger ', //'input-group-text m-1 text-centred bg_Débil' 
       RolesArray: [false, false, false],
       disabledArray: [false, false, false],
       Viewer: false,
       Editor: false,
       Admin: false,
       Token: localStorage.getItem('Token'),
-      footer:REACT_APP_API_URL,
-    }
-    this.site = 'auth'
+      footer: REACT_APP_API_URL,
+    };
+    this.site = 'auth';
+    this.site2 = 'medicalcenter';
+    this.site3 = 'state';
+    this.site4 = 'city';
     this.strongPassword = new RegExp('(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})');
     this.mediumPassword = new RegExp('((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{6,}))|((?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9])(?=.{8,}))');
     this.failedMessage = 'Se ha presentado una falla.\nPor favor avisarle al administrador.';
@@ -40,48 +52,75 @@ export class Home extends Component {
   submitClick() {
     this.setState({
       modalTitle: 'Registro',
-      isLogin:false,
+      isLogin: false,
       email: '',
       password: '',
       passwordAgain: '',
+      medicalCenterNew: 0,
       medicalCenterId: '',
       medicalCenterName: '',
+      medicalCenterAddress: '',
+      medicalCenterTelNumber: '',
+      StateStateId: 0,
+      CityCityId: 0,
       strengthBadge: 'Débil',
       RolesArray: [true, false, false],
       disabledArray: [false, false, false],
       Viewer: false,
       Editor: false,
       Admin: false,
-      footer:REACT_APP_API_URL,
+      footer: REACT_APP_API_URL,
     })
   }
 
   loginClick() {
     this.setState({
       modalTitle: 'Inicio Sesión',
-      isLogin:true,
+      isLogin: true,
       email: '',
       password: '',
       passwordAgain: '',
-      medicalCenterId: '',
+      medicalCenterNew: 0,
+      medicalCenterId: 0,
       medicalCenterName: '',
+      medicalCenterAddress: '',
+      medicalCenterTelNumber: 0,
+      StateStateId: 0,
+      CityCityId: 0,
       RolesArray: [false, false, false],
-      footer:REACT_APP_API_URL,
+      footer: REACT_APP_API_URL,
     })
   }
 
-  refreshList() {
-    console.log(this.state.medicalCenterId)
+  async refreshMedicalCenters() {
+    console.log(`${REACT_APP_API_URL}${this.site2}/medicalcentername/${parseInt(this.state.medicalCenterId)}`);
 
-    fetch(REACT_APP_API_URL + 'medicalcenter/medicalcentername/' + this.state.medicalCenterId, {
+    await fetch(`${REACT_APP_API_URL}${this.site2}/medicalcentername/${parseInt(this.state.medicalCenterId)}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body:JSON.stringify({
-        medicalCenterId:this.state.medicalCenterId
-      })
+    })
+      .then(response => response.json())
+      .then((data) => {
+        console.log(data);
+        this.setState({ 
+          medicalCenterNew: data.found,
+          medicalCenters:data
+        });
+      }, (error) => {
+        console.log(error);
+      });
+  }
+
+  async refreshStates() {
+    await fetch(`${REACT_APP_API_URL}${this.site3}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
     })
       .then(response => response.json())
       .then((data) => {
@@ -89,15 +128,37 @@ export class Home extends Component {
           alert(this.alertMessage);
           return;
         }
-        this.setState({ medicalCenterName: data.found })
+        this.setState({ states: data });
+        console.log(this.state.states);
       }, (error) => {
         console.log(error);
       });
-
   }
 
-  componentDidMount() {
-    this.refreshList();
+  async refreshCities(cityId) {
+    await fetch(`${REACT_APP_API_URL}${this.site4}/${cityId}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+    })
+      .then(response => response.json())
+      .then((data) => {
+        if (!data || data.ok === false) {
+          alert(this.alertMessage);
+          return;
+        }
+        this.setState({ cities: data });
+        console.log(this.state.cities);
+      }, (error) => {
+        console.log(error);
+      });
+  }
+
+  async componentDidMount() {
+    await this.refreshStates();
+    await this.refreshCities(this.state.states[1].stateId);
   }
 
   onChangeEmail = async (e) => {
@@ -113,12 +174,32 @@ export class Home extends Component {
     await this.setState({ passwordAgain: e.target.value });
   }
 
-  onChangemedicalCenterId = async (e) => {
+  onChangeMedicalCenterId = async (e) => {
     await this.setState({ medicalCenterId: e.target.value });
+    await this.refreshMedicalCenters();
   }
 
   onChangeMedicalCenterName = async (e) => {
     await this.setState({ medicalCenterName: e.target.value });
+  }
+
+  onChangeMedicalCenterAddress = async (e) => {
+    await this.setState({ medicalCenterAddress: e.target.value });
+  }
+
+  onChangeMedicalCenterTelNumber = async (e) => {
+    await this.setState({ medicalCenterTelNumber: e.target.value });
+  }
+
+  onChangeState = async (e) => {
+    await this.setState({ StateStateId: e.target.value });
+    console.log(this.state.StateStateId);
+    await this.refreshCities(this.state.StateStateId);
+  }
+
+  onChangeCity = async (e) => {
+    await this.setState({ CityCityId: e.target.value });
+    console.log(this.state.CityCityId);
   }
 
   onChangeViewer = (e) => {
@@ -146,7 +227,7 @@ export class Home extends Component {
   }
 
   StrengthChecker(PasswordParameter) {
-    const bg_base = 'input-group-text m-1 alert ';
+    const bg_base = 'input-group-text mb-0 alert ';
     if (this.strongPassword.test(PasswordParameter)) {
       this.setState({ backgroundColor: bg_base + 'alert-success' });
       this.setState({ strengthBadge: 'Fuerte' });
@@ -164,7 +245,8 @@ export class Home extends Component {
     return (this.state.isLogin ?
       (this.state.email.length > lim && this.state.password.length > lim) :
       (this.state.email.length > lim && this.state.password.length > lim &&
-        this.state.medicalCenterId.length > 1 && this.state.medicalCenterName.length > 1 &&
+        this.state.medicalCenterId.length > lim && this.state.medicalCenterName.length > lim &&
+        this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.length > lim &&
         this.state.password === this.state.passwordAgain &&
         this.state.strengthBadge !== 'Débil' &&
         (this.state.Viewer || this.state.Editor || this.state.Admin)));
@@ -174,7 +256,7 @@ export class Home extends Component {
     console.log(this.state.modalTitle);
     console.log(this.state.Viewer, this.state.Editor, this.state.Admin);
     if (this.state.isLogin) {
-      fetch(REACT_APP_API_URL + this.site + '/signin', {
+      fetch(`${REACT_APP_API_URL}${this.site}/signin`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -203,7 +285,7 @@ export class Home extends Component {
           alert(this.failedMessage);
         });
     } else {
-      fetch(REACT_APP_API_URL + this.site + '/signup/' + this.state.email, {
+      fetch(`${REACT_APP_API_URL}${this.site}/signup/${this.state.email}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -223,7 +305,7 @@ export class Home extends Component {
               alert('The email exists');
             };
             if (!this.isFound) {
-              fetch(REACT_APP_API_URL + this.site + '/signup', {
+              fetch(`${REACT_APP_API_URL}${this.site}/signup`, {
                 method: 'POST',
                 headers: {
                   'Accept': 'application/json',
@@ -234,6 +316,10 @@ export class Home extends Component {
                   password: this.state.password,
                   medicalCenterId: parseInt(this.state.medicalCenterId),
                   medicalCenterName: this.state.medicalCenterName,
+                  medicalCenterAddress: this.state.medicalCenterAddress,
+                  medicalCenterTelNumber: parseInt(this.state.medicalCenterTelNumber),
+                  StateStateId: parseInt(this.state.StateStateId),
+                  CityCityId: parseInt(this.state.CityCityId),
                   Roles: this.state.RolesArray,
                   TokenExternal: this.state.Token,
                 })
@@ -263,11 +349,19 @@ export class Home extends Component {
 
   render() {
     const {
+      //states,
+      //cities,
+      medicalCenters,
       email,
       password,
       passwordAgain,
+      medicalCenterNew,
       medicalCenterId,
       medicalCenterName,
+      //medicalCenterAddress,
+      //medicalCenterTelNumber,
+      //StateStateId,
+      //CityCityId,
       modalTitle,
       isLogin,
       strengthBadge,
@@ -301,14 +395,25 @@ export class Home extends Component {
                     <div>
                       <Form.Group size='lg' controlId='email'>
                         <Form.Label>Correo</Form.Label>
-                        <Form.Control autoFocus type='email' value={email} onChange={this.onChangeEmail} placeholder='correo@electronico.srv' />
+                        <Form.Control autoFocus type='email' value={email} 
+                          onChange={this.onChangeEmail} laceholder='correo@electronico.srv' autoComplete="username"/>
                       </Form.Group>
                       {!isLogin ?
                         <div>
                           <Form.Label>Centro Médico</Form.Label>
-
-                          <Form.Control type='number' className='form-control' value={medicalCenterId} onChange={this.onChangemedicalCenterId} placeholder='Nit Centro Médico' />
-                          <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' />
+                          <Form.Control type='number' className='form-control' value={medicalCenterId} 
+                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico' />
+                          {/* <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' /> */}
+                          {medicalCenterNew === 0 ?
+                            <div>
+                              <Form.Control type='name' className='form-control' value={medicalCenterName} 
+                                onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' />
+                            </div>
+                            :
+                            <div>
+                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterName} readOnly />
+                            </div>
+                          }
                         </div>
                         : null}
                       <Form.Group size='lg' controlId='password'>
@@ -321,7 +426,8 @@ export class Home extends Component {
                         <Form.Group size='lg' controlId='passwordAgain'>
                           <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
                           <Form.Label>Confirmar Contraseña</Form.Label>
-                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain} placeholder='Confirmar contraseña' />
+                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain} 
+                          placeholder='Confirmar contraseña' autoComplete="username"/>
                           <div className='ml-3'>
                             <Form.Label>Tipo de Usuario</Form.Label>
                             {['checkbox'].map((type) => (

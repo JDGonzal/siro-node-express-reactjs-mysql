@@ -159,6 +159,10 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     TokenExternal: await request.body['TokenExternal'],
     medicalCenterId: await request.body['medicalCenterId'],
     medicalCenterName: await request.body['medicalCenterName'],
+    medicalCenterAddress:  await request.body['medicalCenterAddress'],
+    medicalCenterTelNumber: await request.body['medicalCenterTelNumber'],
+    StateStateId: await request.body['StateStateId'],
+    CityCityId: await request.body['CityCityId'],
   };
   console.log('body:', jsonValues);
   try {
@@ -181,8 +185,12 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     token: { type: 'string', optional: false, max: '255', min: '60' },
     RolesArray: { type: 'array', optional: false, max: '3', min: '1' },
     TokenExternal: { type: 'string', optional: true },
-    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true },
-    medicalCenterName: { type: 'string', optional: true },
+    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min:1000, max: 9999999999 },
+    medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
+    medicalCenterAddress: { type: 'string', optional: false, max: '255', min: '8' },
+    medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true , min:1000000, max: 9999999999},
+    StateStateId: { type: 'number', optional: false, positive: true, integer: true , min:1, max: 99},
+    CityCityId: { type: 'number', optional: false, positive: true, integer: true , min:1000, max: 99999},
   }
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
@@ -200,7 +208,11 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     },
     body: JSON.stringify({
       medicalCenterId: jsonValues.medicalCenterId,
-      medicalCenterName: jsonValues.medicalCenterName
+      medicalCenterName: jsonValues.medicalCenterName,
+      medicalCenterAddress: jsonValues.medicalCenterAddress,
+      medicalCenterTelNumber: jsonValues.medicalCenterTelNumber,
+      StateStateId: jsonValues.StateStateId,
+      CityCityId: jsonValues.CityCityId,
     })
   })
     .then(res => res.json())
