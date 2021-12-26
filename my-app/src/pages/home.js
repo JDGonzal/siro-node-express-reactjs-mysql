@@ -28,6 +28,8 @@ export class Home extends Component {
       medicalCenterTelNumber: 0,
       StateStateId: 0,
       CityCityId: 0,
+      stateName: '',
+      cityName: '',
       ok: '',
       strengthBadge: 'Débil',
       backgroundColor: 'input-group-text alert alert-danger ', //'input-group-text m-1 text-centred bg_Débil' 
@@ -47,6 +49,8 @@ export class Home extends Component {
     this.mediumPassword = new RegExp('((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{6,}))|((?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9])(?=.{8,}))');
     this.failedMessage = 'Se ha presentado una falla.\nPor favor avisarle al administrador.';
     this.isFound = true;
+    this.stateName = '';
+    this.cityName = '';
   }
 
   submitClick() {
@@ -63,6 +67,8 @@ export class Home extends Component {
       medicalCenterTelNumber: '',
       StateStateId: 0,
       CityCityId: 0,
+      stateName: '',
+      cityName: '',
       strengthBadge: 'Débil',
       RolesArray: [true, false, false],
       disabledArray: [false, false, false],
@@ -105,13 +111,24 @@ export class Home extends Component {
       .then(response => response.json())
       .then((data) => {
         console.log(data);
-        this.setState({ 
+        this.setState({
           medicalCenterNew: data.found,
-          medicalCenters:data
+          medicalCenters: data
         });
+
       }, (error) => {
         console.log(error);
       });
+  }
+
+  async getFromJson(json, key, value, index) {
+    for (var i = 0; i < json.length; i++) {
+      console.log("Cod: " + json[i][key]);
+      console.log("Nam: " + json[i][value]);
+      if (json[i][key] === index) {
+        return json[i][value];
+      }
+    }
   }
 
   async refreshStates() {
@@ -129,7 +146,13 @@ export class Home extends Component {
           return;
         }
         this.setState({ states: data });
-        console.log(this.state.states);
+        if (this.state.medicalCenterNew !== 0) {
+          this.getFromJson(data, 'stateId', 'stateName', this.state.medicalCenters.StateStateId)
+            .then((value) => {
+              this.setState({ stateName: value });
+              console.log(this.state.stateName);
+            });
+        }
       }, (error) => {
         console.log(error);
       });
@@ -150,7 +173,13 @@ export class Home extends Component {
           return;
         }
         this.setState({ cities: data });
-        console.log(this.state.cities);
+        if (this.state.medicalCenterNew !== 0) {
+          this.getFromJson(data, 'cityId', 'cityName', this.state.medicalCenters.CityCityId)
+            .then((value) => {
+              this.setState({ cityName: value });
+              console.log(this.state.cityName);
+            });
+        }
       }, (error) => {
         console.log(error);
       });
@@ -177,7 +206,19 @@ export class Home extends Component {
   onChangeMedicalCenterId = async (e) => {
     await this.setState({ medicalCenterId: e.target.value });
     await this.refreshMedicalCenters();
+    if (await this.state.medicalCenterNew !== 0) {
+      await this.refreshStates();
+      await this.refreshCities(this.state.medicalCenters.StateStateId);
+    }
   }
+
+  onBlurMedicalCenterId = async (e) => {
+    await this.setState({
+      medicalCenterName: this.state.medicalCenters.medicalCenterName,
+      medicalCenterAddress: this.state.medicalCenters.medicalCenterAddress,
+      medicalCenterTelNumber: this.state.medicalCenters.medicalCenterTelNumber,
+    });
+  };
 
   onChangeMedicalCenterName = async (e) => {
     await this.setState({ medicalCenterName: e.target.value });
@@ -349,8 +390,8 @@ export class Home extends Component {
 
   render() {
     const {
-      //states,
-      //cities,
+      states,
+      cities,
       medicalCenters,
       email,
       password,
@@ -358,10 +399,12 @@ export class Home extends Component {
       medicalCenterNew,
       medicalCenterId,
       medicalCenterName,
-      //medicalCenterAddress,
-      //medicalCenterTelNumber,
-      //StateStateId,
-      //CityCityId,
+      medicalCenterAddress,
+      medicalCenterTelNumber,
+      StateStateId,
+      CityCityId,
+      stateName,
+      cityName,
       modalTitle,
       isLogin,
       strengthBadge,
@@ -395,23 +438,47 @@ export class Home extends Component {
                     <div>
                       <Form.Group size='lg' controlId='email'>
                         <Form.Label>Correo</Form.Label>
-                        <Form.Control autoFocus type='email' value={email} 
-                          onChange={this.onChangeEmail} laceholder='correo@electronico.srv' autoComplete="username"/>
+                        <Form.Control autoFocus type='email' value={email}
+                          onChange={this.onChangeEmail} placeholder='correo@electronico.srv' autoComplete="username" />
                       </Form.Group>
                       {!isLogin ?
                         <div>
                           <Form.Label>Centro Médico</Form.Label>
-                          <Form.Control type='number' className='form-control' value={medicalCenterId} 
-                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico' />
+                          <Form.Control type='number' className='form-control' value={medicalCenterId}
+                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico' onBlur={this.onBlurMedicalCenterId}/>
                           {/* <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' /> */}
                           {medicalCenterNew === 0 ?
                             <div>
-                              <Form.Control type='name' className='form-control' value={medicalCenterName} 
+                              <Form.Control type='name' className='form-control' value={medicalCenterName}
                                 onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' />
+                              <Form.Control type='name' className='form-control' value={medicalCenterAddress} onChange={this.onChangeMedicalCenterAddress}
+                                placeholder='Dirección Centro Médico' />
+                              <Form.Control type='number' className='form-control' value={medicalCenterTelNumber} onChange={this.onChangeMedicalCenterTelNumber}
+                                placeholder='Teléfono Centro Médico' />
+                              <div className="input-group mb-3">
+                                <select className="form-select" value={StateStateId} onChange={this.onChangeState}>
+                                  <option hidden defaultValue>Departamento</option>
+                                  {states.map(sta => <option value={sta.stateId} >
+                                    {sta.stateName}
+                                  </option>)}
+                                </select>
+                                <select className="form-select" value={CityCityId} onChange={this.onChangeCity}>
+                                  <option hidden defaultValue>Municipio</option>
+                                  {cities.map(cit => <option value={cit.cityId} >
+                                    {cit.cityName}
+                                  </option>)}
+                                </select>
+                              </div>
                             </div>
                             :
                             <div>
                               <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterName} readOnly />
+                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterAddress} readOnly />
+                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterTelNumber} readOnly />
+                              <div className="input-group mb-3">
+                                <Form.Control type='name' className='form-control' value={stateName} readOnly />
+                                <Form.Control type='name' className='form-control' value={cityName} readOnly />
+                              </div>
                             </div>
                           }
                         </div>
@@ -426,8 +493,8 @@ export class Home extends Component {
                         <Form.Group size='lg' controlId='passwordAgain'>
                           <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
                           <Form.Label>Confirmar Contraseña</Form.Label>
-                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain} 
-                          placeholder='Confirmar contraseña' autoComplete="username"/>
+                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain}
+                            placeholder='Confirmar contraseña' autoComplete="username" />
                           <div className='ml-3'>
                             <Form.Label>Tipo de Usuario</Form.Label>
                             {['checkbox'].map((type) => (
