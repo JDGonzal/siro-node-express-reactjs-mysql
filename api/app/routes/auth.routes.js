@@ -159,7 +159,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     TokenExternal: await request.body['TokenExternal'],
     medicalCenterId: await request.body['medicalCenterId'],
     medicalCenterName: await request.body['medicalCenterName'],
-    medicalCenterAddress:  await request.body['medicalCenterAddress'],
+    medicalCenterAddress: await request.body['medicalCenterAddress'],
     medicalCenterTelNumber: await request.body['medicalCenterTelNumber'],
     StateStateId: await request.body['StateStateId'],
     CityCityId: await request.body['CityCityId'],
@@ -176,7 +176,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
       jsonValues.RolesArray[2] = 'admin';
     }
   } catch (e) {
-    console.log('RolesArray:',e);
+    console.log('RolesArray:', e);
   };
 
   const schema = {
@@ -185,12 +185,12 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     token: { type: 'string', optional: false, max: '255', min: '60' },
     RolesArray: { type: 'array', optional: false, max: '3', min: '1' },
     TokenExternal: { type: 'string', optional: true },
-    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min:1000, max: 9999999999 },
+    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 9999999999 },
     medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
     medicalCenterAddress: { type: 'string', optional: false, max: '255', min: '8' },
-    medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true , min:1000000, max: 9999999999},
-    StateStateId: { type: 'number', optional: false, positive: true, integer: true , min:1, max: 99},
-    CityCityId: { type: 'number', optional: false, positive: true, integer: true , min:1000, max: 99999},
+    medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
+    StateStateId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99 },
+    CityCityId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 99999 },
   }
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
@@ -338,14 +338,16 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
 });
 
 routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) => {
-  var query = `SELECT COUNT(UserId) as found FROM ${process.env.MYSQL_D_B_}.Users
+  var query = await `SELECT COUNT(UserId) as found, UserId FROM ${process.env.MYSQL_D_B_}.Users
               WHERE token=?`;
   var jsonValues = {
     token: request.body['token'],
+    TokenExternal: request.headers['x-auth-token'],
   };
   console.log('query:', query, '\njsonValues:\n', jsonValues);
   const schema = {
     token: { type: 'string', optional: false, max: '60', min: '8' },
+    TokenExternal: { type: 'string', optional: false, max: '255', min: '8' }
   }
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
@@ -355,8 +357,8 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       errors: validationResponse
     });
   }
-  var arrayValues = Object.values(jsonValues);
-  mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+  var arrayValues =await Object.values(jsonValues);
+  await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
@@ -365,10 +367,11 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       });
     }
     if (rows[0].found > 0) {
+      const userId= rows[0].UserId;
       query = `UPDATE ${process.env.MYSQL_D_B_}.Users
               set token=null,isActive=true,updatedAt=NOW()
               WHERE token=?`;
-
+      console.log(query);
       mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
@@ -381,7 +384,24 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
           message: apiMessage['202'][1],
           ok: true
         });
-
+        
+        fetch(process.env.EMAIL_API_ + 'auth/signup/roleE', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-auth-token': jsonValues.TokenExternal
+          },
+          body: JSON.stringify({
+            userId: userId
+          })
+        })
+          .then(res => res.json())
+          .then((data) => {
+            console.log(data);
+          }, (error) => {
+            console.log(error);
+          });
       });
     } else {
       response.status(409).json({

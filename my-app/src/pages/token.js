@@ -12,6 +12,7 @@ export class Token extends Component {
     }
     this.Token = "";
     this.site = "token";
+    this.failedMessage = 'Se ha presentado una falla.\nPor favor avisarle al administrador.';
   }
 
   updateUser() {
@@ -40,7 +41,7 @@ export class Token extends Component {
           window.location.replace(spl[0]);
         }
       }, (error) => {
-        alert('Failed', error);
+        alert(this.failedMessage);
       });
   }
 

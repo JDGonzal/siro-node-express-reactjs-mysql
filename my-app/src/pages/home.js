@@ -25,7 +25,7 @@ export class Home extends Component {
       medicalCenterId: '',
       medicalCenterName: '',
       medicalCenterAddress: '',
-      medicalCenterTelNumber: 0,
+      medicalCenterTelNumber: '',
       StateStateId: 0,
       CityCityId: 0,
       stateName: '',
@@ -217,6 +217,8 @@ export class Home extends Component {
       medicalCenterName: this.state.medicalCenters.medicalCenterName,
       medicalCenterAddress: this.state.medicalCenters.medicalCenterAddress,
       medicalCenterTelNumber: this.state.medicalCenters.medicalCenterTelNumber,
+      StateStateId: this.state.medicalCenters.StateStateId,
+      CityCityId: this.state.medicalCenters.CityCityId,
     });
   };
 
@@ -259,7 +261,12 @@ export class Home extends Component {
     this.setState({ Admin: e.target.checked });
     // eslint-disable-next-line react/no-direct-mutation-state
     this.state.RolesArray[2] = e.target.checked;
-  }
+    console.log('email',this.state.email.length,'pass',this.state.password.length,
+      'medId',this.state.medicalCenterId.toString().length,'medNa', this.state.medicalCenterName.length,
+      'medAd',this.state.medicalCenterAddress.length ,'medTe',this.state.medicalCenterTelNumber.toString().length ,
+      'compa',this.state.password === this.state.passwordAgain, 'Stre',this.state.strengthBadge ,
+      'Check',(this.state.Viewer || this.state.Editor || this.state.Admin));
+;  }
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -286,8 +293,8 @@ export class Home extends Component {
     return (this.state.isLogin ?
       (this.state.email.length > lim && this.state.password.length > lim) :
       (this.state.email.length > lim && this.state.password.length > lim &&
-        this.state.medicalCenterId.length > lim && this.state.medicalCenterName.length > lim &&
-        this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.length > lim &&
+        this.state.medicalCenterId.toString().length > lim && this.state.medicalCenterName.length > lim &&
+        this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.toString().length > lim &&
         this.state.password === this.state.passwordAgain &&
         this.state.strengthBadge !== 'Débil' &&
         (this.state.Viewer || this.state.Editor || this.state.Admin)));
@@ -445,7 +452,7 @@ export class Home extends Component {
                         <div>
                           <Form.Label>Centro Médico</Form.Label>
                           <Form.Control type='number' className='form-control' value={medicalCenterId}
-                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico' onBlur={this.onBlurMedicalCenterId}/>
+                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico' onBlur={this.onBlurMedicalCenterId} />
                           {/* <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' /> */}
                           {medicalCenterNew === 0 ?
                             <div>
@@ -457,14 +464,14 @@ export class Home extends Component {
                                 placeholder='Teléfono Centro Médico' />
                               <div className="input-group mb-3">
                                 <select className="form-select" value={StateStateId} onChange={this.onChangeState}>
-                                  <option hidden defaultValue>Departamento</option>
-                                  {states.map(sta => <option value={sta.stateId} >
+                                  <option hidden defaultValue value="0" key="0">Departamento</option>
+                                  {states.map(sta => <option value={sta.stateId} key={sta.stateId}>
                                     {sta.stateName}
                                   </option>)}
                                 </select>
                                 <select className="form-select" value={CityCityId} onChange={this.onChangeCity}>
-                                  <option hidden defaultValue>Municipio</option>
-                                  {cities.map(cit => <option value={cit.cityId} >
+                                  <option hidden defaultValue value="0" key="0">Municipio</option>
+                                  {cities.map(cit => <option value={cit.cityId} key={cit.cityId}>
                                     {cit.cityName}
                                   </option>)}
                                 </select>
