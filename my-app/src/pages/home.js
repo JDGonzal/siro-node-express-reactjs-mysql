@@ -213,13 +213,15 @@ export class Home extends Component {
   }
 
   onBlurMedicalCenterId = async (e) => {
-    await this.setState({
-      medicalCenterName: this.state.medicalCenters.medicalCenterName,
-      medicalCenterAddress: this.state.medicalCenters.medicalCenterAddress,
-      medicalCenterTelNumber: this.state.medicalCenters.medicalCenterTelNumber,
-      StateStateId: this.state.medicalCenters.StateStateId,
-      CityCityId: this.state.medicalCenters.CityCityId,
-    });
+    if (await this.state.medicalCenterNew !== 0) {
+      await this.setState({
+        medicalCenterName: this.state.medicalCenters.medicalCenterName,
+        medicalCenterAddress: this.state.medicalCenters.medicalCenterAddress,
+        medicalCenterTelNumber: this.state.medicalCenters.medicalCenterTelNumber,
+        StateStateId: this.state.medicalCenters.StateStateId,
+        CityCityId: this.state.medicalCenters.CityCityId,
+      });
+    }
   };
 
   onChangeMedicalCenterName = async (e) => {
@@ -261,12 +263,14 @@ export class Home extends Component {
     this.setState({ Admin: e.target.checked });
     // eslint-disable-next-line react/no-direct-mutation-state
     this.state.RolesArray[2] = e.target.checked;
-    console.log('email',this.state.email.length,'pass',this.state.password.length,
-      'medId',this.state.medicalCenterId.toString().length,'medNa', this.state.medicalCenterName.length,
-      'medAd',this.state.medicalCenterAddress.length ,'medTe',this.state.medicalCenterTelNumber.toString().length ,
-      'compa',this.state.password === this.state.passwordAgain, 'Stre',this.state.strengthBadge ,
-      'Check',(this.state.Viewer || this.state.Editor || this.state.Admin));
-;  }
+    console.log('email', this.state.email.length, 'pass', this.state.password.length);
+    console.log('medId', this.state.medicalCenterId.toString().length, 'medNa', this.state.medicalCenterName.length);
+    console.log('medAd', this.state.medicalCenterAddress.length, 'medTe', this.state.medicalCenterTelNumber.toString().length);
+    console.log('compa', this.state.password === this.state.passwordAgain, 'Stre', this.state.strengthBadge);
+    console.log('Check', (this.state.Viewer || this.state.Editor || this.state.Admin));
+    console.log('Depar', this.state.StateStateId, 'Ciud', this.state.CityCityId);
+    ;
+  }
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -297,7 +301,8 @@ export class Home extends Component {
         this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.toString().length > lim &&
         this.state.password === this.state.passwordAgain &&
         this.state.strengthBadge !== 'Débil' &&
-        (this.state.Viewer || this.state.Editor || this.state.Admin)));
+        (this.state.Viewer || this.state.Editor || this.state.Admin) &&
+        this.state.StateStateId>1 && this.state.CityCityId >100));
   }
 
   authClick() {
