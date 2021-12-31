@@ -4,7 +4,7 @@ const Validator = require('fastest-validator');
 
 // Import middlewares
 const auth = require('../middleware/auth.js');
-const { admin, editor } = require('../middleware/roles.js');
+const { admin, clinic } = require('../middleware/roles.js');
 const mysqlConnection = require('../utils/database.js');
 const apiMessage = require('../utils/messages.js');
 
@@ -14,8 +14,8 @@ const routeMedicalCenter = express.Router();
 routeMedicalCenter.post('/api/medicalcenter', async (request, response) => {
   var query = `SELECT COUNT(medicalCenterId)as found from ${process.env.MYSQL_D_B_}.medicalCenters
                where medicalCenterId=?`;
-  var values = [parseInt(request.body['medicalCenterId'])];
-  mysqlConnection.query(query, values, function (err, rows, fields) {
+  const values = [parseInt(request.body['medicalCenterId'])];
+  await mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
@@ -23,18 +23,39 @@ routeMedicalCenter.post('/api/medicalcenter', async (request, response) => {
         error: err
       });
     }
-    if (rows[0].found === 0 && values[0] > 0) {
-      query = `INSERT into ${process.env.MYSQL_D_B_}.medicalCenters
-              (createdAt, updatedAt, medicalCenterId, medicalCenterName)
-              VALUE (NOW(), NOW(), ?, ?)`;
-      values = [request.body['medicalCenterId'],
-        request.body['medicalCenterName'],
-        request.body['medicalCenterAddress'],
-        request.body['medicalCenterTelNumber'],
-        request.body['StateStateId'],
-        request.body['CityCityId'],
-      ];
-      mysqlConnection.query(query, values, function (err, rows, fields) {
+    if ( rows[0].found === 0 && values[0] > 0) {
+      query = `INSERT into ${process.env.MYSQL_D_B_}.medicalCenters 
+              (createdAt, updatedAt, medicalCenterId, medicalCenterName, medicalCenterAddress,
+                medicalCenterTelNumber, StateStateId, CityCityId)
+              VALUE (NOW(), NOW(), ?, ?, ?, ?, ?, ?)`;
+
+      var jsonValues = {
+        medicalCenterId: request.body['medicalCenterId'],
+        medicalCenterName: request.body['medicalCenterName'],
+        medicalCenterAddress: request.body['medicalCenterAddress'],
+        medicalCenterTelNumber: request.body['medicalCenterTelNumber'],
+        StateStateId: request.body['StateStateId'],
+        CityCityId: request.body['CityCityId'],
+      };
+      const schema = {
+        medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 9999999999 },
+        medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
+        medicalCenterAddress: { type: 'string', optional: false, max: '255', min: '8' },
+        medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
+        StateStateId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99 },
+        CityCityId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 99999 },
+      }
+      const v = new Validator();
+      const validationResponse = v.validate(jsonValues, schema);
+
+      if (validationResponse !== true) {
+        return response.status(400).json({
+          message: apiMessage['400'][1],
+          errors: validationResponse
+        });
+      };
+      var arrayValues =  Object.values(jsonValues);
+      mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
             message: apiMessage['501'][1],
@@ -111,8 +132,8 @@ routeMedicalCenter.get('/api/medicalcenter/medicalcentername/:id', async (reques
           ok: true,
           found: rows[0].found,
           medicalCenterName: rows[0].medicalCenterName,
-          medicalCenterAddress : rows[0].medicalCenterAddress,
-          medicalCenterTelNumber : rows[0].medicalCenterTelNumber,
+          medicalCenterAddress: rows[0].medicalCenterAddress,
+          medicalCenterTelNumber: rows[0].medicalCenterTelNumber,
           StateStateId: rows[0].StateStateId,
           CityCityId: rows[0].CityCityId
         });

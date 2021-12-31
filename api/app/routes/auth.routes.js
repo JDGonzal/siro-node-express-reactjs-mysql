@@ -10,7 +10,7 @@ const fetch = require('cross-fetch');
 const passwordEncrypt = require('../utils/generatePassword.js');
 const sendEmail = require('../utils/email.js');
 const auth = require('../middleware/auth.js');
-const { admin, editor, viewer } = require('../middleware/roles.js');
+const { admin, clinic, laboratory, viewer } = require('../middleware/roles.js');
 const mysqlConnection = require('../utils/database.js');
 const getToken = require('../utils/getToken.js');
 const apiMessage = require('../utils/messages.js')
@@ -81,8 +81,9 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
     } else {
       let rolesArray = [];
       rows[0].userRole.includes('1') ? rolesArray.push('viewer') : null;
-      rows[0].userRole.includes('2') ? rolesArray.push('editor') : null;
-      rows[0].userRole.includes('3') ? rolesArray.push('admin') : null;
+      rows[0].userRole.includes('2') ? rolesArray.push('clinic') : null;
+      rows[0].userRole.includes('3') ? rolesArray.push('laboratory') : null;
+      rows[0].userRole.includes('4') ? rolesArray.push('admin') : null;
       console.log('role:', rolesArray);
       const token = getToken('8h', rolesArray, rows[0].userId);//Expires in 8 hours
       const centralMedicalsArray = rows[0].userMedicalCenter.split(',');
@@ -170,10 +171,13 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
       jsonValues.RolesArray[0] = 'viewer';
     }
     if (await jsonValues.RolesArray[1] === true) {
-      jsonValues.RolesArray[1] = 'editor';
+      jsonValues.RolesArray[1] = 'clinic';
     }
     if (await jsonValues.RolesArray[2] === true) {
-      jsonValues.RolesArray[2] = 'admin';
+      jsonValues.RolesArray[2] = 'laboratory';
+    }
+    if (await jsonValues.RolesArray[3] === true) {
+      jsonValues.RolesArray[3] = 'admin';
     }
   } catch (e) {
     console.log('RolesArray:', e);
@@ -183,7 +187,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     email: { type: 'string', optional: false, max: '100', min: '5' },
     password: { type: 'string', optional: false, max: '255', min: '60' },
     token: { type: 'string', optional: false, max: '255', min: '60' },
-    RolesArray: { type: 'array', optional: false, max: '3', min: '1' },
+    RolesArray: { type: 'array', optional: false, max: '4', min: '1' },
     TokenExternal: { type: 'string', optional: true },
     medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 9999999999 },
     medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
@@ -286,8 +290,26 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
               console.log(error);
             });
         };
-        console.log('userId: ', userId);
         if (jsonValues.RolesArray[2] && userId > 0) {
+          fetch(process.env.EMAIL_API_ + 'auth/signup/roleL', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'x-auth-token': jsonValues.TokenExternal
+            },
+            body: JSON.stringify({
+              userId: userId
+            })
+          })
+            .then(res => res.json())
+            .then((data) => {
+              console.log(data);
+            }, (error) => {
+              console.log(error);
+            });
+        };
+        if (jsonValues.RolesArray[3] && userId > 0) {
           fetch(process.env.EMAIL_API_ + 'auth/signup/roleA', {
             method: 'POST',
             headers: {
@@ -333,7 +355,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
       password: 'abcd1234',
       firstName: 'firstName',
       lastName: 'lastName',
-      RolesArray: ['asmin','editor','viewer'],
+      RolesArray: ['asmin','clinic','laboratory','viewer'],
       Token: 'abc12de36eer84d'*/
 });
 
@@ -344,7 +366,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
     token: request.body['token'],
     TokenExternal: request.headers['x-auth-token'],
   };
-  console.log('query:', query, '\njsonValues:\n', jsonValues);
+  console.log('query:', query, '\njsonValues:\n', jsonValues );
   const schema = {
     token: { type: 'string', optional: false, max: '60', min: '8' },
     TokenExternal: { type: 'string', optional: false, max: '255', min: '8' }
@@ -402,6 +424,24 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
           }, (error) => {
             console.log(error);
           });
+
+          fetch(process.env.EMAIL_API_ + 'auth/signup/roleL', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'x-auth-token': jsonValues.TokenExternal
+            },
+            body: JSON.stringify({
+              userId: userId
+            })
+          })
+            .then(res => res.json())
+            .then((data) => {
+              console.log(data);
+            }, (error) => {
+              console.log(error);
+            });
       });
     } else {
       response.status(409).json({
@@ -416,7 +456,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       password: 'abcd1234',
       firstName: 'firstName',
       lastName: 'lastName',
-      RolesArray: ['asmin','editor','viewer'],
+      RolesArray: ['asmin','clinic','laboratory','viewer'],
       Token: 'abc12de36eer84d'*/
 });
 

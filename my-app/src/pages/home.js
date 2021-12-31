@@ -33,12 +33,13 @@ export class Home extends Component {
       ok: '',
       strengthBadge: 'Débil',
       backgroundColor: 'input-group-text alert alert-danger ', //'input-group-text m-1 text-centred bg_Débil' 
-      RolesArray: [false, false, false],
-      disabledArray: [false, false, false],
+      RolesArray: [false, false, false, false],
+      disabledArray: [false, false, false, false],
       Viewer: false,
-      Editor: false,
+      Clinic: false,
+      Laboratory: false,
       Admin: false,
-      Token: localStorage.getItem('Token'),
+      Token: JSON.parse(localStorage.getItem("Token")),
       footer: REACT_APP_API_URL,
     };
     this.site = 'auth';
@@ -70,13 +71,14 @@ export class Home extends Component {
       stateName: '',
       cityName: '',
       strengthBadge: 'Débil',
-      RolesArray: [true, false, false],
-      disabledArray: [false, false, false],
-      Viewer: false,
-      Editor: false,
+      RolesArray: [true, false, false, false],
+      disabledArray: [true, true, true, true],
+      Viewer: true,
+      Clinic: false,
+      Laboratory: false,
       Admin: false,
       footer: REACT_APP_API_URL,
-    })
+    });
   }
 
   loginClick() {
@@ -93,9 +95,9 @@ export class Home extends Component {
       medicalCenterTelNumber: 0,
       StateStateId: 0,
       CityCityId: 0,
-      RolesArray: [false, false, false],
+      RolesArray: [false, false, false, false],
       footer: REACT_APP_API_URL,
-    })
+    });
   }
 
   async refreshMedicalCenters() {
@@ -221,6 +223,18 @@ export class Home extends Component {
         StateStateId: this.state.medicalCenters.StateStateId,
         CityCityId: this.state.medicalCenters.CityCityId,
       });
+    };
+    if (await this.state.medicalCenterId !== 0) {
+      try {
+        console.log(this.state.Token['rolesArray']);
+        if (await this.state.Token['rolesArray'].includes('admin')) {
+          await this.setState({ disabledArray: [false, false, false, false] });
+        } else {
+          await this.setState({ disabledArray: [false, false, false, true] });
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
   };
 
@@ -247,27 +261,45 @@ export class Home extends Component {
     console.log(this.state.CityCityId);
   }
 
-  onChangeViewer = (e) => {
-    this.setState({ Viewer: e.target.checked });
+  onChangeViewer = async (e) => {
+    await this.setState({ Viewer: e.target.checked });
     // eslint-disable-next-line react/no-direct-mutation-state
     this.state.RolesArray[0] = e.target.checked;
   }
 
-  onChangeEditor = (e) => {
-    this.setState({ Editor: e.target.checked });
-    // eslint-disable-next-line react/no-direct-mutation-state
-    this.state.RolesArray[1] = e.target.checked;
+  onChangeClinic = async (e) => {
+    await this.setState({
+      Clinic: e.target.checked,
+      Laboratory: !e.target.checked
+    });
+    if (this.state.medicalCenterId !== 0) {
+      // eslint-disable-next-line react/no-direct-mutation-state
+      this.state.RolesArray[1] = e.target.checked;
+      this.state.RolesArray[2] = !e.target.checked;
+    }
   }
 
-  onChangeAdmin = (e) => {
-    this.setState({ Admin: e.target.checked });
+  onChangeLaboratory = async (e) => {
+    await this.setState({
+      Laboratory: e.target.checked,
+      Clinic: !e.target.checked
+    });
+    if (this.state.medicalCenterId !== 0) {
+      // eslint-disable-next-line react/no-direct-mutation-state
+      this.state.RolesArray[2] = e.target.checked;
+      this.state.RolesArray[1] = !e.target.checked;
+    }
+  }
+
+  onChangeAdmin = async (e) => {
+    await this.setState({ Admin: e.target.checked });
     // eslint-disable-next-line react/no-direct-mutation-state
-    this.state.RolesArray[2] = e.target.checked;
+    this.state.RolesArray[3] = await e.target.checked;
     console.log('email', this.state.email.length, 'pass', this.state.password.length);
     console.log('medId', this.state.medicalCenterId.toString().length, 'medNa', this.state.medicalCenterName.length);
     console.log('medAd', this.state.medicalCenterAddress.length, 'medTe', this.state.medicalCenterTelNumber.toString().length);
     console.log('compa', this.state.password === this.state.passwordAgain, 'Stre', this.state.strengthBadge);
-    console.log('Check', (this.state.Viewer || this.state.Editor || this.state.Admin));
+    console.log('Check', (this.state.Viewer || this.state.Clinic || this.state.Laboratory || this.state.Admin));
     console.log('Depar', this.state.StateStateId, 'Ciud', this.state.CityCityId);
     ;
   }
@@ -294,20 +326,25 @@ export class Home extends Component {
 
   validateForm() {
     const lim = 5
-    return (this.state.isLogin ?
-      (this.state.email.length > lim && this.state.password.length > lim) :
-      (this.state.email.length > lim && this.state.password.length > lim &&
-        this.state.medicalCenterId.toString().length > lim && this.state.medicalCenterName.length > lim &&
-        this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.toString().length > lim &&
-        this.state.password === this.state.passwordAgain &&
-        this.state.strengthBadge !== 'Débil' &&
-        (this.state.Viewer || this.state.Editor || this.state.Admin) &&
-        this.state.StateStateId>1 && this.state.CityCityId >100));
+    try {
+      return (this.state.isLogin ?
+        (this.state.email.length > lim && this.state.password.length > lim) :
+        (this.state.email.length > lim && this.state.password.length > lim &&
+          this.state.medicalCenterId.toString().length > lim && this.state.medicalCenterName.length > lim &&
+          this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.toString().length > lim &&
+          this.state.password === this.state.passwordAgain &&
+          this.state.strengthBadge !== 'Débil' &&
+          (this.state.Viewer || this.state.Clinic || this.state.Laboratory || this.state.Admin) &&
+          this.state.StateStateId > 1 && this.state.CityCityId > 1000));
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
   }
 
   authClick() {
     console.log(this.state.modalTitle);
-    console.log(this.state.Viewer, this.state.Editor, this.state.Admin);
+    console.log(this.state.Viewer, this.state.Clinic, this.state.Laboratory, this.state.Admin);
     if (this.state.isLogin) {
       fetch(`${REACT_APP_API_URL}${this.site}/signin`, {
         method: 'POST',
@@ -330,6 +367,7 @@ export class Home extends Component {
               : alert(this.state.auth.message);
           } else {
             localStorage.setItem('Token', JSON.stringify(this.state.auth));
+            this.setState({ Token: JSON.parse(localStorage.getItem("Token")) });
             // eslint-disable-next-line react/no-direct-mutation-state
             this.state.Token = this.state.auth.token;
             alert('Inicio de sesión exitoso \nUsted ya puede acceder los otros sitios.');
@@ -355,9 +393,12 @@ export class Home extends Component {
             this.isFound = this.state.auth.found > 0;
             console.log(this.state.auth.found, this.isFound);
             if (this.isFound) {
-              alert('The email exists');
+              alert('El correo ya existe.');
             };
             if (!this.isFound) {
+              let tokenExternal = '';
+              try { tokenExternal = this.state.Token.token }
+              catch (e) { console.log(e); }
               fetch(`${REACT_APP_API_URL}${this.site}/signup`, {
                 method: 'POST',
                 headers: {
@@ -374,7 +415,7 @@ export class Home extends Component {
                   StateStateId: parseInt(this.state.StateStateId),
                   CityCityId: parseInt(this.state.CityCityId),
                   Roles: this.state.RolesArray,
-                  TokenExternal: this.state.Token,
+                  TokenExternal: tokenExternal,
                 })
               })
                 .then(res => res.json())
@@ -422,7 +463,8 @@ export class Home extends Component {
       strengthBadge,
       backgroundColor,
       Viewer,
-      Editor,
+      Clinic,
+      Laboratory,
       Admin,
       disabledArray,
     } = this.state;
@@ -448,25 +490,28 @@ export class Home extends Component {
                 <div className='Login'>
                   <Form onSubmit={this.handleSubmit}>
                     <div>
-                      <Form.Group size='lg' controlId='email'>
-                        <Form.Label>Correo</Form.Label>
+                      <Form.Group size='lg' controlId='email' className="form-group required">
+                        <Form.Label className='control-label'>Correo</Form.Label>
                         <Form.Control autoFocus type='email' value={email}
-                          onChange={this.onChangeEmail} placeholder='correo@electronico.srv' autoComplete="username" />
+                          onChange={this.onChangeEmail} placeholder='correo@electronico.srv'
+                          autoComplete="username" required="required" />
                       </Form.Group>
                       {!isLogin ?
-                        <div>
-                          <Form.Label>Centro Médico</Form.Label>
+                        <Form.Group size='lg' className="form-group required">
+                          <div className="input-group mb-3"></div>
+                          <Form.Label className='control-label'>Centro Médico</Form.Label>
                           <Form.Control type='number' className='form-control' value={medicalCenterId}
-                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico' onBlur={this.onBlurMedicalCenterId} />
+                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico'
+                            onBlur={this.onBlurMedicalCenterId} required="required" />
                           {/* <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' /> */}
                           {medicalCenterNew === 0 ?
                             <div>
                               <Form.Control type='name' className='form-control' value={medicalCenterName}
                                 onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' />
-                              <Form.Control type='name' className='form-control' value={medicalCenterAddress} onChange={this.onChangeMedicalCenterAddress}
-                                placeholder='Dirección Centro Médico' />
-                              <Form.Control type='number' className='form-control' value={medicalCenterTelNumber} onChange={this.onChangeMedicalCenterTelNumber}
-                                placeholder='Teléfono Centro Médico' />
+                              <Form.Control type='name' className='form-control' value={medicalCenterAddress}
+                                onChange={this.onChangeMedicalCenterAddress} placeholder='Dirección Centro Médico' />
+                              <Form.Control type='number' className='form-control' value={medicalCenterTelNumber}
+                                onChange={this.onChangeMedicalCenterTelNumber} placeholder='Teléfono Centro Médico' />
                               <div className="input-group mb-3">
                                 <select className="form-select" value={StateStateId} onChange={this.onChangeState}>
                                   <option hidden defaultValue value="0" key="0">Departamento</option>
@@ -493,39 +538,48 @@ export class Home extends Component {
                               </div>
                             </div>
                           }
-                        </div>
+
+                        </Form.Group>
                         : null}
-                      <Form.Group size='lg' controlId='password'>
-                        <Form.Label>Contraseña</Form.Label>
+                      <Form.Group size='lg' controlId='password' className="form-group required">
+                        <Form.Label className='control-label'>Contraseña</Form.Label>
                         <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Contraseña'
                           name='password' aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
-                          autoComplete='current-password' spellCheck='false' />
+                          autoComplete='current-password' spellCheck='false' required="required" />
                       </Form.Group>
                       {!isLogin ?
-                        <Form.Group size='lg' controlId='passwordAgain'>
+                        <Form.Group size='lg' controlId='passwordAgain' className="form-group required">
                           <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
-                          <Form.Label>Confirmar Contraseña</Form.Label>
+                          <Form.Label className='control-label'>Confirmar Contraseña</Form.Label>
                           <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain}
-                            placeholder='Confirmar contraseña' autoComplete="username" />
-                          <div className='ml-3'>
-                            <Form.Label>Tipo de Usuario</Form.Label>
-                            {['checkbox'].map((type) => (
-                              <div key={`inline-${type}`} className='mr-3'>
-                                {disabledArray[0] ?
-                                  <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`} disabled /> :
-                                  <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
-                                    onChange={this.onChangeViewer} checked={Viewer} />}
-                                {disabledArray[1] ?
-                                  <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`} disabled /> :
-                                  <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
-                                    onChange={this.onChangeEditor} checked={Editor} />}
-                                {disabledArray[2] ?
-                                  <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-3`} disabled /> :
-                                  <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-3`}
-                                    onChange={this.onChangeAdmin} checked={Admin} />}
-                              </div>
-                            ))}
-                          </div>
+                            placeholder='Confirmar contraseña' autoComplete="current-password" required="required" />
+                          <div className="input-group mb-3"></div>
+                          <Form.Label className='control-label'>Tipo de Usuario</Form.Label>
+                          {['checkbox'].map((type) => (
+                            <div key={`inline-${type}`} className='mr-3'>
+                              {disabledArray[0] ?
+                                <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
+                                  disabled checked={Viewer} required="required" /> :
+                                <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
+                                  onChange={this.onChangeViewer} checked={Viewer} required="required" />}
+                              {disabledArray[1] ?
+                                <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
+                                  disabled checked={Clinic} /> :
+                                <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
+                                  onChange={this.onChangeClinic} checked={Clinic} />}
+                              {disabledArray[2] ?
+                                <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
+                                  disabled checked={Laboratory} /> :
+                                <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
+                                  onChange={this.onChangeLaboratory} checked={Laboratory} />}
+                              {disabledArray[3] ?
+                                <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
+                                  disabled checked={Admin} /> :
+                                <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
+                                  onChange={this.onChangeAdmin} checked={Admin} />}
+                            </div>
+                          ))}
+
                         </Form.Group>
                         : null}
 

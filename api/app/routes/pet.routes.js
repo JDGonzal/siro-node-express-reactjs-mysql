@@ -6,7 +6,7 @@ const Validator = require('fastest-validator');
 
 // Import middlewares
 const auth = require('../middleware/auth.js');
-const { admin, editor, viewer } = require("../middleware/roles.js");
+const { admin, clinic, laboratory, viewer } = require("../middleware/roles.js");
 const mysqlConnection = require('../utils/database.js');
 const apiMessage = require('../utils/messages.js');
 
@@ -25,7 +25,7 @@ routePet.get('/api/pet', [auth, viewer], (request,response)=>{
   // in "Body" use none
 });
 
-routePet.post('/api/pet', [auth, editor], (request,response)=>{
+routePet.post('/api/pet', [auth, clinic], (request,response)=>{
   var query= `INSERT into ${process.env.MYSQL_D_B_}.Pets
               (PetName)
               VALUE (?)`;
@@ -61,7 +61,7 @@ routePet.post('/api/pet', [auth, editor], (request,response)=>{
   // Run again the GET option to check the list of records
 });
 
-routePet.put('/api/pet', [auth, editor], (request,response)=>{
+routePet.put('/api/pet', [auth, clinic], (request,response)=>{
   var query= `UPDATE ${process.env.MYSQL_D_B_}.Pets
                set PetName=? where PetId=?`;
   var jsonValues ={

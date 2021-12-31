@@ -65,6 +65,6 @@ db.medicalCenter.belongsTo(db.state);
 db.city.hasMany(db.medicalCenter);
 db.medicalCenter.belongsTo(db.city);
 
-db.ROLES = ['viewer', 'editor', 'admin'];
+db.ROLES = ['viewer', 'clinic', 'laboratory', 'admin'];
 
 module.exports = db
