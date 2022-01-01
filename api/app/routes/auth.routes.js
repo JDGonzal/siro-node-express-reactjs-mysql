@@ -10,9 +10,10 @@ const fetch = require('cross-fetch');
 const passwordEncrypt = require('../utils/generatePassword.js');
 const sendEmail = require('../utils/email.js');
 const auth = require('../middleware/auth.js');
-const { admin, editor, viewer } = require('../middleware/roles.js');
+const { admin, clinic, laboratory, viewer } = require('../middleware/roles.js');
 const mysqlConnection = require('../utils/database.js');
 const getToken = require('../utils/getToken.js');
+const apiMessage = require('../utils/messages.js')
 
 // Setup the express server routeAuth
 const routeAuth = express.Router();
@@ -41,7 +42,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'La validación Falló',
+      message: apiMessage['400'][1],
       errors: validationResponse
     });
   }
@@ -49,7 +50,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         ok: false,
         error: err
       });
@@ -57,8 +58,8 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
     console.log('row ', rows[0].password, rows[0].isActive);
     //Validate an existing email and password from DB
     if (!rows) {
-      return response.status(400).json({
-        message: 'El correo electrónico o la contraseña están errados.',
+      return response.status(401).json({
+        message: apiMessage['401'][1],
         errors: validationResponse
       });
     }
@@ -66,22 +67,23 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
 
     const isActive = rows[0].isActive;
     if (!isActive === true) {
-      return response.status(400).json({
-        message: 'La cuenta está pendiente por ser activada.'
+      return response.status(511).json({
+        message: apiMessage['511'][1],
       });
     }
     // Compare the password with the password in the database
     const valid = bcrypt.compare(jsonValues.password, rows[0].password);
     if (!valid) {
-      return response.status(400).json({
-        message: 'Dato incorrecto de Contraseña o Correo Electrónico.',
+      return response.status(403).json({
+        message: apiMessage['403'][1],
         errors: validationResponse
       });
     } else {
       let rolesArray = [];
       rows[0].userRole.includes('1') ? rolesArray.push('viewer') : null;
-      rows[0].userRole.includes('2') ? rolesArray.push('editor') : null;
-      rows[0].userRole.includes('3') ? rolesArray.push('admin') : null;
+      rows[0].userRole.includes('2') ? rolesArray.push('clinic') : null;
+      rows[0].userRole.includes('3') ? rolesArray.push('laboratory') : null;
+      rows[0].userRole.includes('4') ? rolesArray.push('admin') : null;
       console.log('role:', rolesArray);
       const token = getToken('8h', rolesArray, rows[0].userId);//Expires in 8 hours
       const centralMedicalsArray = rows[0].userMedicalCenter.split(',');
@@ -112,7 +114,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
   mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         ok: false,
         error: err
       });
@@ -123,7 +125,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
       mysqlConnection.query(query, values, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
-            message: 'Algo ha ido mal...',
+            message: apiMessage['501'][1],
             ok: false,
             error: err
           });
@@ -158,6 +160,10 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     TokenExternal: await request.body['TokenExternal'],
     medicalCenterId: await request.body['medicalCenterId'],
     medicalCenterName: await request.body['medicalCenterName'],
+    medicalCenterAddress: await request.body['medicalCenterAddress'],
+    medicalCenterTelNumber: await request.body['medicalCenterTelNumber'],
+    StateStateId: await request.body['StateStateId'],
+    CityCityId: await request.body['CityCityId'],
   };
   console.log('body:', jsonValues);
   try {
@@ -165,29 +171,36 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
       jsonValues.RolesArray[0] = 'viewer';
     }
     if (await jsonValues.RolesArray[1] === true) {
-      jsonValues.RolesArray[1] = 'editor';
+      jsonValues.RolesArray[1] = 'clinic';
     }
     if (await jsonValues.RolesArray[2] === true) {
-      jsonValues.RolesArray[2] = 'admin';
+      jsonValues.RolesArray[2] = 'laboratory';
+    }
+    if (await jsonValues.RolesArray[3] === true) {
+      jsonValues.RolesArray[3] = 'admin';
     }
   } catch (e) {
-    console.log('RolesArray:',e);
+    console.log('RolesArray:', e);
   };
 
   const schema = {
     email: { type: 'string', optional: false, max: '100', min: '5' },
     password: { type: 'string', optional: false, max: '255', min: '60' },
     token: { type: 'string', optional: false, max: '255', min: '60' },
-    RolesArray: { type: 'array', optional: false, max: '3', min: '1' },
+    RolesArray: { type: 'array', optional: false, max: '4', min: '1' },
     TokenExternal: { type: 'string', optional: true },
-    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true },
-    medicalCenterName: { type: 'string', optional: true },
+    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 9999999999 },
+    medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
+    medicalCenterAddress: { type: 'string', optional: false, max: '255', min: '8' },
+    medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
+    StateStateId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99 },
+    CityCityId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 99999 },
   }
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'La validación falló',
+      message: apiMessage['400'][1],
       errors: validationResponse
     });
   }
@@ -199,7 +212,11 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     },
     body: JSON.stringify({
       medicalCenterId: jsonValues.medicalCenterId,
-      medicalCenterName: jsonValues.medicalCenterName
+      medicalCenterName: jsonValues.medicalCenterName,
+      medicalCenterAddress: jsonValues.medicalCenterAddress,
+      medicalCenterTelNumber: jsonValues.medicalCenterTelNumber,
+      StateStateId: jsonValues.StateStateId,
+      CityCityId: jsonValues.CityCityId,
     })
   })
     .then(res => res.json())
@@ -214,12 +231,12 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         error: err
       });
     }
     response.status(201).json({
-      message: 'Adicionado correctamente',
+      message: apiMessage['201'][1],
       roles: rows
     });
     const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken('12h', jsonValues.RolesArray, 0)}`;
@@ -273,8 +290,26 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
               console.log(error);
             });
         };
-        console.log('userId: ', userId);
         if (jsonValues.RolesArray[2] && userId > 0) {
+          fetch(process.env.EMAIL_API_ + 'auth/signup/roleL', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'x-auth-token': jsonValues.TokenExternal
+            },
+            body: JSON.stringify({
+              userId: userId
+            })
+          })
+            .then(res => res.json())
+            .then((data) => {
+              console.log(data);
+            }, (error) => {
+              console.log(error);
+            });
+        };
+        if (jsonValues.RolesArray[3] && userId > 0) {
           fetch(process.env.EMAIL_API_ + 'auth/signup/roleA', {
             method: 'POST',
             headers: {
@@ -320,60 +355,98 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
       password: 'abcd1234',
       firstName: 'firstName',
       lastName: 'lastName',
-      RolesArray: ['asmin','editor','viewer'],
+      RolesArray: ['asmin','clinic','laboratory','viewer'],
       Token: 'abc12de36eer84d'*/
 });
 
 routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) => {
-  var query = `SELECT COUNT(UserId) as found FROM ${process.env.MYSQL_D_B_}.Users
+  var query = await `SELECT COUNT(UserId) as found, UserId FROM ${process.env.MYSQL_D_B_}.Users
               WHERE token=?`;
   var jsonValues = {
     token: request.body['token'],
+    TokenExternal: request.headers['x-auth-token'],
   };
-  console.log('query:', query, '\njsonValues:\n', jsonValues);
+  console.log('query:', query, '\njsonValues:\n', jsonValues );
   const schema = {
     token: { type: 'string', optional: false, max: '60', min: '8' },
+    TokenExternal: { type: 'string', optional: false, max: '255', min: '8' }
   }
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
     return response.status(400).json({
-      message: 'La validación Falló',
+      message: apiMessage['400'][1],
       errors: validationResponse
     });
   }
-  var arrayValues = Object.values(jsonValues);
-  mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+  var arrayValues =await Object.values(jsonValues);
+  await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
-        message: 'Algo ha ido mal...',
+        message: apiMessage['501'][1],
         ok: false,
         error: err
       });
     }
     if (rows[0].found > 0) {
+      const userId= rows[0].UserId;
       query = `UPDATE ${process.env.MYSQL_D_B_}.Users
               set token=null,isActive=true,updatedAt=NOW()
               WHERE token=?`;
-
+      console.log(query);
       mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
-            message: 'Algo ha ido mal...',
+            message: apiMessage['501'][1],
             ok: false,
             error: err
           });
         }
-        response.status(201).json({
-          message: 'Esta cuenta fue activada correctamente.',
+        response.status(202).json({
+          message: apiMessage['202'][1],
           ok: true
         });
+        
+        fetch(process.env.EMAIL_API_ + 'auth/signup/roleE', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-auth-token': jsonValues.TokenExternal
+          },
+          body: JSON.stringify({
+            userId: userId
+          })
+        })
+          .then(res => res.json())
+          .then((data) => {
+            console.log(data);
+          }, (error) => {
+            console.log(error);
+          });
 
+          fetch(process.env.EMAIL_API_ + 'auth/signup/roleL', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'x-auth-token': jsonValues.TokenExternal
+            },
+            body: JSON.stringify({
+              userId: userId
+            })
+          })
+            .then(res => res.json())
+            .then((data) => {
+              console.log(data);
+            }, (error) => {
+              console.log(error);
+            });
       });
     } else {
-      response.status(501).json({
+      response.status(409).json({
         ok: false,
-        error: 'Error: El usuario no existe o fue activado previamente.'
+        error: apiMessage['409'][1],
       });
     }
   });
@@ -383,7 +456,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       password: 'abcd1234',
       firstName: 'firstName',
       lastName: 'lastName',
-      RolesArray: ['asmin','editor','viewer'],
+      RolesArray: ['asmin','clinic','laboratory','viewer'],
       Token: 'abc12de36eer84d'*/
 });
 

@@ -29,6 +29,8 @@ db.sequelize = sequelize;
 db.user = require('../models/user.model.js')(sequelize, Sequelize);
 db.role = require('../models/role.model.js')(sequelize, Sequelize);
 db.medicalCenter = require('../models/medicalCenter.model.js')(sequelize, Sequelize);
+db.state = require('../models/state.model.js')(sequelize,Sequelize);
+db.city = require('../models/city.model.js')(sequelize,Sequelize);
 
 db.role.belongsToMany(db.user, {
   through: 'user_roles',
@@ -54,6 +56,15 @@ db.user.belongsToMany(db.medicalCenter, {
   otherKey: 'medicalCenterId'
 });
 
-db.ROLES = ['viewer', 'editor', 'admin'];
+db.state.hasMany(db.city);
+db.city.belongsTo(db.state);
+
+db.state.hasMany(db.medicalCenter);
+db.medicalCenter.belongsTo(db.state);
+
+db.city.hasMany(db.medicalCenter);
+db.medicalCenter.belongsTo(db.city);
+
+db.ROLES = ['viewer', 'clinic', 'laboratory', 'admin'];
 
 module.exports = db

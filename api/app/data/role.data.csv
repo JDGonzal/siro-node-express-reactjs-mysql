@@ -1,0 +1,5 @@
+roleId,roleName
+1,"viewer"
+2,"clinic"
+3,"laboratory"
+4,"admin"

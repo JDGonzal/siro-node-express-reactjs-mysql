@@ -8,8 +8,17 @@ function admin(req, res, next) {
   next();
 }
 
-function editor(req, res, next) {
-  if (!req.user.roles.includes("editor")) return res.status(403).send({
+function laboratory(req, res, next) {
+  if (!req.user.roles.includes("laboratory")) return res.status(403).send({
+      ok: false,
+      error: "Access denied."
+  });
+
+  next();
+}
+
+function clinic(req, res, next) {
+  if (!req.user.roles.includes("clinic")) return res.status(403).send({
       ok: false,
       error: "Access denied."
   });
@@ -27,4 +36,4 @@ function viewer(req, res, next) {
   next();
 }
 
-module.exports = { admin, editor, viewer };
+module.exports = { admin, laboratory, clinic, viewer };
