@@ -22,7 +22,13 @@ const routeAuth = express.Router();
 routeAuth.post('/api/auth/signin', async (request, response) => {
   var query = `SELECT COUNT(userId)as found from ${process.env.MYSQL_D_B_}.Users
                where email=?`;
-  var values = [String(request.params.email).toLowerCase()];
+  // Get to user from the database, if the user is not there return error
+  var jsonValues = {
+    email: String(request.body['email']).toLowerCase(),
+    password: request.body['password']
+  };
+  var values = [jsonValues.email];
+  console.log('/api/auth/signin', values);
   mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
@@ -42,11 +48,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
                from ${process.env.MYSQL_D_B_}.Users u
                where email=? or password=?`;
       console.log('/api/auth/signin');
-      // Get to user from the database, if the user is not there return error
-      var jsonValues = {
-        email: String(request.body['email']).toLowerCase(),
-        password: request.body['password']
-      };
+
       const schema = {
         email: { type: 'email', optional: false },
         password: { type: 'string', optional: false, max: '100', min: '6' }
@@ -112,7 +114,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
           console.log(token);
         };
       });
-    }else{
+    } else {
       return response.status(403).json({
         message: apiMessage['403'][1],
         ok: false,
