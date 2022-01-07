@@ -13,7 +13,8 @@ function init_States() {
     for (var i = 0; i < source.length; i++) {
       var stateId = parseInt(source[i]['stateId']),
       stateName = source[i]['stateName'];
-      
+      if (!stateId ) { }
+      else {
       var items = [stateId, stateName];
       mysqlConnection.query(insertStatement, items,
         (err, results, fields) => {
@@ -21,6 +22,7 @@ function init_States() {
             console.log('Unable to insert item at row ', i + 1, '\n', err);
           }
         });
+      }
     }
     console.log(
       `${i} record(s) for "States" table was added successfully`);

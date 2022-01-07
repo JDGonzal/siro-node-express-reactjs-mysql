@@ -1,17 +1,19 @@
 const express = require('express');
 
 // Import middlewares
+const auth = require('../middleware/auth.js');
+const { admin, laboratory, clinic } = require('../middleware/roles.js');
 const mysqlConnection = require('../utils/database.js');
 const apiMessage = require('../utils/messages.js');
 
 // Setup the express server routeRoles
-const routeCity = express.Router();
+const routeBreed = express.Router();
 
-routeCity.get('/api/city/:id', (request, response) => {
-  var query = `SELECT cityId,cityName,IF(MOD(cityId,1000)=1,0,1) as citySort, StateStateId  
-            FROM ${process.env.MYSQL_D_B_}.Cities
-            WHERE StateStateId = ?
-            ORDER BY CitySort, CityName`;
+routeBreed.get('/api/breed/:id', [auth, clinic], (request, response) => {
+  var query = `SELECT breedId,breedName,IF(MOD(breedId,1000)=1,0,1) as breedSort, SpeciesSpeciesId  
+            FROM ${process.env.MYSQL_D_B_}.Breeds
+            WHERE SpeciesSpeciesId = ?
+            ORDER BY breedSort,breedName`;
   var values = [
     parseInt(request.params.id)
   ];
@@ -28,4 +30,4 @@ routeCity.get('/api/city/:id', (request, response) => {
   // in "Body" use none
 });
 
-module.exports = routeCity;
+module.exports = routeBreed;

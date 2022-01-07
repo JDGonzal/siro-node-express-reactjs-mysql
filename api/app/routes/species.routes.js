@@ -1,14 +1,17 @@
 const express = require('express');
 
 // Import middlewares
+const auth = require('../middleware/auth.js');
+const { admin, laboratory, clinic } = require('../middleware/roles.js');
 const mysqlConnection = require('../utils/database.js');
-const apiMessage = require('../utils/messages.js')
-// Setup the express server routeRoles
-const routeState = express.Router();
+const apiMessage = require('../utils/messages.js');
 
-routeState.get('/api/state', (request,response)=>{
-  var query= `SELECT stateId, stateName FROM ${process.env.MYSQL_D_B_}.States
-            ORDER BY stateName`;
+// Setup the express server routeRoles
+const routeSpecies = express.Router();
+
+routeSpecies.get('/api/species', [auth, clinic], async (request,response)=>{
+  var query= `SELECT speciesId, speciesName FROM ${process.env.MYSQL_D_B_}.Species
+            ORDER BY speciesName`;
   mysqlConnection.query(query, (err,rows, fields) =>{
     if (err){
       response.status(501).json({
@@ -22,4 +25,4 @@ routeState.get('/api/state', (request,response)=>{
   // in "Body" use none
 });
 
-module.exports = routeState;
+module.exports = routeSpecies;

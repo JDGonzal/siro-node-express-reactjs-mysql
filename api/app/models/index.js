@@ -31,6 +31,10 @@ db.role = require('../models/role.model.js')(sequelize, Sequelize);
 db.medicalCenter = require('../models/medicalCenter.model.js')(sequelize, Sequelize);
 db.state = require('../models/state.model.js')(sequelize,Sequelize);
 db.city = require('../models/city.model.js')(sequelize,Sequelize);
+db.patientPet = require('../models/patientPet.model.js')(sequelize,Sequelize);
+db.petOwner = require('../models/petOwner.model.js')(sequelize,Sequelize);
+db.species = require('./species.model.js')(sequelize,Sequelize);
+db.breed = require('../models/breed.model.js')(sequelize,Sequelize);
 
 db.role.belongsToMany(db.user, {
   through: 'user_roles',
@@ -64,6 +68,24 @@ db.medicalCenter.belongsTo(db.state);
 
 db.city.hasMany(db.medicalCenter);
 db.medicalCenter.belongsTo(db.city);
+
+db.species.hasMany(db.patientPet);
+db.patientPet.belongsTo(db.species);
+
+db.species.hasMany(db.breed);
+db.breed.belongsTo(db.species);
+
+db.petOwner.hasMany(db.patientPet);
+db.patientPet.belongsTo(db.petOwner);
+
+db.species.hasMany(db.patientPet);
+db.patientPet.belongsTo(db.species);
+
+db.breed.hasMany(db.patientPet);
+db.patientPet.belongsTo(db.breed);
+
+db.medicalCenter.hasMany(db.patientPet);
+db.patientPet.belongsTo(db.medicalCenter);
 
 db.ROLES = ['viewer', 'clinic', 'laboratory', 'admin'];
 

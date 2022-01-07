@@ -25,7 +25,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
                           WHERE ur.userId = u.userId) AS userRole,
                           (SELECT GROUP_CONCAT(um.medicalCenterId SEPARATOR ',')
                             FROM ${process.env.MYSQL_D_B_}.user_medicalcenters um 
-                          WHERE um.userId = u.userId) AS userMedicalCenter
+                          WHERE um.userId = u.userId) AS medicalCenterArray
                from ${process.env.MYSQL_D_B_}.Users u
                where email=? or password=?`;
   console.log('/api/auth/signin');
@@ -35,7 +35,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
     password: request.body['password']
   };
   const schema = {
-    email: { type: 'string', optional: false, max: '100', min: '5' },
+    email: { type: 'email', optional: false},
     password: { type: 'string', optional: false, max: '100', min: '6' }
   }
   const v = new Validator();
@@ -86,12 +86,12 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
       rows[0].userRole.includes('4') ? rolesArray.push('admin') : null;
       console.log('role:', rolesArray);
       const token = getToken('8h', rolesArray, rows[0].userId);//Expires in 8 hours
-      const centralMedicalsArray = rows[0].userMedicalCenter.split(',');
+      const medicalCenterArray = rows[0].medicalCenterArray.split(',');
       response.send({
         ok: true,
         token: token,
         rolesArray: rolesArray,
-        centralMedicalsArray: centralMedicalsArray
+        medicalCenterArray: medicalCenterArray,
       });
       var date = new Date();
       console.log(date.toLocaleString());
@@ -184,14 +184,14 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   };
 
   const schema = {
-    email: { type: 'string', optional: false, max: '100', min: '5' },
-    password: { type: 'string', optional: false, max: '255', min: '60' },
-    token: { type: 'string', optional: false, max: '255', min: '60' },
-    RolesArray: { type: 'array', optional: false, max: '4', min: '1' },
+    email: { type: 'email', optional: false },
+    password: { type: 'string', optional: false, max: 255, min: 60 },
+    token: { type: 'string', optional: false, max: 255, min: 60 },
+    RolesArray: { type: 'array', optional: false, max: 4, min: 1 },
     TokenExternal: { type: 'string', optional: true },
     medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 9999999999 },
-    medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
-    medicalCenterAddress: { type: 'string', optional: false, max: '255', min: '8' },
+    medicalCenterName: { type: 'string', optional: false, max: 255, min: 5 },
+    medicalCenterAddress: { type: 'string', optional: false, max: 255, min: 8 },
     medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
     StateStateId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99 },
     CityCityId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 99999 },

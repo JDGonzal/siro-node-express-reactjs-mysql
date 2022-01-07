@@ -52,6 +52,7 @@ export class Home extends Component {
     this.isFound = true;
     this.stateName = '';
     this.cityName = '';
+    this.lim = 5;
   }
 
   submitClick() {
@@ -206,9 +207,12 @@ export class Home extends Component {
   }
 
   onChangeMedicalCenterId = async (e) => {
-    await this.setState({ medicalCenterId: e.target.value });
+    await this.setState({ medicalCenterId: parseInt(e.target.value) });
+    if (String(this.state.medicalCenterId).length > this.lim){
     await this.refreshMedicalCenters();
+    }
     if (await this.state.medicalCenterNew !== 0) {
+      console.log('onChangeMedicalCenterId');
       await this.refreshStates();
       await this.refreshCities(this.state.medicalCenters.StateStateId);
     }
@@ -247,12 +251,12 @@ export class Home extends Component {
   }
 
   onChangeMedicalCenterTelNumber = async (e) => {
-    await this.setState({ medicalCenterTelNumber: e.target.value });
+    await this.setState({ medicalCenterTelNumber: parseInt(e.target.value) });
   }
 
   onChangeState = async (e) => {
     await this.setState({ StateStateId: e.target.value });
-    console.log(this.state.StateStateId);
+    console.log('onChangeState', this.state.StateStateId);
     await this.refreshCities(this.state.StateStateId);
   }
 
@@ -325,13 +329,12 @@ export class Home extends Component {
   }
 
   validateForm() {
-    const lim = 5
     try {
       return (this.state.isLogin ?
-        (this.state.email.length > lim && this.state.password.length > lim) :
-        (this.state.email.length > lim && this.state.password.length > lim &&
-          this.state.medicalCenterId.toString().length > lim && this.state.medicalCenterName.length > lim &&
-          this.state.medicalCenterAddress.length > lim && this.state.medicalCenterTelNumber.toString().length > lim &&
+        (this.state.email.length > this.lim && this.state.password.length > this.lim) :
+        (this.state.email.length > this.lim && this.state.password.length > this.lim &&
+          String(this.state.medicalCenterId).length > this.lim && this.state.medicalCenterName.length > this.lim &&
+          this.state.medicalCenterAddress.length > this.lim && String(this.state.medicalCenterTelNumber).length > this.lim &&
           this.state.password === this.state.passwordAgain &&
           this.state.strengthBadge !== 'Débil' &&
           (this.state.Viewer || this.state.Clinic || this.state.Laboratory || this.state.Admin) &&

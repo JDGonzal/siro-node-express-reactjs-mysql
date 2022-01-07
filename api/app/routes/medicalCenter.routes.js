@@ -87,7 +87,7 @@ routeMedicalCenter.post('/api/medicalcenter/user', async (request, response) => 
               VALUE (NOW(), NOW(), ?, ?)`;
   var values = [request.body['medicalCenterId'], request.body['userId']];
   console.log('/api/medicalcenter/user');
-  mysqlConnection.query(query, values, function (err, rows, fields) {
+  await mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       console.log(err);
     }
@@ -107,7 +107,24 @@ routeMedicalCenter.get('/api/medicalcenter/medicalcentername/:id', async (reques
     parseInt(request.params.id)
   ];
 
-  mysqlConnection.query(query, values, function (err, rows, fields) {
+  var jsonValues = await{
+    medicalCenterId: parseInt(request.params.id),
+  };
+  const schema = await{
+    medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
+  }
+  const v = await new Validator();
+  const validationResponse = await v.validate(jsonValues, schema);
+  if (await validationResponse !== true) {
+    return response.status(400).json({
+      found:0,
+      message: apiMessage['400'][1],
+      errors: validationResponse
+    });
+  }
+  var arrayValues = await Object.values(jsonValues);
+
+  await mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
@@ -120,7 +137,7 @@ routeMedicalCenter.get('/api/medicalcenter/medicalcentername/:id', async (reques
               medicalCenterTelNumber, StateStateId, CityCityId
               from ${process.env.MYSQL_D_B_}.MedicalCenters
               where medicalCenterId=?`;
-      mysqlConnection.query(query, values, function (err, rows, fields) {
+      mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
         if (err) {
           response.status(501).json({
             message: apiMessage['501'][1],

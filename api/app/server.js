@@ -11,7 +11,7 @@ app.use(cors());
 const init_All = require('./data');
 
 // the next line to call the 'initial()' method to create each role
-init_All();
+//init_All();
 
 // parse requests of content-type - application/json
 app.use(express.json());
@@ -30,7 +30,10 @@ app.use(require('./routes/role.routes.js'));
 app.use(require('./routes/medicalCenter.routes.js'));
 app.use(require('./routes/state.routes.js'));
 app.use(require('./routes/city.routes.js'));
-app.use(require('./routes/pet.routes.js'));
+app.use(require('./routes/patientPet.routes.js'));
+app.use(require('./routes/species.routes.js'));
+app.use(require('./routes/breed.routes.js'));
+app.use(require('./routes/petOwner.routes.js'));
 
 // set port, listen for requests
 const PORT = process.env.PORT || 49146;
