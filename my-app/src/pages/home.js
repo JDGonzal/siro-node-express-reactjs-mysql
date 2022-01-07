@@ -365,6 +365,7 @@ export class Home extends Component {
           this.setState({ auth: data })
           console.log(data);
           if (!this.state.auth.token) {
+            localStorage.removeItem('Token');
             !this.state.auth.message
               ? (!this.state.auth.error ? alert(this.failedMessage) : alert(this.state.auth.error))
               : alert(this.state.auth.message);
@@ -376,6 +377,7 @@ export class Home extends Component {
             alert('Inicio de sesión exitoso \nUsted ya puede acceder los otros sitios.');
           }
         }, (error) => {
+          localStorage.removeItem('Token');
           alert(this.failedMessage);
         });
     } else {

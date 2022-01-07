@@ -15,11 +15,12 @@ export class Pets extends Component {
       breeds: [],
       //Add Modal by each pet 
       modalTitle: '',
+      badToken:true,
       patientPetId: 0,
       patientPetName: '',
       PetOwnerPetOwnerId: '',
       petOwnerName: '',
-      petOwnerNew: false,
+      petOwnerExists: false,
       SpeciesSpeciesId: '',
       BreedBreedId: '',
       patientPetGender: '',
@@ -92,6 +93,8 @@ export class Pets extends Component {
     if (await this.state.Token === undefined || this.state.Token === null) {
       alert(this.alertMessage);
       return false;
+    }else{
+      await this.setState({badToken:false});
     }
     await fetch(REACT_APP_API_URL + this.site + '/get', {
       method: 'POST',
@@ -117,7 +120,9 @@ export class Pets extends Component {
   }
 
   async refreshSpecies() {
-    console.log(`${REACT_APP_API_URL}${this.site2}`);
+    if (await this.state.badToken) {
+      return;
+    }
     await fetch(`${REACT_APP_API_URL}${this.site2}`, {
       method: 'GET',
       headers: {
@@ -177,6 +182,9 @@ export class Pets extends Component {
   }
 
   async refreshPetOwner() {
+    if (await this.state.badToken) {
+      return;
+    }
     await fetch(`${REACT_APP_API_URL}${this.site4}/petownername/${parseInt(this.state.PetOwnerPetOwnerId)}`, {
       method: 'GET',
       headers: {
@@ -190,10 +198,10 @@ export class Pets extends Component {
         if (data.found !== 0) {
           this.setState({
             petOwnerName: data.petOwnerName,
-            petOwnerNew: true,
+            petOwnerExists: true,
           });
         } else {
-          this.setState({ petOwnerNew: false, });
+          this.setState({ petOwnerExists: false, });
         }
       }, (error) => {
         console.log(error);
@@ -222,6 +230,9 @@ export class Pets extends Component {
 
   async componentDidMount() {
     await this.refreshPatientPets();
+    if (await this.state.badToken) {
+      return;
+    }
     await this.refreshSpecies();
     await this.refreshBreeds(this.state.species[1].speciesId);
   }
@@ -312,7 +323,7 @@ export class Pets extends Component {
       patientPetName: '',
       PetOwnerPetOwnerId: '',
       petOwnerName: '',
-      petOwnerNew: false,
+      petOwnerExists: false,
       SpeciesSpeciesId: '',
       BreedBreedId: '',
       patientPetGender: '',
@@ -332,7 +343,7 @@ export class Pets extends Component {
       patientPetName: dep.patientPetName,
       PetOwnerPetOwnerId: dep.PetOwnerPetOwnerId,
       petOwnerName: dep.petOwnerName,
-      petOwnerNew: true,
+      petOwnerExists: true,
       SpeciesSpeciesId: dep.SpeciesSpeciesId,
       patientPetGender: dep.patientPetGender,
       patientPetBirthday: String(dep.patientPetBirthday).substring(0, 10),
@@ -437,12 +448,13 @@ export class Pets extends Component {
       patientPets,
       species,
       breeds,
+      badToken,
       modalTitle,
       patientPetId,
       patientPetName,
       PetOwnerPetOwnerId,
       petOwnerName,
-      petOwnerNew,
+      petOwnerExists,
       SpeciesSpeciesId,
       BreedBreedId,
       patientPetGender,
@@ -458,8 +470,8 @@ export class Pets extends Component {
     return (
       <div>
         <Button type='button' className='btn btn-primary m-2 float-end' data-bs-toggle='modal' data-bs-target='#exampleModal'
-          onClick={() => this.addClick()}>
-          Addicionar Paciente
+          onClick={() => this.addClick()} disabled={badToken}>
+          Adicionar
         </Button>
         <Table className='table table-striped border hover'>
           <thead>
@@ -555,7 +567,7 @@ export class Pets extends Component {
                   <Form.Control type='number' value={PetOwnerPetOwnerId}
                     onChange={this.onChangePetOwnerId} placeholder='ID. del propietario' />
                   <Form.Control type='name' value={petOwnerName}
-                    onChange={this.onChangePetOwnerName} placeholder='Nombre del propietario' readOnly={petOwnerNew} />
+                    onChange={this.onChangePetOwnerName} placeholder='Nombre del propietario' readOnly={petOwnerExists} />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
@@ -596,15 +608,18 @@ export class Pets extends Component {
                     onChange={this.onChangePatientPetWeight} placeholder='Peso grms.' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
-                <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Centro Médico:</Form.Label>
-                  <Form.Control as='select' className="form-select" value={MedicalCenterMedicalCenterId} onChange={this.onChangeMedicalCenterId}>
-                    {Token.medicalCenterArray.map(opt => (
-                      <option value={opt} key={opt}>{opt}</option>
-                    ))}
-                  </Form.Control>
-                  <Form.Control type='name' value={medicalCenterName} readOnly />
-                </Form.Group>
+                {badToken ?
+                  null :
+                  <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
+                    <Form.Label className='input-group-text col-sm-3 col-form-label' >Centro Médico:</Form.Label>
+                    <Form.Control as='select' className="form-select" value={MedicalCenterMedicalCenterId} onChange={this.onChangeMedicalCenterId}>
+                      {Token.medicalCenterArray.map(opt => (
+                        <option value={opt} key={opt}>{opt}</option>
+                      ))}
+                    </Form.Control>
+                    <Form.Control type='name' value={medicalCenterName} readOnly />
+                  </Form.Group>
+                }
                 <pre> </pre>
                 {patientPetId === 0 ?
                   <button type='button' className='btn btn-primary float-start'
