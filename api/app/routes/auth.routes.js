@@ -20,34 +20,16 @@ const routeAuth = express.Router();
 
 // On post
 routeAuth.post('/api/auth/signin', async (request, response) => {
-  var query = `SELECT u.*, (SELECT GROUP_CONCAT(ur.roleId SEPARATOR ',')
-                            FROM ${process.env.MYSQL_D_B_}.user_roles ur 
-                          WHERE ur.userId = u.userId) AS userRole,
-                          (SELECT GROUP_CONCAT(um.medicalCenterId SEPARATOR ',')
-                            FROM ${process.env.MYSQL_D_B_}.user_medicalcenters um 
-                          WHERE um.userId = u.userId) AS userMedicalCenter
-               from ${process.env.MYSQL_D_B_}.Users u
-               where email=? or password=?`;
-  console.log('/api/auth/signin');
+  var query = `SELECT COUNT(userId)as found from ${process.env.MYSQL_D_B_}.Users
+               where email=?`;
   // Get to user from the database, if the user is not there return error
   var jsonValues = {
-    email: request.body['email'].toString().toLowerCase(),
+    email: String(request.body['email']).toLowerCase(),
     password: request.body['password']
   };
-  const schema = {
-    email: { type: 'string', optional: false, max: '100', min: '5' },
-    password: { type: 'string', optional: false, max: '100', min: '6' }
-  }
-  const v = new Validator();
-  const validationResponse = v.validate(jsonValues, schema);
-  if (validationResponse !== true) {
-    return response.status(400).json({
-      message: apiMessage['400'][1],
-      errors: validationResponse
-    });
-  }
-  var arrayValues = Object.values(jsonValues);
-  mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+  var values = [jsonValues.email];
+  console.log('/api/auth/signin', values);
+  mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
@@ -55,49 +37,89 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
         error: err
       });
     }
-    console.log('row ', rows[0].password, rows[0].isActive);
-    //Validate an existing email and password from DB
-    if (!rows) {
-      return response.status(401).json({
-        message: apiMessage['401'][1],
-        errors: validationResponse
-      });
-    }
-    //The user must be active in true 
+    console.log(rows[0]);
+    if (rows[0].found !== 0) {
+      query = `SELECT u.*, (SELECT GROUP_CONCAT(ur.roleId SEPARATOR ',')
+                            FROM ${process.env.MYSQL_D_B_}.user_roles ur 
+                          WHERE ur.userId = u.userId) AS userRole,
+                          (SELECT GROUP_CONCAT(um.medicalCenterId SEPARATOR ',')
+                            FROM ${process.env.MYSQL_D_B_}.user_medicalcenters um 
+                          WHERE um.userId = u.userId) AS medicalCenterArray
+               from ${process.env.MYSQL_D_B_}.Users u
+               where email=? or password=?`;
+      console.log('/api/auth/signin');
 
-    const isActive = rows[0].isActive;
-    if (!isActive === true) {
-      return response.status(511).json({
-        message: apiMessage['511'][1],
-      });
-    }
-    // Compare the password with the password in the database
-    const valid = bcrypt.compare(jsonValues.password, rows[0].password);
-    if (!valid) {
-      return response.status(403).json({
-        message: apiMessage['403'][1],
-        errors: validationResponse
+      const schema = {
+        email: { type: 'email', optional: false },
+        password: { type: 'string', optional: false, max: '100', min: '6' }
+      }
+      const v = new Validator();
+      const validationResponse = v.validate(jsonValues, schema);
+      if (validationResponse !== true) {
+        return response.status(400).json({
+          message: apiMessage['400'][1],
+          errors: validationResponse
+        });
+      }
+      var arrayValues = Object.values(jsonValues);
+      mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+        if (err) {
+          response.status(501).json({
+            message: apiMessage['501'][1],
+            ok: false,
+            error: err
+          });
+        }
+        console.log('row ', rows[0].password, rows[0].isActive);
+        //Validate an existing email and password from DB
+        if (!rows) {
+          return response.status(401).json({
+            message: apiMessage['401'][1],
+            errors: validationResponse
+          });
+        }
+        //The user must be active in true 
+
+        const isActive = rows[0].isActive;
+        if (!isActive === true) {
+          return response.status(511).json({
+            message: apiMessage['511'][1],
+          });
+        }
+        // Compare the password with the password in the database
+        const valid = bcrypt.compare(jsonValues.password, rows[0].password);
+        if (!valid) {
+          return response.status(403).json({
+            message: apiMessage['403'][1],
+            errors: validationResponse
+          });
+        } else {
+          let rolesArray = [];
+          rows[0].userRole.includes('1') ? rolesArray.push('viewer') : null;
+          rows[0].userRole.includes('2') ? rolesArray.push('clinic') : null;
+          rows[0].userRole.includes('3') ? rolesArray.push('laboratory') : null;
+          rows[0].userRole.includes('4') ? rolesArray.push('admin') : null;
+          console.log('role:', rolesArray);
+          const token = getToken('8h', rolesArray, rows[0].userId);//Expires in 8 hours
+          const medicalCenterArray = rows[0].medicalCenterArray.split(',');
+          response.send({
+            ok: true,
+            token: token,
+            rolesArray: rolesArray,
+            medicalCenterArray: medicalCenterArray,
+          });
+          var date = new Date();
+          console.log(date.toLocaleString());
+          console.log(new Date(date.getTime() + 8 * 60 * 60000).toLocaleString());
+          console.log(token);
+        };
       });
     } else {
-      let rolesArray = [];
-      rows[0].userRole.includes('1') ? rolesArray.push('viewer') : null;
-      rows[0].userRole.includes('2') ? rolesArray.push('clinic') : null;
-      rows[0].userRole.includes('3') ? rolesArray.push('laboratory') : null;
-      rows[0].userRole.includes('4') ? rolesArray.push('admin') : null;
-      console.log('role:', rolesArray);
-      const token = getToken('8h', rolesArray, rows[0].userId);//Expires in 8 hours
-      const centralMedicalsArray = rows[0].userMedicalCenter.split(',');
-      response.send({
-        ok: true,
-        token: token,
-        rolesArray: rolesArray,
-        centralMedicalsArray: centralMedicalsArray
+      return response.status(403).json({
+        message: apiMessage['403'][1],
+        ok: false,
       });
-      var date = new Date();
-      console.log(date.toLocaleString());
-      console.log(new Date(date.getTime() + 8 * 60 * 60000).toLocaleString());
-      console.log(token);
-    }
+    };
   });
   // To Test in Postman use POST with this URL 'http://localhost:49146/api/auth/signin
   // in 'Body' use raw and select JSON, put this JSON: 
@@ -109,9 +131,10 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
   var query = `SELECT COUNT(userId)as found from ${process.env.MYSQL_D_B_}.Users
                where email=?`;
   var values = [
-    request.params.email.toString().toLowerCase()
+    String(request.params.email).toLowerCase()
   ];
-  mysqlConnection.query(query, values, function (err, rows, fields) {
+  console.log('/api/auth/signup/', values);
+  await mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
@@ -153,7 +176,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
               (email,password,token,createdAt,updatedAt)
               VALUE (?,?,?,NOW(),NOW())`;
   var jsonValues = {
-    email: await request.body['email'].toString().toLowerCase(),
+    email: await String(request.body['email']).toLowerCase(),
     password: await passwordEncrypt(request.body['password']),
     token: await passwordEncrypt(request.body['email']),
     RolesArray: await request.body['Roles'],
@@ -184,14 +207,14 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   };
 
   const schema = {
-    email: { type: 'string', optional: false, max: '100', min: '5' },
-    password: { type: 'string', optional: false, max: '255', min: '60' },
-    token: { type: 'string', optional: false, max: '255', min: '60' },
-    RolesArray: { type: 'array', optional: false, max: '4', min: '1' },
+    email: { type: 'email', optional: false },
+    password: { type: 'string', optional: false, max: 255, min: 60 },
+    token: { type: 'string', optional: false, max: 255, min: 60 },
+    RolesArray: { type: 'array', optional: false, max: 4, min: 1 },
     TokenExternal: { type: 'string', optional: true },
     medicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 9999999999 },
-    medicalCenterName: { type: 'string', optional: false, max: '255', min: '5' },
-    medicalCenterAddress: { type: 'string', optional: false, max: '255', min: '8' },
+    medicalCenterName: { type: 'string', optional: false, max: 255, min: 5 },
+    medicalCenterAddress: { type: 'string', optional: false, max: 255, min: 8 },
     medicalCenterTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
     StateStateId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99 },
     CityCityId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 99999 },
@@ -366,7 +389,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
     token: request.body['token'],
     TokenExternal: request.headers['x-auth-token'],
   };
-  console.log('query:', query, '\njsonValues:\n', jsonValues );
+  console.log('query:', query, '\njsonValues:\n', jsonValues);
   const schema = {
     token: { type: 'string', optional: false, max: '60', min: '8' },
     TokenExternal: { type: 'string', optional: false, max: '255', min: '8' }
@@ -379,7 +402,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       errors: validationResponse
     });
   }
-  var arrayValues =await Object.values(jsonValues);
+  var arrayValues = await Object.values(jsonValues);
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
@@ -389,7 +412,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
       });
     }
     if (rows[0].found > 0) {
-      const userId= rows[0].UserId;
+      const userId = rows[0].UserId;
       query = `UPDATE ${process.env.MYSQL_D_B_}.Users
               set token=null,isActive=true,updatedAt=NOW()
               WHERE token=?`;
@@ -406,7 +429,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
           message: apiMessage['202'][1],
           ok: true
         });
-        
+
         fetch(process.env.EMAIL_API_ + 'auth/signup/roleE', {
           method: 'POST',
           headers: {
@@ -425,23 +448,23 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
             console.log(error);
           });
 
-          fetch(process.env.EMAIL_API_ + 'auth/signup/roleL', {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'x-auth-token': jsonValues.TokenExternal
-            },
-            body: JSON.stringify({
-              userId: userId
-            })
+        fetch(process.env.EMAIL_API_ + 'auth/signup/roleL', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-auth-token': jsonValues.TokenExternal
+          },
+          body: JSON.stringify({
+            userId: userId
           })
-            .then(res => res.json())
-            .then((data) => {
-              console.log(data);
-            }, (error) => {
-              console.log(error);
-            });
+        })
+          .then(res => res.json())
+          .then((data) => {
+            console.log(data);
+          }, (error) => {
+            console.log(error);
+          });
       });
     } else {
       response.status(409).json({

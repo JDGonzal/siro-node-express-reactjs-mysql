@@ -13,7 +13,8 @@ function init_Roles() {
     for (var i = 0; i < source.length; i++) {
       var roleId = parseInt(source[i]['roleId']),
       roleName = source[i]['roleName']
-      
+      if (!roleName ) { }
+      else {
       var items = [roleId, roleName];
       mysqlConnection.query(insertStatement, items,
         (err, results, fields) => {
@@ -21,6 +22,7 @@ function init_Roles() {
             console.log('Unable to insert item at row ', i + 1, '\n', err);
           }
         });
+      }
     }
     console.log(
       `${i} record(s) for "Roles" table was added successfully`);
