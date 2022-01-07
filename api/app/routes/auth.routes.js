@@ -111,7 +111,8 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
   var values = [
     request.params.email.toString().toLowerCase()
   ];
-  mysqlConnection.query(query, values, function (err, rows, fields) {
+  console.log('/api/auth/signup/',values);
+  await mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],

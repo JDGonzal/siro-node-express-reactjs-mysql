@@ -73,7 +73,7 @@ export class Home extends Component {
       cityName: '',
       strengthBadge: 'Débil',
       RolesArray: [true, false, false, false],
-      disabledArray: [true, true, true, true],
+      disabledArray: [false, false, false, true],
       Viewer: true,
       Clinic: false,
       Laboratory: false,
@@ -97,6 +97,7 @@ export class Home extends Component {
       StateStateId: 0,
       CityCityId: 0,
       RolesArray: [false, false, false, false],
+      disabledArray: [true, true, true, true],
       footer: REACT_APP_API_URL,
     });
   }
@@ -208,8 +209,8 @@ export class Home extends Component {
 
   onChangeMedicalCenterId = async (e) => {
     await this.setState({ medicalCenterId: parseInt(e.target.value) });
-    if (String(this.state.medicalCenterId).length > this.lim){
-    await this.refreshMedicalCenters();
+    if (String(this.state.medicalCenterId).length > this.lim) {
+      await this.refreshMedicalCenters();
     }
     if (await this.state.medicalCenterNew !== 0) {
       console.log('onChangeMedicalCenterId');
@@ -349,37 +350,55 @@ export class Home extends Component {
     console.log(this.state.modalTitle);
     console.log(this.state.Viewer, this.state.Clinic, this.state.Laboratory, this.state.Admin);
     if (this.state.isLogin) {
-      fetch(`${REACT_APP_API_URL}${this.site}/signin`, {
-        method: 'POST',
+      fetch(`${REACT_APP_API_URL}${this.site}/signup/${this.state.email}`, {
+        method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: this.state.email,
-          password: this.state.password
-        })
+        }
       })
         .then(res => res.json())
         .then((data) => {
-          this.setState({ auth: data })
-          console.log(data);
-          if (!this.state.auth.token) {
-            localStorage.removeItem('Token');
-            !this.state.auth.message
-              ? (!this.state.auth.error ? alert(this.failedMessage) : alert(this.state.auth.error))
-              : alert(this.state.auth.message);
-          } else {
-            localStorage.setItem('Token', JSON.stringify(this.state.auth));
-            this.setState({ Token: JSON.parse(localStorage.getItem("Token")) });
-            // eslint-disable-next-line react/no-direct-mutation-state
-            this.state.Token = this.state.auth.token;
-            alert('Inicio de sesión exitoso \nUsted ya puede acceder los otros sitios.');
+          if (data.found > 0) {
+            fetch(`${REACT_APP_API_URL}${this.site}/signin`, {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email: this.state.email,
+                password: this.state.password
+              })
+            })
+              .then(res => res.json())
+              .then((data) => {
+                this.setState({ auth: data })
+                console.log(data);
+                if (!this.state.auth.token) {
+                  localStorage.removeItem('Token');
+                  !this.state.auth.message
+                    ? (!this.state.auth.error ? alert(this.failedMessage) : alert(this.state.auth.error))
+                    : alert(this.state.auth.message);
+                } else {
+                  localStorage.setItem('Token', JSON.stringify(this.state.auth));
+                  this.setState({ Token: JSON.parse(localStorage.getItem("Token")) });
+                  // eslint-disable-next-line react/no-direct-mutation-state
+                  this.state.Token = this.state.auth.token;
+                  alert('Inicio de sesión exitoso \nUsted ya puede acceder los otros sitios.');
+                }
+              }, (error) => {
+                localStorage.removeItem('Token');
+                alert(this.failedMessage);
+              });
+          } else{
+            alert('Usuario no Existe');
           }
         }, (error) => {
           localStorage.removeItem('Token');
           alert(this.failedMessage);
         });
+
     } else {
       fetch(`${REACT_APP_API_URL}${this.site}/signup/${this.state.email}`, {
         method: 'GET',
