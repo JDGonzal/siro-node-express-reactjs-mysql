@@ -2,21 +2,20 @@ module.exports = (sequelize, Sequelize) => {
   const MedicalCenter = sequelize.define('MedicalCenters', {
     medicalCenterId: {
       type: Sequelize.BIGINT,
-      primaryKey: true
+      primaryKey: true,
     },
     medicalCenterName: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: false,
     },
     medicalCenterAddress: { 
       type: Sequelize.STRING,
+      allowNull: false,
     },
 
     medicalCenterTelNumber: { 
       type: Sequelize.BIGINT,
-    },
-    medicalCenterAddress: { 
-      type: Sequelize.STRING,
+      allowNull: false,
     },
   });
 

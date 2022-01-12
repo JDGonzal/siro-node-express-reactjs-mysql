@@ -35,7 +35,13 @@ db.patientPet = require('../models/patientPet.model.js')(sequelize,Sequelize);
 db.petOwner = require('../models/petOwner.model.js')(sequelize,Sequelize);
 db.species = require('./species.model.js')(sequelize,Sequelize);
 db.breed = require('../models/breed.model.js')(sequelize,Sequelize);
+db.patientExam = require('../models/patientExam.model.js')(sequelize,Sequelize);
+db.laboratoryTest = require('../models/laboratoryTest.model.js')(sequelize, Sequelize);
+db.typeOfSample = require('./typeOfSample.model.js')(sequelize, Sequelize);
+db.veterinarian = require('../models/veterinarian.model.js')(sequelize, Sequelize);
+db.testType = require('../models/testType.model.js')(sequelize, Sequelize);
 
+/*============== user_roles =============== */
 db.role.belongsToMany(db.user, {
   through: 'user_roles',
   foreignKey: 'roleId',
@@ -48,6 +54,7 @@ db.user.belongsToMany(db.role, {
   otherKey: 'roleId'
 });
 
+/*=========== user_medicalCenters ============ */
 db.medicalCenter.belongsToMany(db.user, {
   through: 'user_medicalCenters',
   foreignKey: 'medicalCenterId',
@@ -58,6 +65,45 @@ db.user.belongsToMany(db.medicalCenter, {
   through: 'user_medicalCenters',
   foreignKey: 'userId',
   otherKey: 'medicalCenterId'
+});
+
+/*======== PatientExam_TypeOfSamples ========= */
+db.patientExam.belongsToMany(db.typeOfSample, {
+  through: 'PatientExam_TypeOfSamples',
+  foreignKey: 'typeOfSampleId',
+  otherKey: 'patientExamId'
+});
+
+db.typeOfSample.belongsToMany(db.patientExam, {
+  through: 'PatientExam_TypeOfSamples',
+  foreignKey: 'patientExamId',
+  otherKey: 'typeOfSampleId'
+});
+
+/*======== PatientExam_TypeOfSamples ========= */
+db.patientExam.belongsToMany(db.typeOfSample, {
+  through: 'PatientExam_TypeOfSamples',
+  foreignKey: 'typeOfSampleId',
+  otherKey: 'patientExamId'
+});
+
+db.typeOfSample.belongsToMany(db.patientExam, {
+  through: 'PatientExam_TypeOfSamples',
+  foreignKey: 'patientExamId',
+  otherKey: 'typeOfSampleId'
+});
+
+/*======== PatientExam_LaboratoryTests ========= */
+db.patientExam.belongsToMany(db.laboratoryTest, {
+  through: 'PatientExam_LaboratoryTests',
+  foreignKey: 'patientExamId',
+  otherKey: 'laboratoryTestId'
+});
+
+db.laboratoryTest.belongsToMany(db.patientExam, {
+  through: 'PatientExam_LaboratoryTests',
+  foreignKey: 'laboratoryTestId',
+  otherKey: 'patientExamId'
 });
 
 db.state.hasMany(db.city);
@@ -86,6 +132,15 @@ db.patientPet.belongsTo(db.breed);
 
 db.medicalCenter.hasMany(db.patientPet);
 db.patientPet.belongsTo(db.medicalCenter);
+
+db.veterinarian.hasMany(db.patientExam);
+db.patientExam.belongsTo(db.veterinarian);
+
+db.medicalCenter.hasMany(db.patientExam);
+db.patientExam.belongsTo(db.medicalCenter);
+
+db.testType.hasMany(db.laboratoryTest);
+db.laboratoryTest.belongsTo(db.testType);
 
 db.ROLES = ['viewer', 'clinic', 'laboratory', 'admin'];
 

@@ -1,0 +1,176 @@
+laboratoryTestId,laboratoryTestName,TestTypeTestTypeId
+1001,"Ionograma (Sodio, Cloro, Potasio fósforo), calcio sérico y pH",1
+1002,"Ionograma (Sodio, Cloro, Potasio), calcio ionizado y pH",1
+1003,"Ionograma (Sodio, Cloro, Potasio), calcio sérico, calcio ionizado y pH",1
+1004,"Perfil Ionograma de Urgencia: Sodio, Cloro, Potasio, calcio ionizado, calcio sérica, pH, Glucosa, Creatinina, Lactato, Hematocrito y Hemoglobina",1
+2001,"Perfil Prequirúrgico 1 (HLG, ALT, CRE)",2
+2002,"Citoquímico de orina",2
+2003,"Cultivo 1 Oído Bacteriológico + Micológico",2
+2004,"Cultivo 2 Oídos Bacteriológico + Micológico",2
+2005,"Cultivo Bacteriológico De Cualquier Muestra",2
+2006,"Hemoleucograma",2
+2007,"Progesterona",2
+2008,"Citología tumoral/TVT (Tumor Venéreo Transmisible)/PAAF (Punción Aspirada por Aguja Fina)",2
+3001,"Ácido Fólico",3
+3002,"Ácido úrico",3
+3003,"Ácidos Biliares",3
+3004,"ACTH Hormona Adrenocorticótropica",3
+3005,"Albúmina",3
+3006,"Aldosterona",3
+3007,"ALT/GPT",3
+3008,"Amilasa Pancreática",3
+3009,"Análisis de cálculo urinario",3
+3010,"Análisis de líquidos",3
+3011,"Anticuerpos antinucleares ANAs",3
+3012,"AST",3
+3013,"Bilirrubina directa",3
+3014,"Bilirrubina total",3
+3015,"Brucella canis (Anigen)",3
+3016,"BUN",3
+3017,"Calcio ionizado",3
+3018,"Calcio sérico",3
+3019,"Citología de ciclo estral canino",3
+3020,"Citología infecciosa",3
+3021,"Cloro",3
+3022,"Colesterol HDL",3
+3023,"Colesterol total",3
+3024,"Colinesterasa sérica",3
+3025,"Coloración GRAM",3
+3026,"Coloración Kinyoun",3
+3027,"Coloración wright",3
+3028,"Coloración Ziehl-Neelsen",3
+3029,"Coprograma: Coprológico+ azucares reductores + sangre oculta + pH + coloración Gram + coloración Wright",3
+3030,"Coprológico seriado (3 muestras)",3
+3031,"Cortisol",3
+3032,"Cortisol (3 muestras)",3
+3033,"Cortisol en orina",3
+3034,"Cortisol en suero",3
+3035,"Creatinina",3
+3036,"Creatinina en orina",3
+3037,"Creatinina Quinasa fracción MB",3
+3038,"Creatinina Quinasa total CK-CPK",3
+3039,"Deshidrogenasa láctica",3
+3040,"Dímero D",3
+3041,"Eritropoyetina",3
+3042,"Espermograma",3
+3043,"Estradiol",3
+3044,"Exámen directo (cualquier muestra)",3
+3045,"Extendido de sangre periférica para hemoparásitos y Rikettsias",3
+3046,"Fenobarbital",3
+3047,"Ferritina",3
+3048,"Fibrinógeno",3
+3049,"Fosfatasa alcalina",3
+3050,"Fósforo",3
+3051,"Fructosamina",3
+3052,"FSH hormona folículo estimulante",3
+3053,"Gamma Glutamil Transferasa",3
+3054,"Glucosa",3
+3055,"Histopatología",3
+3056,"Hemoglobina glicada",3
+3057,"Hierro",3
+3058,"Hormona de crecimiento",3
+3059,"Hormona estimulante de tiroides TSH especifica canina",3
+3060,"Hormona estimulante de tiroides TSH inespecífica",3
+3061,"Insulina",3
+3062,"Ionograma 1 (Sodio, Cloro, Potasio)",3
+3063,"Ionograma 2 (Sodio, Cloro, Potasio, Fósforo, Calcio sérico)",3
+3064,"LH hormona luteinizante",3
+3065,"Lipasa especifica canina - Vcheck",3
+3066,"Lipasa especifica felina - Vcheck",3
+3067,"Lipasa pancreática no especifica",3
+3068,"Magnesio",3
+3069,"MOQUILLO (Distemper) Canino",3
+3070,"Parathormona",3
+3071,"PARVOVIRUS canino (Anigen)",3
+3072,"PARVOVIRUS+CORONAVIRUS canino (Anigen)",3
+3073,"PCR cuantitativa (Proteína C reactiva)",3
+3074,"PCR específica canina cuantitativa (Proteína C Reactiva)",3
+3075,"Perfil hemoparásitos y Rikettsias (extendido de sangre periferica+ test de Woo+ extendido capa blanca)*",3
+3076,"Plasma rico en plaquetas",3
+3077,"Potasio",3
+3078,"Prolactina",3
+3079,"Proteínas diferenciadas (Albumina-Globulinas-Proteínas totales-Indíce A/G)",3
+3080,"Proteínas en orina",3
+3081,"Proteínas totales séricas",3
+3082,"Pruebas cruzadas de compatibilidad mayor y menor",3
+3083,"Relación cortisol/creatinina en orina",3
+3084,"Relación proteinuria/creatinuria en orina (UPC)",3
+3085,"SDMA+Creatinina (Vcheck)",3
+3086,"SIDA (VIF) y Leucemia felino (Anigen)",3
+3087,"SIDA (VIF)/LEUCEMIA/Dirofilaria Felino IDEXX",3
+3088,"SNAP 4DX IDEXX",3
+3089,"Sodio",3
+3090,"Somatomedina C",3
+3091,"Suero autólogo",3
+3092,"Testosterona libre",3
+3093,"Testosterona total",3
+3094,"Tiempo de Protrombina TP (Comunicarse y programar con el laboratorio)",3
+3095,"Tiempo Parcial de Tromboplastina TPT (Comunicarse y programar con el laboratorio)",3
+3096,"Tiroxina libre T4L",3
+3097,"Tiroxina total T4T especifica canina",3
+3098,"Tiroxina total T4T inespecífica",3
+3099,"Toxoplasma IGG",3
+3100,"Toxoplasma IGM",3
+3101,"Trichograma",3
+3102,"Triglicéridos",3
+3103,"Triyodotironina total T3T",3
+3104,"Troponina I",3
+3105,"Urea",3
+3106,"Vitamina B12 cianocobalamina",3
+3107,"Vitamina D25",3
+4001,"Cultivo Bacteriológico + Micológico De Cualquier Muestra",4
+4002,"Cultivo Micológico (Hongos) Cualquier Muestra",4
+4003,"Cultivo de sangre – Hemocultivo",4
+4004,"Urocultivo (Bacteriológico) + Citoquímico de Orina",4
+4005,"Urocultivo (Bacteriológico)",4
+4006,"Coprocultivo (Bacteriológico)",4
+4007,"Coprocultivo (Bacteriológico) + Coprológico",4
+4008,"Cultivo Micobacterias",4
+4009,"Antibiograma Adicional",4
+4010,"CULTIVO BACTERIAS ANAEROBIAS",4
+4011,"Cultivo Bacteriológico MIC $70.000 (Concentración inhibitoria mínima) Cualquier muestra",4
+5001,"PREQUIRÚRGICO 2 (Hemograma, ALT, Creatinina, TP, TPT)",5
+5002,"COAGULACIÓN (TP, TPT)",5
+5003,"DIAGNÓSTICO PRIMARIO 1 (Hemograma, ALT, Creatinina y Citoquímico o Coprológico o raspado de piel)",5
+5004,"DIAGNÓSTICO PRIMARIO 2 (Hemograma, ALT, Creatinina y 2 exámenes: Coprológico + Raspado de piel ó Coprológico + Citoquímico de orina ó raspado de piel + citoquímico)",5
+5005,"DIAGNÓSTICO PRIMARIO 3 (Hemograma, ALT, FA, Creatinina, Urea)",5
+5006,"CONVULSIVO 1 (Hemograma, Creatinina, Glicemia, BUN, Urea, AST, ALT, Bil T+D, Prot total, FA, Albúmina, GGT",5
+5007,"DERMATOLÓGICO 1 (Raspado de piel + Cultivo bacteriológico con antibiograma + Cultivo micológico)",5
+5008,"DERMATOLÓGICO 2 (Hemograma + Raspado de piel + Cultivo bacteriológico con antibiograma + Cultivo micológico + T4 Libre + Colesterol total)",5
+5009,"DIABÉTICO (Glucosa + Citoquímico de orina + Fructosamina + HBA1C)",5
+5010,"DIGESTIVO (Hemograma, , Coprograma y Parvovirus + Coronavirus canino)",5
+5011,"GERIÁTRICO 1 (Hemograma, ALT, AST, FA, Colesterol Total, Creatinina, Glucosa, Urea, BUN y Citoquímico de orina.)",5
+5012,"HEPÁTICO 1 (ALT + AST ó FA + BIL T + BIL D)",5
+5013,"HEPÁTICO 2 (ALT + AST + FA + BIL T + BIL D + GGT)",5
+5014,"HEPÁTICO 3 (ALT + BIL T + BIL D + Proteínas diferenciadas)",5
+5015,"HEPÁTICO 4 (ALT +AST + FA + BIL T + BIL D +Proteínas diferenciadas + GGT)",5
+5016,"LIPÍDICO 1 (Colesterol total, triglicéridos, HDL, LDL, VLDL)",5
+5017,"PANCREÁTICO 1 (Glicemia + Lipasa específica (canina o felina) + Amilasa)",5
+5018,"RENAL 1 (Hemograma, BUN, Urea, creatinina)",5
+5019,"RENAL 2 (Citoquímico, BUN, Urea y creatinina)",5
+5020,"RENAL 3 (Hemograma, BUN, Urea, Creatinina y Citoquímico)",5
+5021,"RENAL 4 (Hemograma, Creatinina + SDMA (dimetil arginina simétrica))",5
+5022,"RENAL 5 (Hemograma, Creatinina + SDMA (dimetil arginina simétrica), Urea, BUN, Citoquímico)",5
+5023,"TIROIDEO 1 (T4L + Colesterol)",5
+5024,"TIROIDEO 2 (T4L + Colesterol + Triglicéridos)",5
+5025,"TIROIDEO 3 (T4L + T4T + Colesterol +Triglicéridos)",5
+5026,"TIROIDEO 4 (T4L +T4T+TSH no específica)",5
+5027,"TIROIDEO 5 (T4L + T4T específica + Colesterol + Triglicéridos)",5
+5028,"TIROIDEO 6 (T4L + T4T + TSH no específica + Colesterol + Triglicéridos)",5
+5029,"TIROIDEO 7 (T4L + T4T específico + TSH específica + Colesterol + Triglicéridos)",5
+6001,"Tamizaje de intoxicación por warfarínicos",6
+6002,"Antidepresivos triciclicos - TCA",6
+6003,"Anfetamina-AMP",6
+6004,"Barbitúricos - BAR",6
+6005,"Benzodiazepinas - BZO",6
+6006,"Cocaína-COC",6
+6007,"Feniciclidina - PCP",6
+6008,"Marihuana-THC",6
+6009,"Metadona-MTD",6
+6010,"Metanfetamina-MET",6
+6011,"Metilendioximetanfetamina-MDMA",6
+6012,"Morfina-MOP",6
+6013,"Opiato -OPI",6
+6014,"Combinación de 2 pruebas (Toxicología - Confirmar la Combinación con el laboratorio)",6
+6015,"Combinación de 3 pruebas (Toxicología - Confirmar la Combinación con el laboratorio)",6
+6016,"Combinación de 5 pruebas (Toxicología - Confirmar la Combinación con el laboratorio)",6
