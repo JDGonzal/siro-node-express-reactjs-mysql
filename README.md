@@ -83,7 +83,7 @@ To install all the required modules
   git commit -m "yyyymmdd. Some explanation of what and why"
   git push heroku master
   ```
-10. the last command (pus) is gona to run a build into heroku site, then check the logs.
+10. the last command (push) is gona to run a build into heroku site, then check the logs.
   ```bash
   cd ./api
   heroku logs --tail
