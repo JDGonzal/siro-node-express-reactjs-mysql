@@ -41,6 +41,9 @@ export class Home extends Component {
       Admin: false,
       Token: JSON.parse(localStorage.getItem("Token")),
       footer: REACT_APP_API_URL,
+      arrayValidate: [true, true, true, true, true, true],
+      arrayMessages: ['Correo', 'Contraseña', 'Centro Médico', 'Departamento o Ciudad', 'Reescribir Contraseña', 'Tipo de Usuario'],
+      validateMessage: '',
     };
     this.site = 'auth';
     this.site2 = 'medicalcenter';
@@ -79,6 +82,8 @@ export class Home extends Component {
       Laboratory: false,
       Admin: false,
       footer: REACT_APP_API_URL,
+      arrayValidate: [true, true, true, true, true, true],
+      validateMessage: '',
     });
   }
 
@@ -99,6 +104,8 @@ export class Home extends Component {
       RolesArray: [false, false, false, false],
       disabledArray: [true, true, true, true],
       footer: REACT_APP_API_URL,
+      arrayValidate: [true, true, true, true, true, true],
+      validateMessage: '',
     });
   }
 
@@ -194,8 +201,27 @@ export class Home extends Component {
     await this.refreshCities(this.state.states[1].stateId);
   }
 
+  fillValidateMessage() {
+    var st = '';
+    for (var i = 0; i < this.state.arrayValidate.length; i++) {
+      this.state.arrayValidate[i] === false ?
+        st = st + this.state.arrayMessages[i] + ', ' :
+        st = st + '';
+    };
+    st.length > 3 ? st = st.substring(0, st.length - 2) : st = '';
+    st.length > 1 ? st = 'Datos pendientes: ' + st : st = '+'
+    this.setState({ validateMessage: st });
+  }
+
   onChangeEmail = async (e) => {
     await this.setState({ email: e.target.value });
+  }
+
+  onBlurEmail = async (e) => {
+    await this.state.email.length > this.lim ?
+      this.state.arrayValidate[0] = await true :
+      this.state.arrayValidate[0] = await false;
+    await this.fillValidateMessage();
   }
 
   onChangePassword = async (e) => {
@@ -203,12 +229,22 @@ export class Home extends Component {
     await this.StrengthChecker(this.state.password);
   }
 
-  onChangePasswordAgain = async (e) => {
-    await this.setState({ passwordAgain: e.target.value });
+  onBlurPassword = async (e) => {
+    await this.state.password.length > this.lim ?
+      this.state.arrayValidate[1] = await true :
+      this.state.arrayValidate[1] = await false;
+    await this.onBlurEmail();
+    if (await this.state.isLogin === false) {
+      await this.onBlurEmail();
+      await this.onBlurMedicalCenter();
+      await this.onBlurStateCity();
+    }
+    await this.fillValidateMessage();
   }
 
+
   onChangeMedicalCenterId = async (e) => {
-    await this.setState({ medicalCenterId: parseInt(e.target.value) });
+    await this.setState({ medicalCenterId: Math.abs(parseInt(e.target.value)) });
     if (String(this.state.medicalCenterId).length > this.lim) {
       await this.refreshMedicalCenters();
     }
@@ -247,12 +283,22 @@ export class Home extends Component {
     await this.setState({ medicalCenterName: e.target.value });
   }
 
+  onBlurMedicalCenter = async (e) => {
+    await (String(this.state.medicalCenterId).length > this.lim && this.state.medicalCenterName.length > this.lim &&
+      this.state.medicalCenterAddress.length > this.lim && String(this.state.medicalCenterTelNumber).length > this.lim) ||
+      (this.state.medicalCenterNew !== 0) ?
+      this.state.arrayValidate[2] = true :
+      this.state.arrayValidate[2] = false;
+    await this.onBlurEmail();
+    await this.fillValidateMessage();
+  }
+
   onChangeMedicalCenterAddress = async (e) => {
     await this.setState({ medicalCenterAddress: e.target.value });
   }
 
   onChangeMedicalCenterTelNumber = async (e) => {
-    await this.setState({ medicalCenterTelNumber: parseInt(e.target.value) });
+    await this.setState({ medicalCenterTelNumber: Math.abs(parseInt(e.target.value)) });
   }
 
   onChangeState = async (e) => {
@@ -264,6 +310,31 @@ export class Home extends Component {
   onChangeCity = async (e) => {
     await this.setState({ CityCityId: e.target.value });
     console.log(this.state.CityCityId);
+  }
+
+  onBlurStateCity = async (e) => {
+    await this.state.StateStateId > 1 && this.state.CityCityId > 1000 ?
+      this.state.arrayValidate[3] = true :
+      this.state.arrayValidate[3] = false;
+    await this.onBlurEmail();
+    await this.onBlurMedicalCenter();
+    await this.fillValidateMessage();
+  }
+
+  onChangePasswordAgain = async (e) => {
+    await this.setState({ passwordAgain: e.target.value });
+  }
+
+  onBlurPasswordAgain = async (e) => {
+    await this.state.password === this.state.passwordAgain &&
+      this.state.strengthBadge !== 'Débil' ?
+      this.state.arrayValidate[4] = true :
+      this.state.arrayValidate[4] = false;
+    await this.onBlurEmail();
+    await this.onBlurMedicalCenter();
+    await this.onBlurStateCity();
+    await this.onBlurPassword();
+    await this.fillValidateMessage();
   }
 
   onChangeViewer = async (e) => {
@@ -309,6 +380,19 @@ export class Home extends Component {
     ;
   }
 
+  onBlurUserType = async (e) => {
+    await this.state.Clinic || this.state.Laboratory || this.state.Admin ?
+      this.state.arrayValidate[5] = true :
+      this.state.arrayValidate[5] = false;
+    await this.onBlurEmail();
+    await this.onBlurMedicalCenter();
+    await this.onBlurStateCity();
+    await this.onBlurPassword();
+    await this.onBlurPasswordAgain();
+    await this.fillValidateMessage();
+  }
+
+
   handleSubmit = (e) => {
     e.preventDefault();
     console.log('this.handleSubmit');
@@ -338,7 +422,7 @@ export class Home extends Component {
           this.state.medicalCenterAddress.length > this.lim && String(this.state.medicalCenterTelNumber).length > this.lim &&
           this.state.password === this.state.passwordAgain &&
           this.state.strengthBadge !== 'Débil' &&
-          (this.state.Viewer || this.state.Clinic || this.state.Laboratory || this.state.Admin) &&
+          (this.state.Clinic || this.state.Laboratory || this.state.Admin) &&
           this.state.StateStateId > 1 && this.state.CityCityId > 1000));
     } catch (e) {
       console.error(e);
@@ -391,7 +475,7 @@ export class Home extends Component {
                 localStorage.removeItem('Token');
                 alert(this.failedMessage);
               });
-          } else{
+          } else {
             alert('Usuario no Existe');
           }
         }, (error) => {
@@ -486,11 +570,12 @@ export class Home extends Component {
       isLogin,
       strengthBadge,
       backgroundColor,
-      Viewer,
+      //Viewer,
       Clinic,
       Laboratory,
       Admin,
       disabledArray,
+      validateMessage,
     } = this.state;
     return (
       <div>
@@ -516,8 +601,8 @@ export class Home extends Component {
                     <div>
                       <Form.Group size='lg' controlId='email' className="form-group required">
                         <Form.Label className='control-label'>Correo</Form.Label>
-                        <Form.Control autoFocus type='email' value={email}
-                          onChange={this.onChangeEmail} placeholder='correo@electronico.srv'
+                        <Form.Control autoFocus type='email' value={email} placeholder='correo@electronico.srv'
+                          onChange={this.onChangeEmail} onBlur={this.onBlurEmail}
                           autoComplete="username" required="required" />
                       </Form.Group>
                       {!isLogin ?
@@ -530,20 +615,20 @@ export class Home extends Component {
                           {/* <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' /> */}
                           {medicalCenterNew === 0 ?
                             <div>
-                              <Form.Control type='name' className='form-control' value={medicalCenterName}
-                                onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' />
-                              <Form.Control type='name' className='form-control' value={medicalCenterAddress}
-                                onChange={this.onChangeMedicalCenterAddress} placeholder='Dirección Centro Médico' />
-                              <Form.Control type='number' className='form-control' value={medicalCenterTelNumber}
-                                onChange={this.onChangeMedicalCenterTelNumber} placeholder='Teléfono Centro Médico' />
+                              <Form.Control type='name' className='form-control' value={medicalCenterName} placeholder='Nombre Centro Médico'
+                                onChange={this.onChangeMedicalCenterName} onBlur={this.onBlurMedicalCenter} />
+                              <Form.Control type='name' className='form-control' value={medicalCenterAddress} placeholder='Dirección Centro Médico'
+                                onChange={this.onChangeMedicalCenterAddress} onBlur={this.onBlurMedicalCenter} />
+                              <Form.Control type='number' className='form-control' value={medicalCenterTelNumber} placeholder='Teléfono Centro Médico'
+                                onChange={this.onChangeMedicalCenterTelNumber} onBlur={this.onBlurMedicalCenter} />
                               <div className="input-group mb-3">
-                                <select className="form-select" value={StateStateId} onChange={this.onChangeState}>
+                                <select className="form-select" value={StateStateId} onChange={this.onChangeState} onBlur={this.onBlurStateCity}>
                                   <option hidden defaultValue value="0" key="0">Departamento</option>
                                   {states.map(sta => <option value={sta.stateId} key={sta.stateId}>
                                     {sta.stateName}
                                   </option>)}
                                 </select>
-                                <select className="form-select" value={CityCityId} onChange={this.onChangeCity}>
+                                <select className="form-select" value={CityCityId} onChange={this.onChangeCity} onBlur={this.onBlurStateCity}>
                                   <option hidden defaultValue value="0" key="0">Municipio</option>
                                   {cities.map(cit => <option value={cit.cityId} key={cit.cityId}>
                                     {cit.cityName}
@@ -553,12 +638,17 @@ export class Home extends Component {
                             </div>
                             :
                             <div>
-                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterName} readOnly />
-                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterAddress} readOnly />
-                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterTelNumber} readOnly />
+                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterName} readOnly
+                                onBlur={this.onBlurMedicalCenter} />
+                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterAddress} readOnly
+                                onBlur={this.onBlurMedicalCenter} />
+                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterTelNumber} readOnly
+                                onBlur={this.onBlurMedicalCenter} />
                               <div className="input-group mb-3">
-                                <Form.Control type='name' className='form-control' value={stateName} readOnly />
-                                <Form.Control type='name' className='form-control' value={cityName} readOnly />
+                                <Form.Control type='name' className='form-control' value={stateName} readOnly
+                                  onBlur={this.onBlurStateCity} />
+                                <Form.Control type='name' className='form-control' value={cityName} readOnly
+                                  onBlur={this.onBlurStateCity} />
                               </div>
                             </div>
                           }
@@ -569,38 +659,39 @@ export class Home extends Component {
                         <Form.Label className='control-label'>Contraseña</Form.Label>
                         <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Contraseña'
                           name='password' aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
-                          autoComplete='current-password' spellCheck='false' required="required" />
+                          autoComplete='current-password' spellCheck='false' required="required" onBlur={this.onBlurPassword} />
                       </Form.Group>
                       {!isLogin ?
                         <Form.Group size='lg' controlId='passwordAgain' className="form-group required">
                           <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
                           <Form.Label className='control-label'>Confirmar Contraseña</Form.Label>
-                          <Form.Control type='password' value={passwordAgain} onChange={this.onChangePasswordAgain}
-                            placeholder='Confirmar contraseña' autoComplete="current-password" required="required" />
+                          <Form.Control type='password' value={passwordAgain} placeholder='Confirmar contraseña'
+                            autoComplete="current-password" required="required"
+                            onChange={this.onChangePasswordAgain} onBlur={this.onBlurPasswordAgain} />
                           <div className="input-group mb-3"></div>
                           <Form.Label className='control-label'>Tipo de Usuario</Form.Label>
                           {['checkbox'].map((type) => (
                             <div key={`inline-${type}`} className='mr-3'>
-                              {disabledArray[0] ?
+                              {/*disabledArray[0] ?
                                 <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
                                   disabled checked={Viewer} required="required" /> :
                                 <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
-                                  onChange={this.onChangeViewer} checked={Viewer} required="required" />}
+                              onChange={this.onChangeViewer} checked={Viewer} required="required" />*/}
                               {disabledArray[1] ?
                                 <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
                                   disabled checked={Clinic} /> :
                                 <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
-                                  onChange={this.onChangeClinic} checked={Clinic} />}
+                                  onChange={this.onChangeClinic} checked={Clinic} onBlur={this.onBlurUserType} />}
                               {disabledArray[2] ?
                                 <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
                                   disabled checked={Laboratory} /> :
                                 <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
-                                  onChange={this.onChangeLaboratory} checked={Laboratory} />}
+                                  onChange={this.onChangeLaboratory} checked={Laboratory} onBlur={this.onBlurUserType} />}
                               {disabledArray[3] ?
                                 <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
                                   disabled checked={Admin} /> :
                                 <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
-                                  onChange={this.onChangeAdmin} checked={Admin} />}
+                                  onChange={this.onChangeAdmin} checked={Admin} onBlur={this.onBlurUserType} />}
                             </div>
                           ))}
 
@@ -623,7 +714,7 @@ export class Home extends Component {
               </div>
               <div className='modal-footer'>
                 <OverlayTrigger placement="top" delay={{ show: 250, hide: 400 }} overlay={this.renderTooltip()}>
-                  <Form.Label>+</Form.Label>
+                  <Form.Label>{validateMessage}</Form.Label>
                 </OverlayTrigger>
               </div>
             </div>
