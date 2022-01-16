@@ -15,7 +15,7 @@ export class Pets extends Component {
       breeds: [],
       //Add Modal by each pet 
       modalTitle: '',
-      badToken:true,
+      badToken: true,
       patientPetId: 0,
       patientPetName: '',
       PetOwnerPetOwnerId: '',
@@ -29,11 +29,13 @@ export class Pets extends Component {
       patientPetWeight: '',
       MedicalCenterMedicalCenterId: '',
       medicalCenterName: '',
-
       PetNameFilter: '',
       PetOwnerFilter: '',
       petsWithoutFilter: [],
-      Token: JSON.parse(localStorage.getItem('Token'))
+      Token: JSON.parse(localStorage.getItem('Token')),
+      arrayValidate: [true, true, true, true, true, true, true, true],
+      arrayMessages: ['Paciente', 'Propietario', 'Especie', 'Raza', 'Nacimiento', 'Género', 'Altura', 'Peso'],
+      validateMessage: '',
     }
     this.site = 'patientpet';
     this.site2 = 'species';
@@ -93,9 +95,7 @@ export class Pets extends Component {
     if (await this.state.Token === undefined || this.state.Token === null) {
       alert(this.alertMessage);
       return false;
-    }else{
-      await this.setState({badToken:false});
-    }
+    };
     await fetch(REACT_APP_API_URL + this.site + '/get', {
       method: 'POST',
       headers: {
@@ -113,16 +113,13 @@ export class Pets extends Component {
           alert(this.alertMessage);
           return false;
         }
-        this.setState({ patientPets: data, petsWithoutFilter: data });
-        console.log(this.patientPets, data, this.petsWithoutFilter);
+        this.setState({ patientPets: data, petsWithoutFilter: data, badToken: false });
+        console.log('patientPets:', this.patientPets, data, this.petsWithoutFilter);
         return true;
       })
   }
 
   async refreshSpecies() {
-    if (await this.state.badToken) {
-      return;
-    }
     await fetch(`${REACT_APP_API_URL}${this.site2}`, {
       method: 'GET',
       headers: {
@@ -182,9 +179,6 @@ export class Pets extends Component {
   }
 
   async refreshPetOwner() {
-    if (await this.state.badToken) {
-      return;
-    }
     await fetch(`${REACT_APP_API_URL}${this.site4}/petownername/${parseInt(this.state.PetOwnerPetOwnerId)}`, {
       method: 'GET',
       headers: {
@@ -230,19 +224,38 @@ export class Pets extends Component {
 
   async componentDidMount() {
     await this.refreshPatientPets();
-    if (await this.state.badToken) {
-      return;
+    console.log('wasOk', this.state.badToken);
+    if (await this.state.badToken === false) {
+      await this.refreshSpecies();
+      await this.refreshBreeds(this.state.species[1].speciesId);
     }
-    await this.refreshSpecies();
-    await this.refreshBreeds(this.state.species[1].speciesId);
+  }
+
+  fillValidateMessage() {
+    var st = '';
+    for (var i = 0; i < this.state.arrayValidate.length; i++) {
+      this.state.arrayValidate[i] === false ?
+        st = st + this.state.arrayMessages[i] + ', ' :
+        st = st + '';
+    };
+    st.length > 3 ? st = st.substring(0, st.length - 2) : st = '';
+    st.length > 1 ? st = 'Datos pendientes: ' + st : st = '+'
+    this.setState({ validateMessage: st });
   }
 
   onChangePatientPetName = async (e) => {
     await this.setState({ patientPetName: e.target.value });
   }
 
+  onBlurPatientPetName = async (e) => {
+    await this.state.patientPetName.length > this.lim - 3 ?
+      this.state.arrayValidate[0] = await true :
+      this.state.arrayValidate[0] = await false;
+    await this.fillValidateMessage();
+  }
+
   onChangePetOwnerId = async (e) => {
-    await this.setState({ PetOwnerPetOwnerId: parseInt(e.target.value) });
+    await this.setState({ PetOwnerPetOwnerId: Math.abs(parseInt(e.target.value)) });
     if (await this.state.PetOwnerPetOwnerId.toString().length > this.lim) {
       await this.refreshPetOwner();
     }
@@ -250,6 +263,14 @@ export class Pets extends Component {
 
   onChangePetOwnerName = async (e) => {
     await this.setState({ petOwnerName: e.target.value });
+  }
+
+  onBlurPetOwner = async (e) => {
+    await this.state.petOwnerName.length > this.lim && String(this.state.PetOwnerPetOwnerId).length > this.lim ?
+      this.state.arrayValidate[1] = await true :
+      this.state.arrayValidate[1] = await false;
+    await this.onBlurPatientPetName()
+    await this.fillValidateMessage();
   }
 
   onChangeSpeciesId = async (e) => {
@@ -260,8 +281,27 @@ export class Pets extends Component {
     await this.refreshBreeds(this.state.SpeciesSpeciesId);
   }
 
+  onBlurSpeciesId = async (e) => {
+    await parseInt(this.state.SpeciesSpeciesId) > 0 ?
+      this.state.arrayValidate[2] = await true :
+      this.state.arrayValidate[2] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurPetOwner();
+    await this.fillValidateMessage();
+  }
+
   onChangeBreedId = async (e) => {
     await this.setState({ BreedBreedId: e.target.value });
+  }
+
+  onBlurBreedId = async (e) => {
+    await parseInt(this.state.BreedBreedId) > 0 ?
+      this.state.arrayValidate[3] = await true :
+      this.state.arrayValidate[3] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurPetOwner();
+    await this.onBlurSpeciesId();
+    await this.fillValidateMessage();
   }
 
   onChangePatientPetBirthday = async (e) => {
@@ -269,51 +309,83 @@ export class Pets extends Component {
     console.log('patientPetBirthday:', this.state.patientPetBirthday);
   }
 
-  onChangepatientPetGender = async (e) => {
-    console.log(e);
-    var gender
-    if (await e.target.id === 'inline-radio-1') {
-      gender = 'M';
-    } else {
-      gender = 'F';
-    }
-    await this.setState({ patientPetGender: gender });
-  }
-
-  onChangePatientPetHeight = async (e) => {
-    await this.setState({ patientPetHeight: parseInt(e.target.value) });
-  }
-
-  onChangePatientPetWeight = async (e) => {
-    await this.setState({ patientPetWeight: parseInt(e.target.value) });
-  }
-
-  onChangeMedicalCenterId = async (e) => {
-    await this.setState({ MedicalCenterMedicalCenterId: e.target.value });
-  }
-
-  validateForm() {
+  onBlurPatientPetBirthday = async (e) => {
     const maxDate = new Date();
     maxDate.setHours(0, 0, 0, 0);
     maxDate.setDate(maxDate.getDate() + 1);
     const minDate = new Date();
     minDate.setDate(minDate.getDate() - 40 * 365.25);
-    /*console.log(this.state.patientPetName.length, this.state.petOwnerName.length, '\n',
-      String(this.state.PetOwnerPetOwnerId).length, this.state.patientPetGender, '\n',
-      this.state.SpeciesSpeciesId, this.state.BreedBreedId, '\n',
-      this.state.patientPetBirthday, this.state.patientPetHeight, this.state.patientPetWeight);*/
-    try {
-      return (
-        this.state.patientPetName.length > this.lim - 3 && this.state.petOwnerName.length > this.lim &&
-        String(this.state.PetOwnerPetOwnerId).length > this.lim && this.state.patientPetGender !== '' &&
-        parseInt(this.state.SpeciesSpeciesId) > 0 && parseInt(this.state.BreedBreedId) > 1000 &&
-        this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') && this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA') &&
-        parseInt(this.state.patientPetHeight) > 1 && parseInt(this.state.patientPetWeight) > 1
-      );
-    } catch (e) {
-      console.error(e);
-      return false;
+    await this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') &&
+      this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA') ?
+      this.state.arrayValidate[4] = await true :
+      this.state.arrayValidate[4] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurPetOwner();
+    await this.onBlurSpeciesId();
+    await this.onBlurBreedId();
+    await this.fillValidateMessage();
+  }
+
+  onChangePatientPetGender = async (e) => {
+    console.log(e);
+    var gender
+    if (await e.target.id === 'inline-radio-1') {
+      gender = 'M';
+    } else {
+      gender = 'H';
     }
+    await this.setState({ patientPetGender: gender });
+  }
+
+  onBlurPatientPetGender = async (e) => {
+    await (this.state.patientPetGender==='M'||this.state.patientPetGender==='H')?
+      this.state.arrayValidate[5] = await true :
+      this.state.arrayValidate[5] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurPetOwner();
+    await this.onBlurSpeciesId();
+    await this.onBlurBreedId();
+    await this.onBlurPatientPetBirthday();
+    await this.fillValidateMessage();
+  }
+
+  onChangePatientPetHeight = async (e) => {
+    await this.setState({ patientPetHeight: Math.abs(parseInt(e.target.value)) });
+  }
+
+  onBlurPatientPetHeight = async (e) => {
+    await parseInt(this.state.patientPetHeight) > 1?
+      this.state.arrayValidate[6] = await true :
+      this.state.arrayValidate[6] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurPetOwner();
+    await this.onBlurSpeciesId();
+    await this.onBlurBreedId();
+    await this.onBlurPatientPetBirthday();
+    await this.onBlurPatientPetGender();
+    await this.fillValidateMessage();
+  }
+
+  onChangePatientPetWeight = async (e) => {
+    await this.setState({ patientPetWeight: Math.abs(parseInt(e.target.value)) });
+  }
+
+  onBlurPatientPetWeight = async (e) => {
+    await parseInt(this.state.patientPetWeight) > 1?
+      this.state.arrayValidate[7] = await true :
+      this.state.arrayValidate[7] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurPetOwner();
+    await this.onBlurSpeciesId();
+    await this.onBlurBreedId();
+    await this.onBlurPatientPetBirthday();
+    await this.onBlurPatientPetGender();
+    await this.onBlurPatientPetHeight();
+    await this.fillValidateMessage();
+  }
+
+  onChangeMedicalCenterId = async (e) => {
+    await this.setState({ MedicalCenterMedicalCenterId: e.target.value });
   }
 
   async addClick() {
@@ -331,7 +403,8 @@ export class Pets extends Component {
       patientPetHeight: '',
       patientPetWeight: '',
       MedicalCenterMedicalCenterId: this.state.Token.medicalCenterArray[0],
-
+      validateMessage: '',
+      arrayValidate: [true, true, true, true, true, true, true, true],
     });
     this.refreshMedicalCenters();
   }
@@ -350,6 +423,8 @@ export class Pets extends Component {
       patientPetHeight: dep.patientPetHeight,
       patientPetWeight: dep.patientPetWeight,
       MedicalCenterMedicalCenterId: dep.MedicalCenterMedicalCenterId,
+      validateMessage: '',
+      arrayValidate: [true, true, true, true, true, true, true, true],
     });
     await this.refreshBreeds(this.state.SpeciesSpeciesId);
     await this.setState({
@@ -443,6 +518,31 @@ export class Pets extends Component {
     }
   }
 
+  validateForm() {
+    const maxDate = new Date();
+    maxDate.setHours(0, 0, 0, 0);
+    maxDate.setDate(maxDate.getDate() + 1);
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() - 40 * 365.25);
+    /*console.log(this.state.patientPetName.length, this.state.petOwnerName.length, '\n',
+      String(this.state.PetOwnerPetOwnerId).length, this.state.patientPetGender, '\n',
+      this.state.SpeciesSpeciesId, this.state.BreedBreedId, '\n',
+      this.state.patientPetBirthday, this.state.patientPetHeight, this.state.patientPetWeight);*/
+    try {
+      return (
+        this.state.patientPetName.length > this.lim - 3 && this.state.petOwnerName.length > this.lim &&
+        String(this.state.PetOwnerPetOwnerId).length > this.lim && this.state.patientPetGender !== '' &&
+        parseInt(this.state.SpeciesSpeciesId) > 0 && parseInt(this.state.BreedBreedId) > 1000 &&
+        this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') && this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA') &&
+        (this.state.patientPetGender==='M'||this.state.patientPetGender==='H')&&
+        parseInt(this.state.patientPetHeight) > 1 && parseInt(this.state.patientPetWeight) > 1
+      );
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
   render() {
     const {
       patientPets,
@@ -464,7 +564,7 @@ export class Pets extends Component {
       MedicalCenterMedicalCenterId,
       medicalCenterName,
       Token,
-
+      validateMessage,
     } = this.state;
 
     return (
@@ -558,27 +658,29 @@ export class Pets extends Component {
               <div className='modal-body'>
                 <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Nombre del Paciente:</Form.Label>
-                  <Form.Control type='name' value={patientPetName}
-                    onChange={this.onChangePatientPetName} placeholder='Nombre del paciente' />
+                  <Form.Control type='name' value={patientPetName} placeholder='Nombre del paciente'
+                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Propietario:</Form.Label>
-                  <Form.Control type='number' value={PetOwnerPetOwnerId}
-                    onChange={this.onChangePetOwnerId} placeholder='ID. del propietario' />
-                  <Form.Control type='name' value={petOwnerName}
-                    onChange={this.onChangePetOwnerName} placeholder='Nombre del propietario' readOnly={petOwnerExists} />
+                  <Form.Control type='number' value={PetOwnerPetOwnerId} placeholder='ID. del propietario'
+                    onChange={this.onChangePetOwnerId} onBlur={this.onBlurPetOwner} />
+                  <Form.Control type='name' value={petOwnerName} placeholder='Nombre del propietario'
+                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Especie y Raza:</Form.Label>
-                  <Form.Control as='select' className="form-select" value={SpeciesSpeciesId} onChange={this.onChangeSpeciesId}>
+                  <Form.Control as='select' className="form-select" value={SpeciesSpeciesId}
+                    onChange={this.onChangeSpeciesId} onBlur={this.onBlurSpeciesId}>
                     <option hidden defaultValue value="0" key="0">Especie</option>
                     {species.map(spe => <option value={spe.speciesId} key={spe.speciesId}>
                       {spe.speciesName}
                     </option>)}
                   </Form.Control>
-                  <Form.Control as='select' className="form-select" value={BreedBreedId} onChange={this.onChangeBreedId}>
+                  <Form.Control as='select' className="form-select" value={BreedBreedId}
+                    onChange={this.onChangeBreedId} onBlur={this.onBlurBreedId}>
                     <option hidden defaultValue value="0" key="0">Raza</option>
                     {breeds.map(bre => <option value={bre.breedId} key={bre.breedId}>
                       {bre.breedName}
@@ -589,23 +691,23 @@ export class Pets extends Component {
                 <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Fecha Nacimiento:</Form.Label>
                   <Form.Control type='date' value={patientPetBirthday} data-date-format="dd/MM/yyyy"
-                    onChange={this.onChangePatientPetBirthday} />
+                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday}/>
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Género:</Form.Label>
                   <div key={`inline-radio`} className='mr-3'>
-                    <Form.Check inline label='Masculino' name='group1' type='radio' id={`inline-radio-1`}
-                      checked={patientPetGender === 'M'} onChange={this.onChangepatientPetGender} required="required" />
-                    <Form.Check inline label='Femenino' name='group1' type='radio' id={`inline-radio-2`}
-                      checked={patientPetGender === 'F'} onChange={this.onChangepatientPetGender} required="required" />
+                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required="required" 
+                      checked={patientPetGender === 'M'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
+                    <Form.Check inline label='Hembra' name='group1' type='radio' id={`inline-radio-2`} required="required"
+                      checked={patientPetGender === 'H'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
                   </div>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Altura en centímetros:</Form.Label>
-                  <Form.Control type='number' value={patientPetHeight}
-                    onChange={this.onChangePatientPetHeight} placeholder='Alzada a la cruz' />
+                  <Form.Control type='number' value={patientPetHeight} placeholder='Alzada a la cruz'
+                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} />
                   <Form.Label className='input-group-text col-sm-3 col-form-label' >Peso en gramos:</Form.Label>
-                  <Form.Control type='number' value={patientPetWeight}
-                    onChange={this.onChangePatientPetWeight} placeholder='Peso grms.' />
+                  <Form.Control type='number' value={patientPetWeight} placeholder='Peso grms.' 
+                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 {badToken ?
@@ -629,6 +731,9 @@ export class Pets extends Component {
                   <button type='button' className='btn btn-primary float-start'
                     onClick={() => this.updateClick()} disabled={!this.validateForm()}>Modificar</button> : null
                 }
+              </div>
+              <div className='modal-footer'>
+                <Form.Label>{validateMessage}</Form.Label>
               </div>
             </div>
           </div>
