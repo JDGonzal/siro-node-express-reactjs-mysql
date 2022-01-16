@@ -259,7 +259,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
       });
     }
     response.status(201).json({
-      message: apiMessage['201'][1],
+      message: apiMessage['201'][1]+'\n'+apiMessage['204'][1],
       roles: rows
     });
     const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken('12h', jsonValues.RolesArray, 0)}`;
@@ -425,8 +425,8 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
             error: err
           });
         }
-        response.status(202).json({
-          message: apiMessage['202'][1],
+        response.status(203).json({
+          message: apiMessage['203'][1],
           ok: true
         });
 
