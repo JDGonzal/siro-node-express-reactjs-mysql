@@ -11,7 +11,7 @@ app.use(cors());
 const init_All = require('./data');
 
 // the next line to call the 'initial()' method to create each role
-// init_All();
+ init_All();
 
 // parse requests of content-type - application/json
 app.use(express.json());

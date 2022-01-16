@@ -10,8 +10,8 @@ const apiMessage = require('../utils/messages.js');
 const routeSpecies = express.Router();
 
 routeSpecies.get('/api/species', [auth, clinic], async (request,response)=>{
-  var query= `SELECT speciesId, speciesName FROM ${process.env.MYSQL_D_B_}.Species
-            ORDER BY speciesName`;
+  var query= `SELECT speciesId, speciesName, speciesOrder FROM ${process.env.MYSQL_D_B_}.Species
+            ORDER BY speciesOrder, speciesName`;
   mysqlConnection.query(query, (err,rows, fields) =>{
     if (err){
       response.status(501).json({

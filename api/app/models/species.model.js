@@ -7,6 +7,10 @@ module.exports = (sequelize, Sequelize) => {
     speciesName: {
       type: Sequelize.STRING,
       allowNull: false
+    },
+    speciesOrder: {
+      type: Sequelize.INTEGER,
+      allowNull: false
     }
   });
 
