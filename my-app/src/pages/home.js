@@ -123,7 +123,7 @@ export class Home extends Component {
         'Content-Type': 'application/json'
       },
     })
-      .then(response => response.json())
+      .then(res => res.json())
       .then((data) => {
         console.log(data);
         this.setState({
@@ -154,7 +154,7 @@ export class Home extends Component {
         'Content-Type': 'application/json'
       },
     })
-      .then(response => response.json())
+      .then(res => res.json())
       .then((data) => {
         if (!data || data.ok === false) {
           alert(this.alertMessage);
@@ -181,7 +181,7 @@ export class Home extends Component {
         'Content-Type': 'application/json'
       },
     })
-      .then(response => response.json())
+      .then(res => res.json())
       .then((data) => {
         if (!data || data.ok === false) {
           alert(this.alertMessage);
@@ -532,10 +532,12 @@ export class Home extends Component {
                 })
               })
                 .then(res => res.json())
-                .then((result) => {
-                  alert(result.message);
-                  console.log(result);
-
+                .then((data) => {
+                  alert(data.message);
+                  console.log(data);
+                  if (data.ok){
+                    this.submitClick(); //Clean fields after the correct creation
+                  }
                 }, (error) => {
                   alert(this.failedMessage);
                 });

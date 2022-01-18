@@ -36,7 +36,7 @@ export class Employee extends Component{
         'x-auth-token': this.state.Token
       }
     })
-    .then(response=>response.json())
+    .then(res=>res.json())
     .then(data=>{
       if(!data || data.ok ===false ){
         alert(this.alertMessage);
@@ -52,7 +52,7 @@ export class Employee extends Component{
         'x-auth-token': this.state.Token
       }
     })
-    .then(response=>response.json())
+    .then(res=>res.json())
     .then(data=>{
       if(!data || data.ok ===false ){
         return;
@@ -115,8 +115,8 @@ export class Employee extends Component{
       })
     })
     .then(res=>res.json())
-    .then((result)=>{
-      !result.message?alert(result.error) :alert(result.message);
+    .then((data)=>{
+      !data.message?alert(data.error) :alert(data.message);
       this.refreshList();
     },(error)=>{
       alert('Failed');
@@ -140,8 +140,8 @@ export class Employee extends Component{
       })
     })
     .then(res=>res.json())
-    .then((result)=>{
-      !result.message?alert(result.error) :alert(result.message);
+    .then((data)=>{
+      !data.message?alert(data.error) :alert(data.message);
       this.refreshList();
     },(error)=>{
       alert('Failed');
@@ -159,8 +159,8 @@ export class Employee extends Component{
         }
       })
       .then(res=>res.json())
-      .then((result)=>{
-        !result.message?alert(result.error) :alert(result.message);
+      .then((data)=>{
+        !data.message?alert(data.error) :alert(data.message);
         this.refreshList();
       },(error)=>{
         alert('Failed');
