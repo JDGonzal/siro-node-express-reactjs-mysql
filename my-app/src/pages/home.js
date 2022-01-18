@@ -3,8 +3,9 @@ import React, { Component } from 'react';
 import { REACT_APP_API_URL } from '../utils/variables.js';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip"
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Modal from 'react-bootstrap/Modal';
+import Tooltip from 'react-bootstrap/Tooltip'
 import '../css/login.css';
 
 export class Home extends Component {
@@ -39,11 +40,12 @@ export class Home extends Component {
       Clinic: false,
       Laboratory: false,
       Admin: false,
-      Token: JSON.parse(localStorage.getItem("Token")),
+      Token: JSON.parse(localStorage.getItem('Token')),
       footer: REACT_APP_API_URL,
       arrayValidate: [true, true, true, true, true, true],
       arrayMessages: ['Correo', 'Contraseña', 'Centro Médico', 'Departamento o Ciudad', 'Reescribir Contraseña', 'Tipo de Usuario'],
       validateMessage: '',
+      showModal: false,
     };
     this.site = 'auth';
     this.site2 = 'medicalcenter';
@@ -84,6 +86,7 @@ export class Home extends Component {
       footer: REACT_APP_API_URL,
       arrayValidate: [true, true, true, true, true, true],
       validateMessage: '',
+      showModal: true,
     });
   }
 
@@ -106,6 +109,7 @@ export class Home extends Component {
       footer: REACT_APP_API_URL,
       arrayValidate: [true, true, true, true, true, true],
       validateMessage: '',
+      showModal: true,
     });
   }
 
@@ -134,8 +138,8 @@ export class Home extends Component {
 
   async getFromJson(json, key, value, index) {
     for (var i = 0; i < json.length; i++) {
-      console.log("Cod: " + json[i][key]);
-      console.log("Nam: " + json[i][value]);
+      console.log('Cod: ' + json[i][key]);
+      console.log('Nam: ' + json[i][value]);
       if (json[i][key] === index) {
         return json[i][value];
       }
@@ -466,9 +470,10 @@ export class Home extends Component {
                     : alert(this.state.auth.message);
                 } else {
                   localStorage.setItem('Token', JSON.stringify(this.state.auth));
-                  this.setState({ Token: JSON.parse(localStorage.getItem("Token")) });
+                  this.setState({ Token: JSON.parse(localStorage.getItem('Token')) });
                   // eslint-disable-next-line react/no-direct-mutation-state
                   this.state.Token = this.state.auth.token;
+                  this.closeModal();
                   alert('Inicio de sesión exitoso \nUsted ya puede acceder los otros sitios.');
                 }
               }, (error) => {
@@ -542,9 +547,12 @@ export class Home extends Component {
         });
     }
   }
+  closeModal = () => {
+    this.setState({ showModal: false });
+  }
 
   renderTooltip = (props) => (
-    <Tooltip id="button-tooltip" {...props}>
+    <Tooltip id='button-tooltip' {...props}>
       {this.state.footer}
     </Tooltip>
   );
@@ -576,6 +584,7 @@ export class Home extends Component {
       Admin,
       disabledArray,
       validateMessage,
+      showModal,
     } = this.state;
     return (
       <div>
@@ -588,138 +597,138 @@ export class Home extends Component {
           Ya Existo
         </button>
 
-        <div className='modal fade' id='exampleModal' tabIndex='-1' aria-hidden='true'>
-          <div className='modal-dialog modal-lg modal-dialog-centred'>
-            <div className='modal-content'>
-              <div className='modal-header'>
-                <h5 className='modal-title'>{(modalTitle)}</h5>
-                <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Cerrar'></button>
-              </div>
-              <div className='modal-body'>
-                <div className='Login'>
-                  <Form onSubmit={this.handleSubmit}>
-                    <div>
-                      <Form.Group size='lg' controlId='email' className="form-group required">
-                        <Form.Label className='control-label'>Correo</Form.Label>
-                        <Form.Control autoFocus type='email' value={email} placeholder='correo@electronico.srv'
-                          onChange={this.onChangeEmail} onBlur={this.onBlurEmail}
-                          autoComplete="username" required="required" />
+        <Modal show={showModal} className='fade' id='exampleModal' tabIndex='-1' aria-hidden='true'>
+          <div className='dialog-centred'>
+            <div className='content'>
+              <Modal.Header className=''>
+                <Modal.Title><h5 className=''>{(modalTitle)}</h5></Modal.Title>
+                <button type='button' className='btn-close' onClick={() => this.closeModal()} aria-label='Cerrar'></button>
+              </Modal.Header>
+              <Modal.Body className='Login'>
+
+                <Form onSubmit={this.handleSubmit}>
+                  <div>
+                    <Form.Group size='lg' controlId='email' className='form-group required'>
+                      <Form.Label className='control-label'>Correo</Form.Label>
+                      <Form.Control autoFocus type='email' value={email} placeholder='correo@electronico.srv'
+                        onChange={this.onChangeEmail} onBlur={this.onBlurEmail}
+                        autoComplete='username' required='required' />
+                    </Form.Group>
+                    {!isLogin ?
+                      <Form.Group size='lg' className='form-group required'>
+                        <div className='input-group mb-3'></div>
+                        <Form.Label className='control-label'>Centro Médico</Form.Label>
+                        <Form.Control type='number' className='form-control' value={medicalCenterId}
+                          onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico'
+                          onBlur={this.onBlurMedicalCenterId} required='required' />
+
+                        {medicalCenterNew === 0 ?
+                          <div>
+                            <Form.Control type='name' className='form-control' value={medicalCenterName} placeholder='Nombre Centro Médico'
+                              onChange={this.onChangeMedicalCenterName} onBlur={this.onBlurMedicalCenter} />
+                            <Form.Control type='name' className='form-control' value={medicalCenterAddress} placeholder='Dirección Centro Médico'
+                              onChange={this.onChangeMedicalCenterAddress} onBlur={this.onBlurMedicalCenter} />
+                            <Form.Control type='number' className='form-control' value={medicalCenterTelNumber} placeholder='Teléfono Centro Médico'
+                              onChange={this.onChangeMedicalCenterTelNumber} onBlur={this.onBlurMedicalCenter} />
+                            <div className='input-group mb-3'>
+                              <select className='form-select' value={StateStateId} onChange={this.onChangeState} onBlur={this.onBlurStateCity}>
+                                <option hidden defaultValue value='0' key='0'>Departamento</option>
+                                {states.map(sta => <option value={sta.stateId} key={sta.stateId}>
+                                  {sta.stateName}
+                                </option>)}
+                              </select>
+                              <select className='form-select' value={CityCityId} onChange={this.onChangeCity} onBlur={this.onBlurStateCity}>
+                                <option hidden defaultValue value='0' key='0'>Municipio</option>
+                                {cities.map(cit => <option value={cit.cityId} key={cit.cityId}>
+                                  {cit.cityName}
+                                </option>)}
+                              </select>
+                            </div>
+                          </div>
+                          :
+                          <div>
+                            <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterName} readOnly
+                              onBlur={this.onBlurMedicalCenter} />
+                            <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterAddress} readOnly
+                              onBlur={this.onBlurMedicalCenter} />
+                            <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterTelNumber} readOnly
+                              onBlur={this.onBlurMedicalCenter} />
+                            <div className='input-group mb-3'>
+                              <Form.Control type='name' className='form-control' value={stateName} readOnly
+                                onBlur={this.onBlurStateCity} />
+                              <Form.Control type='name' className='form-control' value={cityName} readOnly
+                                onBlur={this.onBlurStateCity} />
+                            </div>
+                          </div>
+                        }
+
                       </Form.Group>
-                      {!isLogin ?
-                        <Form.Group size='lg' className="form-group required">
-                          <div className="input-group mb-3"></div>
-                          <Form.Label className='control-label'>Centro Médico</Form.Label>
-                          <Form.Control type='number' className='form-control' value={medicalCenterId}
-                            onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico'
-                            onBlur={this.onBlurMedicalCenterId} required="required" />
-                          {/* <Form.Control type='name' className='form-control' value={medicalCenterName} onChange={this.onChangeMedicalCenterName} placeholder='Nombre Centro Médico' /> */}
-                          {medicalCenterNew === 0 ?
-                            <div>
-                              <Form.Control type='name' className='form-control' value={medicalCenterName} placeholder='Nombre Centro Médico'
-                                onChange={this.onChangeMedicalCenterName} onBlur={this.onBlurMedicalCenter} />
-                              <Form.Control type='name' className='form-control' value={medicalCenterAddress} placeholder='Dirección Centro Médico'
-                                onChange={this.onChangeMedicalCenterAddress} onBlur={this.onBlurMedicalCenter} />
-                              <Form.Control type='number' className='form-control' value={medicalCenterTelNumber} placeholder='Teléfono Centro Médico'
-                                onChange={this.onChangeMedicalCenterTelNumber} onBlur={this.onBlurMedicalCenter} />
-                              <div className="input-group mb-3">
-                                <select className="form-select" value={StateStateId} onChange={this.onChangeState} onBlur={this.onBlurStateCity}>
-                                  <option hidden defaultValue value="0" key="0">Departamento</option>
-                                  {states.map(sta => <option value={sta.stateId} key={sta.stateId}>
-                                    {sta.stateName}
-                                  </option>)}
-                                </select>
-                                <select className="form-select" value={CityCityId} onChange={this.onChangeCity} onBlur={this.onBlurStateCity}>
-                                  <option hidden defaultValue value="0" key="0">Municipio</option>
-                                  {cities.map(cit => <option value={cit.cityId} key={cit.cityId}>
-                                    {cit.cityName}
-                                  </option>)}
-                                </select>
-                              </div>
-                            </div>
-                            :
-                            <div>
-                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterName} readOnly
-                                onBlur={this.onBlurMedicalCenter} />
-                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterAddress} readOnly
-                                onBlur={this.onBlurMedicalCenter} />
-                              <Form.Control type='name' className='form-control' value={medicalCenters.medicalCenterTelNumber} readOnly
-                                onBlur={this.onBlurMedicalCenter} />
-                              <div className="input-group mb-3">
-                                <Form.Control type='name' className='form-control' value={stateName} readOnly
-                                  onBlur={this.onBlurStateCity} />
-                                <Form.Control type='name' className='form-control' value={cityName} readOnly
-                                  onBlur={this.onBlurStateCity} />
-                              </div>
-                            </div>
-                          }
+                      : null}
+                    <Form.Group size='lg' controlId='password' className='form-group required'>
+                      <Form.Label className='control-label'>Contraseña</Form.Label>
+                      <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Contraseña'
+                        name='password' aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
+                        autoComplete='current-password' spellCheck='false' required='required' onBlur={this.onBlurPassword} />
+                    </Form.Group>
+                    {!isLogin ?
+                      <Form.Group size='lg' controlId='passwordAgain' className='form-group required'>
+                        <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
+                        <Form.Label className='control-label'>Confirmar Contraseña</Form.Label>
+                        <Form.Control type='password' value={passwordAgain} placeholder='Confirmar contraseña'
+                          autoComplete='current-password' required='required'
+                          onChange={this.onChangePasswordAgain} onBlur={this.onBlurPasswordAgain} />
+                        <div className='input-group mb-3'></div>
+                        <Form.Label className='control-label'>Tipo de Usuario</Form.Label>
+                        {['checkbox'].map((type) => (
+                          <div key={`inline-${type}`} className='mr-3'>
+                            {/*disabledArray[0] ?
+                                <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
+                                  disabled checked={Viewer} required='required' /> :
+                                <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
+                              onChange={this.onChangeViewer} checked={Viewer} required='required' />*/}
+                            {disabledArray[1] ?
+                              <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
+                                disabled checked={Clinic} /> :
+                              <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
+                                onChange={this.onChangeClinic} checked={Clinic} onBlur={this.onBlurUserType} />}
+                            {disabledArray[2] ?
+                              <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
+                                disabled checked={Laboratory} /> :
+                              <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
+                                onChange={this.onChangeLaboratory} checked={Laboratory} onBlur={this.onBlurUserType} />}
+                            {disabledArray[3] ?
+                              <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
+                                disabled checked={Admin} /> :
+                              <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
+                                onChange={this.onChangeAdmin} checked={Admin} onBlur={this.onBlurUserType} />}
+                          </div>
+                        ))}
 
-                        </Form.Group>
-                        : null}
-                      <Form.Group size='lg' controlId='password' className="form-group required">
-                        <Form.Label className='control-label'>Contraseña</Form.Label>
-                        <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Contraseña'
-                          name='password' aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
-                          autoComplete='current-password' spellCheck='false' required="required" onBlur={this.onBlurPassword} />
                       </Form.Group>
-                      {!isLogin ?
-                        <Form.Group size='lg' controlId='passwordAgain' className="form-group required">
-                          <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
-                          <Form.Label className='control-label'>Confirmar Contraseña</Form.Label>
-                          <Form.Control type='password' value={passwordAgain} placeholder='Confirmar contraseña'
-                            autoComplete="current-password" required="required"
-                            onChange={this.onChangePasswordAgain} onBlur={this.onBlurPasswordAgain} />
-                          <div className="input-group mb-3"></div>
-                          <Form.Label className='control-label'>Tipo de Usuario</Form.Label>
-                          {['checkbox'].map((type) => (
-                            <div key={`inline-${type}`} className='mr-3'>
-                              {/*disabledArray[0] ?
-                                <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
-                                  disabled checked={Viewer} required="required" /> :
-                                <Form.Check inline label='Visitante' name='group1' type={type} id={`inline-${type}-1`}
-                              onChange={this.onChangeViewer} checked={Viewer} required="required" />*/}
-                              {disabledArray[1] ?
-                                <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
-                                  disabled checked={Clinic} /> :
-                                <Form.Check inline label='Clínica' name='group1' type={type} id={`inline-${type}-2`}
-                                  onChange={this.onChangeClinic} checked={Clinic} onBlur={this.onBlurUserType} />}
-                              {disabledArray[2] ?
-                                <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
-                                  disabled checked={Laboratory} /> :
-                                <Form.Check inline label='Laboratorio' name='group1' type={type} id={`inline-${type}-3`}
-                                  onChange={this.onChangeLaboratory} checked={Laboratory} onBlur={this.onBlurUserType} />}
-                              {disabledArray[3] ?
-                                <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
-                                  disabled checked={Admin} /> :
-                                <Form.Check inline label='Administrador ' name='group1' type={type} id={`inline-${type}-4`}
-                                  onChange={this.onChangeAdmin} checked={Admin} onBlur={this.onBlurUserType} />}
-                            </div>
-                          ))}
+                      : null}
 
-                        </Form.Group>
-                        : null}
+                  </div>
+                  <div>
+                    <pre> </pre>
+                    {!isLogin ?
+                      <Button block='true' size='lg' type='submit' disabled={!this.validateForm()} >Registrarme</Button> : null
+                    }
+                    {isLogin ?
+                      <Button block='true' size='lg' type='submit' disabled={!this.validateForm()} >Iniciar Sesión</Button> : null
+                    }
+                  </div>
 
-                    </div>
-                    <div>
-                      <pre> </pre>
-                      {!isLogin ?
-                        <Button block="true" size='lg' type='submit' disabled={!this.validateForm()} >Registrarme</Button> : null
-                      }
-                      {isLogin ?
-                        <Button block="true" size='lg' type='submit' disabled={!this.validateForm()} >Iniciar Sesión</Button> : null
-                      }
-                    </div>
+                </Form>
 
-                  </Form>
-                </div>
-              </div>
-              <div className='modal-footer'>
-                <OverlayTrigger placement="top" delay={{ show: 250, hide: 400 }} overlay={this.renderTooltip()}>
+              </Modal.Body>
+              <Modal.Footer className=''>
+                <OverlayTrigger placement='top' delay={{ show: 250, hide: 400 }} overlay={this.renderTooltip()}>
                   <Form.Label>{validateMessage}</Form.Label>
                 </OverlayTrigger>
-              </div>
+              </Modal.Footer>
             </div>
           </div>
-        </div>
+        </Modal>
       </div>
     );
   }
