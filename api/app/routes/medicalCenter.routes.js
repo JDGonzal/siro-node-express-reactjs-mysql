@@ -51,6 +51,7 @@ routeMedicalCenter.post('/api/medicalcenter', async (request, response) => {
       if (validationResponse !== true) {
         return response.status(400).json({
           message: apiMessage['400'][1],
+          ok: false,
           errors: validationResponse
         });
       };
@@ -119,6 +120,7 @@ routeMedicalCenter.get('/api/medicalcenter/medicalcentername/:id', async (reques
     return response.status(400).json({
       found:0,
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }

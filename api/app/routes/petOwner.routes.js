@@ -43,6 +43,7 @@ routePetOwner.post('/api/petowner', [auth, clinic], async (request, response) =>
       if (validationResponse !== true) {
         return response.status(400).json({
           message: apiMessage['400'][1],
+          ok: false,
           errors: validationResponse
         });
       }
@@ -89,6 +90,7 @@ routePetOwner.get('/api/petowner/petownername/:id', [auth, clinic], async (reque
     return response.status(400).json({
       found: 0,
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }

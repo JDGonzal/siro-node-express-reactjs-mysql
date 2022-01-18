@@ -19,6 +19,7 @@ routeCity.get('/api/city/:id', (request, response) => {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }

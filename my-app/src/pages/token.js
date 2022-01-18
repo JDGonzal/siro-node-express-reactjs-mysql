@@ -29,13 +29,13 @@ export class Token extends Component {
       })
     })
       .then(res => res.json())
-      .then((result) => {
-        if (!result.message) {
-          console.log(result.error);
-          alert(result.error)
+      .then((data) => {
+        if (!data.message) {
+          console.log(data.error);
+          alert(data.error)
         } else {
-          localStorage.setItem("message", result.message);
-          this.setState({ message: result.message });
+          localStorage.setItem("message", data.message);
+          this.setState({ message: data.message });
           setTimeout(console.log('href', window.location.href), 2000);
           let spl = window.location.href.split('?');
           window.location.replace(spl[0]);

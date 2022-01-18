@@ -58,6 +58,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
       if (validationResponse !== true) {
         return response.status(400).json({
           message: apiMessage['400'][1],
+          ok: false,
           errors: validationResponse
         });
       }
@@ -75,6 +76,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
         if (!rows) {
           return response.status(401).json({
             message: apiMessage['401'][1],
+            ok: false,
             errors: validationResponse
           });
         }
@@ -84,6 +86,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
         if (!isActive === true) {
           return response.status(511).json({
             message: apiMessage['511'][1],
+            ok: false,
           });
         }
         // Compare the password with the password in the database
@@ -91,6 +94,7 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
         if (!valid) {
           return response.status(403).json({
             message: apiMessage['403'][1],
+            ok: false,
             errors: validationResponse
           });
         } else {
@@ -224,6 +228,7 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
   if (validationResponse !== true) {
     return response.status(400).json({
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }
@@ -255,12 +260,14 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }
     response.status(201).json({
-      message: apiMessage['201'][1],
-      roles: rows
+      message: apiMessage['201'][1]+'\n'+apiMessage['204'][1],
+      ok: true,
+      roles: rows,
     });
     const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken('12h', jsonValues.RolesArray, 0)}`;
     console.log('To send email:', urlRoute);
@@ -399,6 +406,7 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
   if (validationResponse !== true) {
     return response.status(400).json({
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }
@@ -425,8 +433,8 @@ routeAuth.put('/api/token/activate', [auth, viewer], async (request, response) =
             error: err
           });
         }
-        response.status(202).json({
-          message: apiMessage['202'][1],
+        response.status(203).json({
+          message: apiMessage['203'][1],
           ok: true
         });
 
