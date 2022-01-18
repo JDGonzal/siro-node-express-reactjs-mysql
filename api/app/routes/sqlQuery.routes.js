@@ -17,6 +17,7 @@ routeSqlQuery.get('/api/sqlquery/:sql' /*, [auth, clinic]*/, (request, response)
     if (validationResponse !== true) {
       return response.status(400).json({
         message: apiMessage['400'][1],
+        ok: false,
         errors: validationResponse
       });
     };
@@ -24,6 +25,7 @@ routeSqlQuery.get('/api/sqlquery/:sql' /*, [auth, clinic]*/, (request, response)
       if (err) {
         response.status(501).json({
           message: apiMessage['501'][1],
+          ok: false,
           error: err
         });
       }
@@ -32,6 +34,7 @@ routeSqlQuery.get('/api/sqlquery/:sql' /*, [auth, clinic]*/, (request, response)
   } catch (err) {
     response.status(501).json({
       message: apiMessage['501'][1],
+      ok: false,
       error: err
     });
     console.error(err);

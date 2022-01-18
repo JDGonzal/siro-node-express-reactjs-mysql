@@ -16,6 +16,7 @@ routeSpecies.get('/api/species', [auth, clinic], async (request,response)=>{
     if (err){
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }

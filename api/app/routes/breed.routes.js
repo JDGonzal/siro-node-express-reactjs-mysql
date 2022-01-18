@@ -21,6 +21,7 @@ routeBreed.get('/api/breed/:id', [auth, clinic], (request, response) => {
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }

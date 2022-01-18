@@ -36,6 +36,7 @@ routePatientPet.post('/api/patientpet/get', [auth, viewer], async (request, resp
   if (await validationResponse !== true) {
     return response.status(400).json({
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }
@@ -44,6 +45,7 @@ routePatientPet.post('/api/patientpet/get', [auth, viewer], async (request, resp
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }
@@ -94,6 +96,7 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
   if (await validationResponse !== true) {
     return response.status(400).json({
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }
@@ -126,11 +129,13 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }
     response.status(201).json({
       message: apiMessage['201'][1],
+      ok: true,
     });
   });
   // To Test in Postman use POST with this URL "http://localhost:49146/api/patientpet"
@@ -179,6 +184,7 @@ routePatientPet.put('/api/patientpet', [auth, clinic], async (request, response)
   if (validationResponse !== true) {
     return response.status(400).json({
       message: apiMessage['400'][1],
+      ok: false,
       errors: validationResponse
     });
   }
@@ -210,12 +216,14 @@ routePatientPet.put('/api/patientpet', [auth, clinic], async (request, response)
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }
     console.log(query);
     response.status(202).json({
       message: apiMessage['202'][1],
+      ok: true,
     });
   });
   // To Test in Postman use PUT with this URL "http://localhost:49146/api/patientpet"
@@ -233,11 +241,13 @@ routePatientPet.delete('/api/patientpet/:id', [auth, admin], async (request, res
     if (err) {
       response.status(501).json({
         message: apiMessage['501'][1],
+        ok: false,
         error: err
       });
     }
     response.status(202).json({
       message: apiMessage['202'][1],
+      ok: true,
     });
   });
   // To Test in Postman use DELETE with this URL "http://localhost:49146/api/patientpet/3"
