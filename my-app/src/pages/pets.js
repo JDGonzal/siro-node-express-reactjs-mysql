@@ -391,7 +391,7 @@ export class Pets extends Component {
   async addClick() {
     await this.setState({
       modalTitle: 'Adicionar Paciente',
-      atientPetId: 0,
+      patientPetId: 0,
       patientPetName: '',
       PetOwnerPetOwnerId: '',
       petOwnerName: '',
@@ -406,7 +406,8 @@ export class Pets extends Component {
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true, true],
     });
-    this.refreshMedicalCenters();
+    console.log('clean fields "addClick"');
+    await this.refreshMedicalCenters();
   }
 
   async editClick(dep) {

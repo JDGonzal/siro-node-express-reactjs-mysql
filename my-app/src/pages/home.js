@@ -77,6 +77,7 @@ export class Home extends Component {
       stateName: '',
       cityName: '',
       strengthBadge: 'Débil',
+      backgroundColor: 'input-group-text alert alert-danger ', //'input-group-text m-1 text-centred bg_Débil' 
       RolesArray: [true, false, false, false],
       disabledArray: [false, false, false, true],
       Viewer: true,
@@ -88,6 +89,7 @@ export class Home extends Component {
       validateMessage: '',
       showModal: true,
     });
+    console.log('clean fields "submitClick"');
   }
 
   loginClick() {
