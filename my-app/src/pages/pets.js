@@ -3,6 +3,7 @@ import { REACT_APP_API_URL } from '../utils/variables.js';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
+import '../css/pet.css';
 
 export class Pets extends Component {
 
@@ -660,31 +661,31 @@ export class Pets extends Component {
                 <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
               </div>
               <div className='modal-body'>
-                <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Nombre del Paciente:</Form.Label>
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Nombre del Paciente:</Form.Label>
                   <Form.Control type='name' value={patientPetName} placeholder='Nombre del paciente'
-                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} />
+                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} required='required'/>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
-                <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Propietario:</Form.Label>
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Propietario:</Form.Label>
                   <Form.Control type='number' value={PetOwnerPetOwnerId} placeholder='ID. del propietario'
                     onChange={this.onChangePetOwnerId} onBlur={this.onBlurPetOwner} />
                   <Form.Control type='name' value={petOwnerName} placeholder='Nombre del propietario'
-                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} />
+                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} required='required'/>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
-                <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Especie y Raza:</Form.Label>
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Especie y Raza:</Form.Label>
                   <Form.Control as='select' className="form-select" value={SpeciesSpeciesId}
-                    onChange={this.onChangeSpeciesId} onBlur={this.onBlurSpeciesId}>
+                    onChange={this.onChangeSpeciesId} onBlur={this.onBlurSpeciesId} required='required'>
                     <option hidden defaultValue value="0" key="0">Especie</option>
                     {species.map(spe => <option value={spe.speciesId} key={spe.speciesId}>
                       {spe.speciesName}
                     </option>)}
                   </Form.Control>
                   <Form.Control as='select' className="form-select" value={BreedBreedId}
-                    onChange={this.onChangeBreedId} onBlur={this.onBlurBreedId}>
+                    onChange={this.onChangeBreedId} onBlur={this.onBlurBreedId} required='required'>
                     <option hidden defaultValue value="0" key="0">Raza</option>
                     {breeds.map(bre => <option value={bre.breedId} key={bre.breedId}>
                       {bre.breedName}
@@ -692,32 +693,32 @@ export class Pets extends Component {
                   </Form.Control>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
-                <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Fecha Nacimiento:</Form.Label>
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Fecha Nacimiento:</Form.Label>
                   <Form.Control type='date' value={patientPetBirthday} data-date-format="dd/MM/yyyy"
-                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday}/>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Género:</Form.Label>
+                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday} required='required'/>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Género:</Form.Label>
                   <div key={`inline-radio`} className='mr-3'>
-                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required="required" 
+                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required='required' 
                       checked={patientPetGender === 'M'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
-                    <Form.Check inline label='Hembra' name='group1' type='radio' id={`inline-radio-2`} required="required"
+                    <Form.Check inline label='Hembra' name='group1' type='radio' id={`inline-radio-2`} required='required'
                       checked={patientPetGender === 'H'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
                   </div>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
-                <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Altura en centímetros:</Form.Label>
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Altura en centímetros:</Form.Label>
                   <Form.Control type='number' value={patientPetHeight} placeholder='Alzada a la cruz'
-                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} />
-                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Peso en gramos:</Form.Label>
+                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} required='required'/>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Peso en gramos:</Form.Label>
                   <Form.Control type='number' value={patientPetWeight} placeholder='Peso grms.' 
-                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} />
+                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} required='required'/>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 {badToken ?
                   null :
-                  <Form.Group className='form-inline col-md-12 input-group mb-0' size='md'>
-                    <Form.Label className='input-group-text col-sm-3 col-form-label' >Centro Médico:</Form.Label>
+                  <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                    <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Centro Médico:</Form.Label>
                     <Form.Control as='select' className="form-select" value={MedicalCenterMedicalCenterId} onChange={this.onChangeMedicalCenterId}>
                       {Token.medicalCenterArray.map(opt => (
                         <option value={opt} key={opt}>{opt}</option>

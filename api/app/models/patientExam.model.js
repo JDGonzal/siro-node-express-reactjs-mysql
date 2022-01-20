@@ -2,6 +2,7 @@ module.exports = (sequelize, Sequelize) => {
   const PatientExam = sequelize.define('PatientExams', {
     patientExamId: {
       type: Sequelize.INTEGER,
+      autoIncrement: true, 
       primaryKey: true,
     },
     patientExamOthers: {

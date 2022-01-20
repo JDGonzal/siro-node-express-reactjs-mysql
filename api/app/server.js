@@ -34,7 +34,8 @@ app.use(require('./routes/patientPet.routes.js'));
 app.use(require('./routes/species.routes.js'));
 app.use(require('./routes/breed.routes.js'));
 app.use(require('./routes/petOwner.routes.js'));
-app.use(require('./routes/sqlQuery.routes.js'))
+app.use(require('./routes/sqlQuery.routes.js'));
+app.use(require('./routes/patientExam.routes.js'));
 
 // set port, listen for requests
 const PORT = process.env.PORT || 49146;
