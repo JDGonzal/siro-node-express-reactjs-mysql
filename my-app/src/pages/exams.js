@@ -30,8 +30,10 @@ export class Exams extends Component {
       patientPetWeight: '',
       MedicalCenterMedicalCenterId: '',
       medicalCenterName: '',
-      PetNameFilter: '',
-      veterinarianFilter: '',
+      createdAt: '',
+      patientPetNameFilter: '',
+      createdAtFilter: '',
+      veterinarianNameFilter: '',
       petsWithoutFilter: [],
       Token: JSON.parse(localStorage.getItem('Token')),
       arrayValidate: [true, true, true, true, true, true, true, true],
@@ -49,16 +51,21 @@ export class Exams extends Component {
   }
 
   FilterFn() {
-    var PetNameFilter = this.state.PetNameFilter;
-    var veterinarianFilter = this.state.veterinarianFilter;
+    var createdAtFilter = this.state.createdAtFilter;
+    var patientPetNameFilter = this.state.patientPetNameFilter;
+    var veterinarianNameFilter = this.state.veterinarianNameFilter;
 
     var filterData = this.state.petsWithoutFilter.filter(
       function (el) {
-        return el.patientPetName.toString().toLowerCase().includes(
-          PetNameFilter.toString().trim().toLowerCase()
+        console.log(String(el.createdAt));
+        return String(el.createdAt).includes(
+          String(createdAtFilter).trim().toLowerCase()
+        ) &&
+        el.patientPetName.toString().toLowerCase().includes(
+          patientPetNameFilter.toString().trim().toLowerCase()
         ) &&
           el.veterinarianName.toString().toLowerCase().includes(
-            veterinarianFilter.toString().trim().toLowerCase()
+            veterinarianNameFilter.toString().trim().toLowerCase()
           )
       }
     );
@@ -76,19 +83,18 @@ export class Exams extends Component {
     this.setState({ patientExams: sortedData });
   }
 
-  patientFilter = async (e) => {
-    // this.setState({PetIdFilter:e.target.value}) //This Option not work, it is necessary to use the mutate state directly
-    // eslint-disable-next-line react/no-direct-mutation-state
-    // this.state.PetIdFilter=e.target.value;
-    await this.setState({ PetNameFilter: e.target.value });
+  onChangeCreatedAtFilter = async (e) => {
+    await this.setState({ createdAtFilter: e.target.value });
     await this.FilterFn();
   }
 
-  onChangePetOwnerFilter = async (e) => {
-    // this.setState({PetNameFilter:e.target.value}) //This Option not work, it is necessary to use the mutate state directly
-    // eslint-disable-next-line react/no-direct-mutation-state
-    //this.state.PetNameFilter=e.target.value;
-    await this.setState({ veterinarianFilter: e.target.value });
+  onChangePatientPetFilter = async (e) => {
+    await this.setState({ patientPetNameFilter: e.target.value });
+    await this.FilterFn();
+  }
+
+  onChangeVeterinarianNameFilter = async (e) => {
+    await this.setState({ veterinarianNameFilter: e.target.value });
     await this.FilterFn();
   }
 
@@ -108,7 +114,7 @@ export class Exams extends Component {
         medicalCenterArray: this.state.Token.medicalCenterArray
       })
     })
-      .then(res=> res.json())
+      .then(res => res.json())
       .then(data => {
         if (!data || data.ok === false) {
           alert(this.alertMessage);
@@ -339,7 +345,7 @@ export class Exams extends Component {
   }
 
   onBlurPatientPetGender = async (e) => {
-    await (this.state.patientPetGender==='M'||this.state.patientPetGender==='H')?
+    await (this.state.patientPetGender === 'M' || this.state.patientPetGender === 'H') ?
       this.state.arrayValidate[5] = await true :
       this.state.arrayValidate[5] = await false;
     await this.onBlurPatientPetName();
@@ -355,7 +361,7 @@ export class Exams extends Component {
   }
 
   onBlurPatientPetHeight = async (e) => {
-    await parseInt(this.state.patientPetHeight) > 1?
+    await parseInt(this.state.patientPetHeight) > 1 ?
       this.state.arrayValidate[6] = await true :
       this.state.arrayValidate[6] = await false;
     await this.onBlurPatientPetName();
@@ -372,7 +378,7 @@ export class Exams extends Component {
   }
 
   onBlurPatientPetWeight = async (e) => {
-    await parseInt(this.state.patientPetWeight) > 1?
+    await parseInt(this.state.patientPetWeight) > 1 ?
       this.state.arrayValidate[7] = await true :
       this.state.arrayValidate[7] = await false;
     await this.onBlurPatientPetName();
@@ -460,7 +466,7 @@ export class Exams extends Component {
       .then(res => res.json())
       .then((data) => {
         !data.message ? alert(data.error) : alert(data.message);
-        if(data.ok){
+        if (data.ok) {
           this.addClick(); //Clean fields after the correct creation
         }
         this.refreshPatientPets();
@@ -539,7 +545,7 @@ export class Exams extends Component {
         String(this.state.PetOwnerPetOwnerId).length > this.lim && this.state.patientPetGender !== '' &&
         parseInt(this.state.SpeciesSpeciesId) > 0 && parseInt(this.state.BreedBreedId) > 1000 &&
         this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') && this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA') &&
-        (this.state.patientPetGender==='M'||this.state.patientPetGender==='H')&&
+        (this.state.patientPetGender === 'M' || this.state.patientPetGender === 'H') &&
         parseInt(this.state.patientPetHeight) > 1 && parseInt(this.state.patientPetWeight) > 1
       );
     } catch (e) {
@@ -583,7 +589,23 @@ export class Exams extends Component {
             <tr>
               <th>
                 <div className='d-flex flex-row'>
-                  <input className='form-control m-2' onInput={this.patientFilter} placeholder='Filtro' />
+                  <input className='form-control m-2' onInput={this.onChangeCreatedAtFilter} placeholder='Filtro' />
+                  <button type='button' className='btn btn-light' onClick={() => this.sortResult('createdAt', true)}>
+                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' className='bi bi-arrow-down-square-fill' viewBox='0 0 16 16'>
+                      <path d='M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z' />
+                    </svg>
+                  </button>
+                  <button type='button' className='btn btn-light' onClick={() => this.sortResult('createdAt', false)}>
+                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' className='bi bi-arrow-up-square-fill' viewBox='0 0 16 16'>
+                      <path d='M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0z' />
+                    </svg>
+                  </button>
+                </div>
+                Fecha
+              </th>
+              <th>
+                <div className='d-flex flex-row'>
+                  <input className='form-control m-2' onInput={this.onChangePatientPetFilter} placeholder='Filtro' />
                   <button type='button' className='btn btn-light' onClick={() => this.sortResult('patientPetName', true)}>
                     <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' className='bi bi-arrow-down-square-fill' viewBox='0 0 16 16'>
                       <path d='M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z' />
@@ -599,7 +621,7 @@ export class Exams extends Component {
               </th>
               <th>
                 <div className='d-flex flex-row'>
-                  <input className='form-control m-2' onInput={this.onChangePetOwnerFilter} placeholder='Filtro' />
+                  <input className='form-control m-2' onInput={this.onChangeVeterinarianNameFilter} placeholder='Filtro' />
                   <button type='button' className='btn btn-light' onClick={() => this.sortResult('veterinarianName', true)}>
                     <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' className='bi bi-arrow-down-square-fill' viewBox='0 0 16 16'>
                       <path d='M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z' />
@@ -620,9 +642,6 @@ export class Exams extends Component {
                 Pruebas de Laboratorio
               </th>
               <th>
-                Fecha
-              </th>
-              <th>
                 Opciones
               </th>
             </tr>
@@ -630,11 +649,11 @@ export class Exams extends Component {
           <tbody>
             {patientExams.map(dep =>
               <tr key={dep.patientPetId}>
+                <td>{String(dep.createdAt).substring(0, 10)}</td>
                 <td>{dep.patientPetName}</td>
                 <td>{dep.veterinarianName}</td>
                 <td>{dep.typeOfSampleNames}</td>
                 <td>{dep.laboratoryTestNames}</td>
-                <td>{String(dep.createdAt).substring(0,10)}</td>
                 <td>
                   <button type='button' className='btn btn-light mr-1' data-bs-toggle='modal' data-bs-target='#exampleModal'
                     onClick={() => this.editClick(dep)}>
@@ -664,7 +683,7 @@ export class Exams extends Component {
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Nombre del Paciente:</Form.Label>
                   <Form.Control type='name' value={patientPetName} placeholder='Nombre del paciente'
-                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} required='required'/>
+                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} required='required' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
@@ -672,7 +691,7 @@ export class Exams extends Component {
                   <Form.Control type='number' value={PetOwnerPetOwnerId} placeholder='ID. del propietario'
                     onChange={this.onChangePetOwnerId} onBlur={this.onBlurPetOwner} />
                   <Form.Control type='name' value={petOwnerName} placeholder='Nombre del propietario'
-                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} required='required'/>
+                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} required='required' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
@@ -696,10 +715,10 @@ export class Exams extends Component {
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Fecha Nacimiento:</Form.Label>
                   <Form.Control type='date' value={patientPetBirthday} data-date-format="dd/MM/yyyy"
-                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday} required='required'/>
+                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday} required='required' />
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Género:</Form.Label>
                   <div key={`inline-radio`} className='mr-3'>
-                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required='required' 
+                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required='required'
                       checked={patientPetGender === 'M'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
                     <Form.Check inline label='Hembra' name='group1' type='radio' id={`inline-radio-2`} required='required'
                       checked={patientPetGender === 'H'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
@@ -709,10 +728,10 @@ export class Exams extends Component {
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Altura en centímetros:</Form.Label>
                   <Form.Control type='number' value={patientPetHeight} placeholder='Alzada a la cruz'
-                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} required='required'/>
+                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} required='required' />
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Peso en gramos:</Form.Label>
-                  <Form.Control type='number' value={patientPetWeight} placeholder='Peso grms.' 
-                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} required='required'/>
+                  <Form.Control type='number' value={patientPetWeight} placeholder='Peso grms.'
+                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} required='required' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 {badToken ?

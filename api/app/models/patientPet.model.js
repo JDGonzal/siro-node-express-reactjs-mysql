@@ -11,7 +11,6 @@ module.exports = (sequelize, Sequelize) => {
     },
     patientPetBirthday: { 
       type: Sequelize.DATE,
-      allowNull: false,
     },
     patientPetGender: { 
       type: Sequelize.STRING(1),

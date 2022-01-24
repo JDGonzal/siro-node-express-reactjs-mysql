@@ -7,7 +7,12 @@ module.exports = (sequelize, Sequelize) => {
     testTypeName: {
       type: Sequelize.STRING,
       allowNull: false
-    }
+    },
+    testTypeIsMultiple: { 
+      type: Sequelize.BOOLEAN,
+      allowNull: false, 
+      defaultValue: false,
+    },
   });
 
   return TestType;

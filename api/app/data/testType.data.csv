@@ -1,7 +1,7 @@
-testTypeId,testTypeName
-1,"PROMOCIONES SIRIO"
-2,"EXÁMENES COMUNES. Selecciona el (los) examen(es) solicitado(s)"
-3,"PRUEBAS INDIVIDUALES EN ORDEN ALFABÉTICO"
-4,"CULTIVOS - MICROBIOLOGÍA. Todos los cultivos incluyen antibiograma."
-5,"EXÁMENES SOLICITADOS: PERFILES"
-6,"TOXICOLOGÍA"
+testTypeId,testTypeName,testTypeIsMultiple 
+1,"PROMOCIONES SIRIO",1
+2,"EXÁMENES COMUNES. Selecciona el (los) examTen(es) solicitado(s)",1
+3,"PRUEBAS INDIVIDUALES EN ORDEN ALFABÉTICO",1
+4,"CULTIVOS - MICROBIOLOGÍA. Todos los cultivos incluyen antibiograma.",0
+5,"EXÁMENES SOLICITADOS: PERFILES",1
+6,"TOXICOLOGÍA",0
