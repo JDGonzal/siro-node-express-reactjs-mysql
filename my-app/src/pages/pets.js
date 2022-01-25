@@ -102,7 +102,7 @@ export class Pets extends Component {
         medicalCenterArray: this.state.Token.medicalCenterArray
       })
     })
-      .then(res=> res.json())
+      .then(res => res.json())
       .then(data => {
         if (!data || data.ok === false) {
           alert(this.alertMessage);
@@ -310,10 +310,14 @@ export class Pets extends Component {
     maxDate.setDate(maxDate.getDate() + 1);
     const minDate = new Date();
     minDate.setDate(minDate.getDate() - 40 * 365.25);
-    await this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') &&
-      this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA') ?
+    await ((this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') &&
+      this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA')) ||
+      this.state.patientPetBirthday === '' || this.state.patientPetBirthday === null) ?
       this.state.arrayValidate[4] = await true :
       this.state.arrayValidate[4] = await false;
+    if(await this.state.arrayValidate[4] === false){
+      console.log('patientPetBirthday:',this.state.patientPetBirthday)
+    }
     await this.onBlurPatientPetName();
     await this.onBlurPetOwner();
     await this.onBlurSpeciesId();
@@ -333,7 +337,7 @@ export class Pets extends Component {
   }
 
   onBlurPatientPetGender = async (e) => {
-    await (this.state.patientPetGender==='M'||this.state.patientPetGender==='H')?
+    await (this.state.patientPetGender === 'M' || this.state.patientPetGender === 'H') ?
       this.state.arrayValidate[5] = await true :
       this.state.arrayValidate[5] = await false;
     await this.onBlurPatientPetName();
@@ -349,7 +353,7 @@ export class Pets extends Component {
   }
 
   onBlurPatientPetHeight = async (e) => {
-    await parseInt(this.state.patientPetHeight) > 1?
+    await parseInt(this.state.patientPetHeight) > 1 ?
       this.state.arrayValidate[6] = await true :
       this.state.arrayValidate[6] = await false;
     await this.onBlurPatientPetName();
@@ -366,7 +370,7 @@ export class Pets extends Component {
   }
 
   onBlurPatientPetWeight = async (e) => {
-    await parseInt(this.state.patientPetWeight) > 1?
+    await parseInt(this.state.patientPetWeight) > 1 ?
       this.state.arrayValidate[7] = await true :
       this.state.arrayValidate[7] = await false;
     await this.onBlurPatientPetName();
@@ -415,13 +419,14 @@ export class Pets extends Component {
       petOwnerExists: true,
       SpeciesSpeciesId: dep.SpeciesSpeciesId,
       patientPetGender: dep.patientPetGender,
-      patientPetBirthday: String(dep.patientPetBirthday).substring(0, 10),
+      patientPetBirthday: dep.patientPetBirthday===null?'': String(dep.patientPetBirthday).substring(0, 10),
       patientPetHeight: dep.patientPetHeight,
       patientPetWeight: dep.patientPetWeight,
       MedicalCenterMedicalCenterId: dep.MedicalCenterMedicalCenterId,
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true, true],
     });
+
     await this.refreshBreeds(this.state.SpeciesSpeciesId);
     await this.setState({
       BreedBreedId: dep.BreedBreedId,
@@ -454,7 +459,7 @@ export class Pets extends Component {
       .then(res => res.json())
       .then((data) => {
         !data.message ? alert(data.error) : alert(data.message);
-        if(data.ok){
+        if (data.ok) {
           this.addClick(); //Clean fields after the correct creation
         }
         this.refreshPatientPets();
@@ -532,8 +537,9 @@ export class Pets extends Component {
         this.state.patientPetName.length > this.lim - 3 && this.state.petOwnerName.length > this.lim &&
         String(this.state.PetOwnerPetOwnerId).length > this.lim && this.state.patientPetGender !== '' &&
         parseInt(this.state.SpeciesSpeciesId) > 0 && parseInt(this.state.BreedBreedId) > 1000 &&
-        this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') && this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA') &&
-        (this.state.patientPetGender==='M'||this.state.patientPetGender==='H')&&
+        ((this.state.patientPetBirthday > minDate.toLocaleDateString('en-CA') && this.state.patientPetBirthday < maxDate.toLocaleDateString('en-CA')) ||
+          this.state.patientPetBirthday === '' || this.state.patientPetBirthday === null) &&
+        (this.state.patientPetGender === 'M' || this.state.patientPetGender === 'H') &&
         parseInt(this.state.patientPetHeight) > 1 && parseInt(this.state.patientPetWeight) > 1
       );
     } catch (e) {
@@ -658,7 +664,7 @@ export class Pets extends Component {
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Nombre del Paciente:</Form.Label>
                   <Form.Control type='name' value={patientPetName} placeholder='Nombre del paciente'
-                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} required='required'/>
+                    onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} required='required' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
@@ -666,7 +672,7 @@ export class Pets extends Component {
                   <Form.Control type='number' value={PetOwnerPetOwnerId} placeholder='ID. del propietario'
                     onChange={this.onChangePetOwnerId} onBlur={this.onBlurPetOwner} />
                   <Form.Control type='name' value={petOwnerName} placeholder='Nombre del propietario'
-                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} required='required'/>
+                    onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists} required='required' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
@@ -688,12 +694,12 @@ export class Pets extends Component {
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
-                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Fecha Nacimiento:</Form.Label>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label' >Fecha Nacimiento:</Form.Label>
                   <Form.Control type='date' value={patientPetBirthday} data-date-format="dd/MM/yyyy"
-                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday} required='required'/>
+                    onChange={this.onChangePatientPetBirthday} onBlur={this.onBlurPatientPetBirthday} />
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Género:</Form.Label>
                   <div key={`inline-radio`} className='mr-3'>
-                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required='required' 
+                    <Form.Check inline label='Macho' name='group1' type='radio' id={`inline-radio-1`} required='required'
                       checked={patientPetGender === 'M'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
                     <Form.Check inline label='Hembra' name='group1' type='radio' id={`inline-radio-2`} required='required'
                       checked={patientPetGender === 'H'} onChange={this.onChangePatientPetGender} onBlur={this.onBlurPatientPetGender} />
@@ -703,10 +709,10 @@ export class Pets extends Component {
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Altura en centímetros:</Form.Label>
                   <Form.Control type='number' value={patientPetHeight} placeholder='Alzada a la cruz'
-                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} required='required'/>
+                    onChange={this.onChangePatientPetHeight} onBlur={this.onBlurPatientPetHeight} required='required' />
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Peso en gramos:</Form.Label>
-                  <Form.Control type='number' value={patientPetWeight} placeholder='Peso grms.' 
-                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} required='required'/>
+                  <Form.Control type='number' value={patientPetWeight} placeholder='Peso grms.'
+                    onChange={this.onChangePatientPetWeight} onBlur={this.onBlurPatientPetWeight} required='required' />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 {badToken ?

@@ -78,7 +78,7 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
   console.log('post:patientpet', jsonValues);
   const schema = await {
     patientPetName: { type: 'string', optional: false, max: 100, min: 2 },
-    patientPetBirthday: { type: 'array', optional: false, items: 'string', length: 3 },
+    patientPetBirthday: { type: 'array', optional: true, items: 'string', min: 1, max: 3 },
     patientPetGender: { type: 'string', optional: false, length: 1 },
     patientPetHeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99999 },
     patientPetWeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
@@ -100,8 +100,11 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
       errors: validationResponse
     });
   }
-
-  jsonValues.patientPetBirthday = new Date(`${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`);
+  if (jsonValues.patientPetBirthday.length < 3 || jsonValues.patientPetBirthday[0] === '') {
+    jsonValues.patientPetBirthday = null;
+  } else {
+    jsonValues.patientPetBirthday = new Date(`${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`);
+  }
   console.log('patientPetBirthday: ', jsonValues.patientPetBirthday);
 
   await fetch(process.env.EMAIL_API_ + 'petowner', {
@@ -144,7 +147,7 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
 });
 
 routePatientPet.put('/api/patientpet', [auth, clinic], async (request, response) => {
-    var query = await `UPDATE ${process.env.MYSQL_D_B_}.PatientPets
+  var query = await `UPDATE ${process.env.MYSQL_D_B_}.PatientPets
                SET patientPetName=?, patientPetBirthday=?, patientPetGender=?, 
                patientPetHeight=?, patientPetWeight=?,SpeciesSpeciesId=?,
                PetOwnerPetOwnerId=?, BreedBreedId=?,
@@ -167,7 +170,7 @@ routePatientPet.put('/api/patientpet', [auth, clinic], async (request, response)
   console.log('put:patientpet', jsonValues);
   const schema = await {
     patientPetName: { type: 'string', optional: false, max: 100, min: 2 },
-    patientPetBirthday: { type: 'array', optional: false, items: 'string', length: 3 },
+    patientPetBirthday: { type: 'array', optional: true, items: 'string', min: 1, max: 3 },
     patientPetGender: { type: 'string', optional: false, length: 1 },
     patientPetHeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99999 },
     patientPetWeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
@@ -188,8 +191,11 @@ routePatientPet.put('/api/patientpet', [auth, clinic], async (request, response)
       errors: validationResponse
     });
   }
-
-  jsonValues.patientPetBirthday = new Date(`${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`);
+  if (jsonValues.patientPetBirthday.length < 3 || jsonValues.patientPetBirthday[0] === '') {
+    jsonValues.patientPetBirthday = null;
+  } else {
+    jsonValues.patientPetBirthday = new Date(`${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`);
+  }
   console.log('patientPetBirthday: ', jsonValues.patientPetBirthday);
 
   await fetch(process.env.EMAIL_API_ + 'petowner', {
