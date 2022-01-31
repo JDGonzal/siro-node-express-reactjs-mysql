@@ -592,12 +592,10 @@ export class Home extends Component {
     } = this.state;
     return (
       <div>
-        <button type='submit' className='btn btn-primary m-2 float-end' data-bs-toggle='modal' data-bs-target='#exampleModal'
-          onClick={() => this.submitClick()}>
+        <button type='submit' className='btn btn-primary m-2 float-end' onClick={() => this.submitClick()}>
           Soy Nuevo
         </button>
-        <button type='submit' className='btn btn-primary m-2 float-end' data-bs-toggle='modal' data-bs-target='#exampleModal'
-          onClick={() => this.loginClick()}>
+        <button type='submit' className='btn btn-primary m-2 float-end' onClick={() => this.loginClick()}>
           Ya Existo
         </button>
 
@@ -725,7 +723,7 @@ export class Home extends Component {
                 </Form>
 
               </Modal.Body>
-              <Modal.Footer className=''>
+              <Modal.Footer size='sm'>
                 <OverlayTrigger placement='top' delay={{ show: 250, hide: 400 }} overlay={this.renderTooltip()}>
                   <Form.Label>{validateMessage}</Form.Label>
                 </OverlayTrigger>

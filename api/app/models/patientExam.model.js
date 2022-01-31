@@ -2,10 +2,8 @@ module.exports = (sequelize, Sequelize) => {
   const PatientExam = sequelize.define('PatientExams', {
     patientExamId: {
       type: Sequelize.INTEGER,
+      autoIncrement: true, 
       primaryKey: true,
-    },
-    patientExamOthers: {
-      type: Sequelize.STRING,
     },
     patientExamRemarks: {
       type: Sequelize.STRING,
@@ -17,6 +15,14 @@ module.exports = (sequelize, Sequelize) => {
     patientExamTelNumber: { 
       type: Sequelize.BIGINT,
       allowNull: false,
+    },
+    patientExamComment: { 
+      type: Sequelize.STRING,
+    },
+    patientExamIsUrgency: { 
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
   });
 

@@ -14,6 +14,8 @@ const apiMessage =
     'El correo electrónico o la contraseña están errados.'],
   '403': ['Invalid password or email.',
     'Dato incorrecto de Contraseña o Correo Electrónico.'],
+  '404': ['Empty data.',
+    'Datos vacíos.'],
   '409': ['Error: The user could not exist or was activated previoulsy.',
     'Error: El usuario no existe o fue activado previamente.'],
   '501': ['Something went wrong.',

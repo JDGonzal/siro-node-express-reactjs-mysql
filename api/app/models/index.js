@@ -70,27 +70,14 @@ db.user.belongsToMany(db.medicalCenter, {
 /*======== PatientExam_TypeOfSamples ========= */
 db.patientExam.belongsToMany(db.typeOfSample, {
   through: 'PatientExam_TypeOfSamples',
-  foreignKey: 'typeOfSampleId',
-  otherKey: 'patientExamId'
-});
-
-db.typeOfSample.belongsToMany(db.patientExam, {
-  through: 'PatientExam_TypeOfSamples',
   foreignKey: 'patientExamId',
   otherKey: 'typeOfSampleId'
 });
 
-/*======== PatientExam_TypeOfSamples ========= */
-db.patientExam.belongsToMany(db.typeOfSample, {
+db.typeOfSample.belongsToMany(db.patientExam, {
   through: 'PatientExam_TypeOfSamples',
   foreignKey: 'typeOfSampleId',
   otherKey: 'patientExamId'
-});
-
-db.typeOfSample.belongsToMany(db.patientExam, {
-  through: 'PatientExam_TypeOfSamples',
-  foreignKey: 'patientExamId',
-  otherKey: 'typeOfSampleId'
 });
 
 /*======== PatientExam_LaboratoryTests ========= */
@@ -136,8 +123,8 @@ db.patientPet.belongsTo(db.medicalCenter);
 db.veterinarian.hasMany(db.patientExam);
 db.patientExam.belongsTo(db.veterinarian);
 
-db.medicalCenter.hasMany(db.patientExam);
-db.patientExam.belongsTo(db.medicalCenter);
+db.patientPet.hasMany(db.patientExam);
+db.patientExam.belongsTo(db.patientPet);
 
 db.testType.hasMany(db.laboratoryTest);
 db.laboratoryTest.belongsTo(db.testType);
