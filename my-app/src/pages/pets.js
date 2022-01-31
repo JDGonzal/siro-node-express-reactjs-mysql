@@ -109,7 +109,7 @@ export class Pets extends Component {
           return false;
         }
         this.setState({ patientPets: data, petsWithoutFilter: data, badToken: false });
-        console.log('patientPets:', this.patientPets, data, this.petsWithoutFilter);
+        console.log('patientPets:', data);
         return true;
       })
   }
@@ -387,7 +387,7 @@ export class Pets extends Component {
     await this.setState({ MedicalCenterMedicalCenterId: e.target.value });
   }
 
-  async addClick() {
+  addClick = async () => {
     await this.setState({
       modalTitle: 'Adicionar Paciente',
       patientPetId: 0,
@@ -409,7 +409,7 @@ export class Pets extends Component {
     await this.refreshMedicalCenters();
   }
 
-  async editClick(dep) {
+  editClick = async (dep) => {
     await this.setState({
       modalTitle: 'Editar Paciente',
       patientPetId: dep.patientPetId,

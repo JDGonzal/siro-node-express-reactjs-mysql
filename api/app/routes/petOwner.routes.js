@@ -44,7 +44,7 @@ routePetOwner.post('/api/petowner', [auth, clinic], async (request, response) =>
         return response.status(400).json({
           message: apiMessage['400'][1],
           ok: false,
-          errors: validationResponse
+          error: validationResponse
         });
       }
       var arrayValues = Object.values(jsonValues);
@@ -91,7 +91,7 @@ routePetOwner.get('/api/petowner/petownername/:id', [auth, clinic], async (reque
       found: 0,
       message: apiMessage['400'][1],
       ok: false,
-      errors: validationResponse
+      error: validationResponse
     });
   }
   var arrayValues = await Object.values(jsonValues);
@@ -127,6 +127,47 @@ routePetOwner.get('/api/petowner/petownername/:id', [auth, clinic], async (reque
         found: rows[0].found
       });
     }
+  });
+  // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
+  // in 'Body' use none
+});
+
+routePetOwner.post('/api/petowner/petownernames', [auth, clinic], async (request, response) => {
+  var query = `SELECT po.petOwnerName as label, se.petOwnerId FROM
+      (SELECT DISTINCT(po.petOwnerId)
+      FROM ${process.env.MYSQL_D_B_}.petOwners po
+      INNER JOIN ${process.env.MYSQL_D_B_}.PatientPets pp ON po.petOwnerId = pp.PetOwnerPetOwnerId
+      WHERE pp.patientPetName LIKE ?)
+    as se
+    INNER JOIN petOwners po ON po.petOwnerId = se.petOwnerId
+    ORDER BY po.petOwnerName`;
+
+  var jsonValues = await {
+    patientPetName: '%' + request.body.patientPetName + '%',
+  };
+  const schema = await {
+    patientPetName: { type: 'string', optional: true, max: 100, min: 2 },
+  }
+  const v = await new Validator();
+  const validationResponse = await v.validate(jsonValues, schema);
+
+  if (await validationResponse !== true) {
+    return response.status(400).json({
+      message: apiMessage['400'][1],
+      ok: false,
+      error: validationResponse
+    });
+  }
+  var arrayValues = await Object.values(jsonValues);
+  await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+    if (err) {
+      response.status(501).json({
+        message: apiMessage['501'][1],
+        ok: false,
+        error: err
+      });
+    }
+    response.send(rows);
   });
   // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
   // in 'Body' use none

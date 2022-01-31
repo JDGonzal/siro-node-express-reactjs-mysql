@@ -14,6 +14,44 @@ const apiMessage = require('../utils/messages.js');
 // Setup the express server routeAuth
 const routePatientPet = express.Router();
 
+// On get
+routePatientPet.get('/api/patientpet/:medicalCenterArray', [auth, viewer], async (request, response) => {
+  var query = await `SELECT DISTINCT(pp.patientPetName) as label 
+    FROM ${process.env.MYSQL_D_B_}.PatientPets pp
+    INNER JOIN ${process.env.MYSQL_D_B_}.medicalcenters mc ON pp.MedicalCenterMedicalCenterId = mc.medicalCenterId
+    WHERE mc.medicalCenterId IN (?)
+    ORDER BY pp.patientPetName`;
+  var jsonValues = await {
+    medicalCenterArray: request.params['medicalCenterArray'],
+  };
+  const schema = await {
+    medicalCenterArray: { type: "string", optional: false, max: 255, min: 5 }
+  }
+  const v = await new Validator();
+  const validationResponse = await v.validate(jsonValues, schema);
+
+  if (await validationResponse !== true) {
+    return response.status(400).json({
+      message: apiMessage['400'][1],
+      ok: false,
+      error: validationResponse
+    });
+  }
+  var arrayValues = await Object.values(jsonValues);
+  await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+    if (err) {
+      response.status(501).json({
+        message: apiMessage['501'][1],
+        ok: false,
+        error: err
+      });
+    }
+    response.send(rows);
+  });
+  // To Test in Postman use a GET with this URL "http://localhost:49146/api/patientpet"
+  // in "Body" use none
+});
+
 // On post
 routePatientPet.post('/api/patientpet/get', [auth, viewer], async (request, response) => {
   var query = await `SELECT pp.*, pw.petOwnerName,sp.speciesName, br.breedName, mc.medicalCenterName 
@@ -37,7 +75,7 @@ routePatientPet.post('/api/patientpet/get', [auth, viewer], async (request, resp
     return response.status(400).json({
       message: apiMessage['400'][1],
       ok: false,
-      errors: validationResponse
+      error: validationResponse
     });
   }
   var arrayValues = await Object.values(jsonValues);
@@ -55,6 +93,55 @@ routePatientPet.post('/api/patientpet/get', [auth, viewer], async (request, resp
   // in "Body" use none
 });
 
+// On post
+routePatientPet.post('/api/patientpet/getpatientpetid', [auth, viewer], async (request, response) => {
+  var query = await `SELECT pp.patientPetId 
+    FROM ${process.env.MYSQL_D_B_}.PatientPets pp
+    INNER JOIN petowners pw ON pp.PetOwnerPetOwnerId = pw.petOwnerId
+    WHERE pp.patientPetName = ? AND (pw.petOwnerName = ? OR pw.petOwnerId = ?)
+    LIMIT 1`;
+  var jsonValues = await {
+    patientPetName: request.body['patientPetName'],
+    petOwnerName: request.body['petOwnerName'],
+    petOwnerId: request.body['petOwnerId'],
+  };
+  const schema = await {
+    patientPetName: { type: 'string', optional: false, max: 100, min: 2 },
+    petOwnerName: { type: 'string', optional: true, max: 100, min: 0 },
+    petOwnerId: { type: 'number', optional: true, positive: true, integer: true, min: 0, max: 9999999999 },
+  }
+  const v = await new Validator();
+  const validationResponse = await v.validate(jsonValues, schema);
+
+  if (await validationResponse !== true) {
+    return response.status(400).json({
+      message: apiMessage['400'][1],
+      ok: false,
+      error: validationResponse,
+    });
+  }
+  var arrayValues = await Object.values(jsonValues);
+  await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+    if (err) {
+      response.status(501).json({
+        message: apiMessage['501'][1],
+        ok: false,
+        error: err,
+      });
+    }
+    console.log('getpatientpetid:\n', rows);
+    if (!rows || rows.length === 0) {
+      response.status(404).json({
+        message: apiMessage['404'][1],
+        ok: false,
+      });
+    } else
+      response.send(rows);
+  });
+  // To Test in Postman use a GET with this URL "http://localhost:49146/api/patientpet"
+  // in "Body" use none
+});
+
 routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response) => {
   var query = await `INSERT into ${process.env.MYSQL_D_B_}.PatientPets
               (patientPetName, patientPetBirthday, patientPetGender, patientPetHeight,
@@ -62,7 +149,7 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
                 PetOwnerPetOwnerId, BreedBreedId, MedicalCenterMedicalCenterId)
               VALUE (?,?,?,?,?,NOW(),NOW(),?,?,?,?)`;
   var jsonValues = await {
-    patientPetName: request.body['patientPetName'],
+    patientPetName: request.body['patientPetName'].trim(),
     patientPetBirthday: request.body['patientPetBirthday'],
     patientPetGender: request.body['patientPetGender'],
     patientPetHeight: request.body['patientPetHeight'],
@@ -97,7 +184,7 @@ routePatientPet.post('/api/patientpet', [auth, clinic], async (request, response
     return response.status(400).json({
       message: apiMessage['400'][1],
       ok: false,
-      errors: validationResponse
+      error: validationResponse
     });
   }
   if (jsonValues.patientPetBirthday.length < 3 || jsonValues.patientPetBirthday[0] === '') {
@@ -188,7 +275,7 @@ routePatientPet.put('/api/patientpet', [auth, clinic], async (request, response)
     return response.status(400).json({
       message: apiMessage['400'][1],
       ok: false,
-      errors: validationResponse
+      error: validationResponse
     });
   }
   if (jsonValues.patientPetBirthday.length < 3 || jsonValues.patientPetBirthday[0] === '') {
