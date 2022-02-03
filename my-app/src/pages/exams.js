@@ -14,16 +14,25 @@ export class Exams extends Component {
       patientExams: [],
       patientPets: [],
       petOwners: [],
+      typeOfSamples: [],
 
       //Add Modal by each pet 
       modalTitle: '',
       badToken: true,
       createdAt: Date.now(),
+      dateTimeReadOnly: '',
       patientExamId: 0,
       patientPetId: 0,
       patientPetName: '',
       PetOwnerPetOwnerId: '',
       petOwnerName: '',
+      veterinarianName: '',
+      VeterinarianVeterinarianId: '',
+      vaterinarianName: '',
+      veterinarianExists: false,
+      arrTypeOfSamples: [],
+      NotAnotherTypeOfSample: true,
+      anotherTypeOfSample: '',
 
       MedicalCenterMedicalCenterId: '',
       medicalCenterName: '',
@@ -33,16 +42,25 @@ export class Exams extends Component {
       petsWithoutFilter: [],
       Token: JSON.parse(localStorage.getItem('Token')),
       arrayValidate: [true, true, true, true, true, true, true, true],
-      arrayMessages: ['Paciente', 'Propietario', 'Especie', 'Raza', 'Nacimiento', 'Género', 'Altura', 'Peso'],
+      arrayMessages: ['Paciente', 'Propietario', 'Veterinario', 'Muestra', 'Nacimiento', 'Género', 'Altura', 'Peso'],
       validateMessage: '',
+      typeOfSampleOption: '',
     }
     this.site = 'patientexam';
     this.site2 = 'patientpet';
+    this.site3 = 'veterinarian';
     this.site4 = 'petowner';
     this.site5 = 'medicalcenter';
-    this.alertMessage = 'Por favor Inicia Sesión para acceder a este sitio';
+    this.site6 = 'typeofsample';
+
     this.lim = 5;
     this.date = new Date();
+  }
+
+  alertMessage() {
+    const message = 'Por favor Inicia Sesión para acceder a este sitio'
+    this.setState({ Token: null, badToken: true });
+    alert(message);
   }
 
   FilterFn() {
@@ -95,10 +113,10 @@ export class Exams extends Component {
 
   async refreshPatientPets() {
     if (await this.state.Token === undefined || this.state.Token === null) {
-      alert(this.alertMessage);
+      this.alertMessage();
       return false;
     };
-    console.log('refreshPatientPets', `${REACT_APP_API_URL}${this.site2}/${this.state.Token.medicalCenterArray}`);
+    //console.log('refreshPatientPets', `${REACT_APP_API_URL}${this.site2}/${this.state.Token.medicalCenterArray}`);
     await fetch(`${REACT_APP_API_URL}${this.site2}/${this.state.Token.medicalCenterArray}`, {
       method: 'GET',
       headers: {
@@ -119,7 +137,7 @@ export class Exams extends Component {
 
   async refreshPatientExams() {
     if (await this.state.Token === undefined || this.state.Token === null) {
-      alert(this.alertMessage);
+      this.alertMessage();
       return false;
     };
     await fetch(REACT_APP_API_URL + this.site + '/get', {
@@ -136,7 +154,7 @@ export class Exams extends Component {
       .then(res => res.json())
       .then(data => {
         if (!data || data.ok === false) {
-          alert(this.alertMessage);
+          this.alertMessage();
           return false;
         }
         this.setState({ patientExams: data, petsWithoutFilter: data, badToken: false });
@@ -146,7 +164,7 @@ export class Exams extends Component {
   }
 
   async refreshPetOwner() {
-    console.log('refreshPetOwner', `${REACT_APP_API_URL}${this.site4}/petownernames`);
+    // console.log('refreshPetOwner', `${REACT_APP_API_URL}${this.site4}/petownernames`);
     await fetch(`${REACT_APP_API_URL}${this.site4}/petownernames`, {
       method: 'POST',
       headers: {
@@ -161,11 +179,10 @@ export class Exams extends Component {
       .then(res => res.json())
       .then(data => {
         if (!data || data.ok === false) {
-          alert(this.alertMessage);
+          this.alertMessage();
           return false;
         }
         this.setState({ petOwners: data, });
-        console.log('petOwners:', this.state.petOwners);
         return true;
       });
   }
@@ -181,7 +198,7 @@ export class Exams extends Component {
       body: JSON.stringify({
         patientPetName: this.state.patientPetName,
         petOwnerName: this.state.petOwnerName,
-        petOwnerId: parseInt(this.state.petOwnerId),
+        PetOwnerPetOwnerId: parseInt(this.state.PetOwnerPetOwnerId),
       })
     })
       .then(res => res.json())
@@ -191,8 +208,31 @@ export class Exams extends Component {
           return false;
         }
         this.setState({ patientPetId: data[0].patientPetId, });
-        console.log('getPatientPetId', data, this.state.patientPetId);
         return true;
+      });
+  }
+
+  async refreshVeterinarian() {
+    await fetch(`${REACT_APP_API_URL}${this.site3}/veterinarianname/${parseInt(this.state.VeterinarianVeterinarianId)}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-auth-token': this.state.Token.token
+      },
+    })
+      .then(res => res.json())
+      .then((data) => {
+        if (data.found !== 0) {
+          this.setState({
+            veterinarianName: data.veterinarianName,
+            veterinarianExists: true,
+          });
+        } else {
+          this.setState({ veterinarianExists: false, });
+        }
+      }, (error) => {
+        console.log(error);
       });
   }
 
@@ -216,11 +256,35 @@ export class Exams extends Component {
       });
   }
 
+  async refreshtypeOfSamples() {
+    await fetch(`${REACT_APP_API_URL}${this.site6}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-auth-token': this.state.Token.token
+      },
+    })
+      .then(res => res.json())
+      .then((data) => {
+        if (data.found !== 0) {
+          this.setState({
+            typeOfSamples: data,
+            typeOfSampleOption: '»Descartar todas las muestras«',
+          });
+          console.log(this.state.typeOfSamples);
+        }
+      }, (error) => {
+        console.log(error);
+      });
+  }
+
   async componentDidMount() {
     await this.refreshPatientExams();
     console.log('wasOk', this.state.badToken);
     if (await this.state.badToken === false) {
       await this.refreshPatientPets();
+      await this.refreshtypeOfSamples();
     }
   }
 
@@ -237,7 +301,6 @@ export class Exams extends Component {
   }
 
   onChangePatientPetName = async (e) => {
-    // console.log('onChangePatientPetName:', e);
     await this.setState({
       patientPetName: e.target.value,
       patientPetId: 0,
@@ -253,18 +316,17 @@ export class Exams extends Component {
   }
 
   onChangePetOwnerName = async (e) => {
-    console.log('onChangePetOwnerName:', e);
     await this.setState({
-      petOwnerId: e.target.value,
+      PetOwnerPetOwnerId: e.target.value,
     });
-    console.log(`petOwnerName:"${this.state.petOwnerName}" petOwnerId:${this.state.petOwnerId}`);
+    console.log(`petOwnerName:"${this.state.petOwnerName}" petOwnerId:${this.state.PetOwnerPetOwnerId}`);
   }
 
   onBlurPetOwner = async (e) => {
-    await (this.state.petOwnerName.length > this.lim || this.state.petOwnerId > 0) ?
+    await (this.state.petOwnerName.length > this.lim || this.state.PetOwnerPetOwnerId > 0) ?
       this.state.arrayValidate[1] = await true :
       this.state.arrayValidate[1] = await false;
-    await (this.state.petOwnerName.length > this.lim || this.state.petOwnerId > 0) &&
+    await (this.state.petOwnerName.length > this.lim || this.state.PetOwnerPetOwnerId > 0) &&
       this.state.patientPetName.length > this.lim - 3 ?
       await this.getPatientPetId() :
       this.state.arrayValidate[0] = await false;
@@ -276,6 +338,67 @@ export class Exams extends Component {
 
   onChangeMedicalCenterId = async (e) => {
     await this.setState({ MedicalCenterMedicalCenterId: e.target.value });
+  }
+
+  onChangeVeterinarianId = async (e) => {
+    await this.setState({ VeterinarianVeterinarianId: Math.abs(parseInt(e.target.value)) });
+    if (await this.state.VeterinarianVeterinarianId.toString().length > this.lim) {
+      await this.refreshVeterinarian();
+    }
+  }
+
+  onChangeVeterinarianName = async (e) => {
+    await this.setState({ veterinarianName: e.target.value });
+  }
+
+  onBlurVeterinarian = async (e) => {
+    await this.state.veterinarianName.length > this.lim && String(this.state.VeterinarianVetrinarianId).length > this.lim ?
+      this.state.arrayValidate[2] = await true :
+      this.state.arrayValidate[2] = await false;
+    await this.onBlurPetOwner();
+    await this.fillValidateMessage();
+  }
+
+  onChangeTypeOfSample = async (e) => {
+    let idOption = null;
+    let index = -1;
+    let array = this.state.arrTypeOfSamples;
+    let anotherReadOnly = true;
+    if (e.target.value) {
+      idOption = parseInt(e.target.value, 10);
+    } else {
+      console.log('onChangeTypeOfSample not value:', e.target);
+    };
+    if (await array.length > 0) {
+      index = array.indexOf(idOption);
+    };
+    if (await index < 0 && idOption !== null) {
+      array.push(idOption);
+    };
+    if (idOption === -1) {
+      array = [];
+    };
+    if (idOption === 0) {
+      anotherReadOnly = false;
+    }
+    await this.setState({
+      arrTypeOfSamples: array,
+      notAnotherTypeOfSample: anotherReadOnly,
+    });
+  }
+
+  onBlurTypeOfSample = async (e) => {
+    await this.state.arrTypeOfSamples.length > 0 &&
+      (this.state.arrTypeOfSamples.indexOf(0) === -1 || this.state.anotherTypeOfSample.length > this.lim) ?
+      this.state.arrayValidate[3] = await true :
+      this.state.arrayValidate[3] = await false;
+    await this.onBlurPatientPetName();
+    await this.onBlurVeterinarian();
+    await this.fillValidateMessage();
+  }
+
+  onChangeAnotherTypeOfSample = async (e) => {
+    await this.setState({ anotherTypeOfSample: e.target.value });
   }
 
   getLongNow(date) {
@@ -306,10 +429,13 @@ export class Exams extends Component {
       patientPetName: '',
       PetOwnerPetOwnerId: '',
       petOwnerName: '',
-      patientPetGender: '',
-      createdAt: this.getLongNow(new Date()),
-      patientPetHeight: '',
-      patientPetWeight: '',
+      VeterinarianVeterinarianId: '',
+      veterinarianName: '',
+      arrTypeOfSamples: [],
+      anotherTypeOfSample: '',
+      notAnotherTypeOfSample: true,
+
+      dateTimeReadOnly: this.getLongNow(new Date()),
       MedicalCenterMedicalCenterId: this.state.Token.medicalCenterArray[0],
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true, true],
@@ -328,16 +454,16 @@ export class Exams extends Component {
       patientPetName: dep.patientPetName,
       PetOwnerPetOwnerId: dep.PetOwnerPetOwnerId,
       petOwnerName: dep.petOwnerName,
-      SpeciesSpeciesId: dep.SpeciesSpeciesId,
-      patientPetGender: dep.patientPetGender,
-      createdAt: this.getLongNow(new Date(dep.createdAt)),
-      patientPetHeight: dep.patientPetHeight,
-      patientPetWeight: dep.patientPetWeight,
+      VeterinarianVeterinarianId: dep.VeterinarianVeterinarianId,
+      veterinarianName: dep.veterinarianName,
+      dateTimeReadOnly: this.getLongNow(new Date(dep.createdAt)),
       MedicalCenterMedicalCenterId: dep.MedicalCenterMedicalCenterId,
+      notAnotherTypeOfSample: true,
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true, true],
     });
     await this.refreshMedicalCenters();
+    await this.refreshPetOwner();
   }
 
   createClick() {
@@ -349,12 +475,9 @@ export class Exams extends Component {
         'x-auth-token': this.state.Token.token
       },
       body: JSON.stringify({
-        patientPetName: this.state.patientPetName,
-        patientPetGender: this.state.patientPetGender,
-        patientPetHeight: parseInt(this.state.patientPetHeight),
-        patientPetWeight: parseInt(this.state.patientPetWeight),
         PetOwnerPetOwnerId: parseInt(this.state.PetOwnerPetOwnerId),
-        petOwnerName: this.state.petOwnerName,
+        VeterinarianVeterinarianId: parseInt(this.state.VeterinarianVeterinarianId),
+        veterinarianName: parseInt(this.state.veterinarianName),
         MedicalCenterMedicalCenterId: parseInt(this.state.MedicalCenterMedicalCenterId),
         TokenExternal: this.state.Token.token,
       })
@@ -380,12 +503,9 @@ export class Exams extends Component {
         'x-auth-token': this.state.Token.token
       },
       body: JSON.stringify({
-        patientPetName: this.state.patientPetName,
-        patientPetGender: this.state.patientPetGender,
-        patientPetHeight: parseInt(this.state.patientPetHeight),
-        patientPetWeight: parseInt(this.state.patientPetWeight),
         PetOwnerPetOwnerId: parseInt(this.state.PetOwnerPetOwnerId),
-        petOwnerName: this.state.petOwnerName,
+        VeterinarianVeterinarianId: parseInt(this.state.VeterinarianVeterinarianId),
+        veterinarianName: parseInt(this.state.veterinarianName),
         MedicalCenterMedicalCenterId: parseInt(this.state.MedicalCenterMedicalCenterId),
         patientExamId: parseInt(this.state.patientExamId),
         TokenExternal: this.state.Token.token,
@@ -397,7 +517,7 @@ export class Exams extends Component {
         !data.message ? alert(data.error) : alert(data.message);
         this.refreshPatientExams();
       }, (error) => {
-        alert('Failed');
+        alert('¡Falló!');
       })
   }
 
@@ -417,7 +537,7 @@ export class Exams extends Component {
           !data.message ? alert(data.error) : alert(data.message);
           this.refreshPatientExams();
         }, (error) => {
-          alert('Failed');
+          alert('¡Falló!');
         })
     }
   }
@@ -430,7 +550,10 @@ export class Exams extends Component {
     try {
       return (
         (this.state.patientPetName.length > this.lim - 3 || this.state.patientPetId > 0) &&
-        (this.state.petOwnerName.length > this.lim || this.state.petOwnerId > 0) 
+        (this.state.petOwnerName.length > this.lim || this.state.PetOwnerPetOwnerId > 0) &&
+        this.state.veterinarianName.length > this.lim && String(this.state.VeterinarianVeterinarianId).length > this.lim &&
+        this.state.arrTypeOfSamples.length > 0 &&
+        (this.state.arrTypeOfSamples.indexOf(0) === -1 || this.state.anotherTypeOfSample.length > this.lim)
       );
     } catch (e) {
       console.error(e);
@@ -439,16 +562,25 @@ export class Exams extends Component {
   }
 
   render() {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const {
       patientExams,
       patientPets,
       petOwners,
+      typeOfSamples,
       badToken,
       modalTitle,
       patientExamId,
       patientPetName,
-      petOwnerId,
-      createdAt,
+      PetOwnerPetOwnerId,
+      dateTimeReadOnly,
+      VeterinarianVeterinarianId,
+      veterinarianName,
+      veterinarianExists,
+      arrTypeOfSamples,
+      typeOfSampleOption,
+      notAnotherTypeOfSample,
+      anotherTypeOfSample,
 
       validateMessage,
     } = this.state;
@@ -557,28 +689,49 @@ export class Exams extends Component {
               <div className='modal-body'>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group ' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label ' >Fecha:</Form.Label>
-                  <Form.Control type='text' value={createdAt} readOnly={true} />
+                  <Form.Control type='text' value={dateTimeReadOnly} readOnly={true} />
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
                 <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
                   <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Paciente y Propietario:</Form.Label>
                   <Form.Control as='select' className="form-select" value={patientPetName}
                     onChange={this.onChangePatientPetName} onBlur={this.onBlurPatientPetName} required='required'>
-                    <option hidden defaultValue value="0" key="0">Nombre del Paciente</option>
+                    <option hidden defaultValue value="0" key="0">Seleccione Nombre del Paciente...</option>
                     {patientPets.map(spe => <option key={spe.label}>
                       {spe.label}
                     </option>)}
                   </Form.Control>
-                  <Form.Control as='select' className="form-select" value={petOwnerId}
+                  <Form.Control as='select' className="form-select" value={PetOwnerPetOwnerId}
                     onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} required='required'>
-                    <option hidden defaultValue value="0" key="0">Propietario</option>
+                    <option hidden defaultValue value="0" key="0">Seleccione Propietario...</option>
                     {petOwners.map(bre => <option value={bre.petOwnerId} key={bre.petOwnerId}>
                       {bre.label}
                     </option>)}
                   </Form.Control>
                 </Form.Group>
                 <Form.Label size='sm'></Form.Label>
-
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Veterinario:</Form.Label>
+                  <Form.Control type='number' value={VeterinarianVeterinarianId} placeholder='ID. del veterinario'
+                    onChange={this.onChangeVeterinarianId} onBlur={this.onBlurVeterinarian} required='required' />
+                  {/* Revisar porq el Nombre de Veterinario genera error*/}
+                  <Form.Control type='name' value={veterinarianName} placeholder='Nombre del veterinario' required='required'
+                    onChange={this.onChangeVeterinarianName} onBlur={this.onBlurVeterinarian} readOnly={veterinarianExists} />*
+                </Form.Group>
+                <Form.Label size='sm'></Form.Label>
+                <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
+                  <Form.Label className='input-group-text col-sm-3 col-form-label control-label' >Tipo de muestra:</Form.Label>
+                  <Form.Control as='select' className="form-select" value={arrTypeOfSamples} required='required'
+                    onChange={this.onChangeTypeOfSample} onBlur={this.onBlurTypeOfSample} multiple ={true}>
+                    <option defaultValue value="-1" key="-1">{typeOfSampleOption}</option>
+                    {typeOfSamples.map(bre => <option value={bre.typeOfSampleId} key={bre.typeOfSampleId}>
+                      {bre.typeOfSampleName}
+                    </option>)}
+                    <option defaultValue value="0" key="0">Otro</option>
+                  </Form.Control>
+                  <Form.Control as="textarea" rows={3}  value={anotherTypeOfSample} placeholder='Otro tipo de muestra' required='required'
+                    onChange={this.onChangeAnotherTypeOfSample} onBlur={this.onBlurTypeOfSample} readOnly={notAnotherTypeOfSample} />*
+                </Form.Group>
                 <pre> </pre>
                 {patientExamId === 0 ?
                   <button type='button' className='btn btn-primary float-start'

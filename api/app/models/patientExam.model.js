@@ -24,6 +24,9 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: false,
     },
+    patientAnotherTypeOfSample: { 
+      type: Sequelize.STRING,
+    },
   });
 
   return PatientExam;

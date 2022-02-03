@@ -43,9 +43,15 @@ export class Pets extends Component {
     this.site3 = 'breed';
     this.site4 = 'petowner';
     this.site5 = 'medicalcenter';
-    this.alertMessage = 'Por favor Inicia Sesión para acceder a este sitio';
+    
     this.lim = 5;
     this.date = new Date();
+  }
+
+  alertMessage(){
+    const message = 'Por favor Inicia Sesión para acceder a este sitio'
+    this.setState({Token: null, badToken: true});
+    alert(message);
   }
 
   FilterFn() {
@@ -88,7 +94,7 @@ export class Pets extends Component {
 
   async refreshPatientPets() {
     if (await this.state.Token === undefined || this.state.Token === null) {
-      alert(this.alertMessage);
+      this.alertMessage();
       return false;
     };
     await fetch(REACT_APP_API_URL + this.site + '/get', {
@@ -105,7 +111,7 @@ export class Pets extends Component {
       .then(res => res.json())
       .then(data => {
         if (!data || data.ok === false) {
-          alert(this.alertMessage);
+          this.alertMessage();
           return false;
         }
         this.setState({ patientPets: data, petsWithoutFilter: data, badToken: false });
@@ -115,6 +121,10 @@ export class Pets extends Component {
   }
 
   async refreshSpecies() {
+    if (await this.state.Token === undefined || this.state.Token === null) {
+      this.alertMessage();
+      return false;
+    };
     await fetch(`${REACT_APP_API_URL}${this.site2}`, {
       method: 'GET',
       headers: {
@@ -126,8 +136,8 @@ export class Pets extends Component {
       .then(res => res.json())
       .then((data) => {
         if (!data || data.ok === false) {
-          //alert(this.alertMessage);
-          return;
+          this.alertMessage();
+          return false;
         }
         this.setState({ species: data });
         /*if (this.state.medicalCenterNew !== 0) {
@@ -143,6 +153,10 @@ export class Pets extends Component {
   }
 
   async refreshBreeds(SpeciesId) {
+    if (await this.state.Token === undefined || this.state.Token === null) {
+      this.alertMessage();
+      return false;
+    };
     if (!SpeciesId || SpeciesId === undefined) {
       return;
     }
@@ -157,8 +171,8 @@ export class Pets extends Component {
       .then(res => res.json())
       .then((data) => {
         if (!data || data.ok === false) {
-          //alert(this.alertMessage);
-          return;
+          this.alertMessage();
+          return false;
         }
         this.setState({ breeds: data });
         /* if (this.state.medicalCenterNew !== 0) {
@@ -497,7 +511,7 @@ export class Pets extends Component {
         !data.message ? alert(data.error) : alert(data.message);
         this.refreshPatientPets();
       }, (error) => {
-        alert('Failed');
+        alert('¡Falló!');
       })
   }
 
@@ -517,7 +531,7 @@ export class Pets extends Component {
           !data.message ? alert(data.error) : alert(data.message);
           this.refreshPatientPets();
         }, (error) => {
-          alert('Failed');
+          alert('¡Falló!');
         })
     }
   }

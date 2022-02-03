@@ -33,10 +33,9 @@ routePatientExam.post('/api/patientexam/get', [auth, viewer], async (request, re
     FROM patientexam_laboratorytests pl 
     INNER JOIN laboratorytests lt ON pl.laboratoryTestId = lt.laboratoryTestId
     WHERE pl.patientExamId = pe.patientExamId) AS laboratoryTestNames
-  
   FROM ${process.env.MYSQL_D_B_}.PatientExams pe
   INNER JOIN PatientPets pp ON pe.PatientPetPatientPetId = pp.patientPetId
-  INNER JOIN petowners pw ON pp.PetOwnerPetOwnerId = pw.petOwnerId
+  INNER JOIN petOwners pw ON pp.PetOwnerPetOwnerId = pw.petOwnerId
   INNER JOIN species sp ON pp.SpeciesSpeciesId = sp.speciesId
   INNER JOIN breeds br ON pp.BreedBreedId = br.breedId
   INNER JOIN medicalcenters mc ON pp.MedicalCenterMedicalCenterId = mc.medicalCenterId
