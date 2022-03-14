@@ -5,7 +5,8 @@ module.exports = (sequelize, Sequelize) => {
       autoIncrement: true, 
       primaryKey: true,
     },
-    patientExamRemarks: {
+    patientExamRemarks: { /*OBSERVACIONES (Datos clínicos relevantes. Especificaciones para las pruebas solicitadas. 
+      Urgencias. Antibióticos de preferencia para el antibiograma, entre otros)*/
       type: Sequelize.STRING,
     },
     patientExamAddress: { 
@@ -15,9 +16,6 @@ module.exports = (sequelize, Sequelize) => {
     patientExamTelNumber: { 
       type: Sequelize.BIGINT,
       allowNull: false,
-    },
-    patientExamComment: { 
-      type: Sequelize.STRING,
     },
     patientExamIsUrgency: { 
       type: Sequelize.BOOLEAN,

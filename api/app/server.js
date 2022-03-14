@@ -9,9 +9,10 @@ var corsOptions = {
 app.use(cors());
 
 const init_All = require('./data');
+const { laboratoryTest } = require('./models');
 
 // the next line to call the 'initial()' method to create each role
- init_All();
+// init_All();
 
 // parse requests of content-type - application/json
 app.use(express.json());
@@ -38,6 +39,10 @@ app.use(require('./routes/sqlQuery.routes.js'));
 app.use(require('./routes/patientExam.routes.js'));
 app.use(require('./routes/veterinarians.routes.js'));
 app.use(require('./routes/typeOfSample.routes.js'));
+app.use(require('./routes/testType.routes.js'));
+app.use(require('./routes/laboratoryTest.routes.js'));
+app.use(require('./routes/patientexam_laboratorytest.routes.js'));
+app.use(require('./routes/patientexam_typeofsample.routes.js'));
 
 // set port, listen for requests
 const PORT = process.env.PORT || 49146;

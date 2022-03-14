@@ -15,7 +15,6 @@ routeVeterinarian.post('/api/veterinarian', [auth, clinic], async (request, resp
   var query = `SELECT COUNT(veterinarianId)as found from ${process.env.MYSQL_D_B_}.veterinarians
                where veterinarianId=?`;
   const values = [parseInt(request.body['veterinarianId'])];
-  console.log(query, '\n', values);
   await mysqlConnection.query(query, values, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
@@ -34,6 +33,7 @@ routeVeterinarian.post('/api/veterinarian', [auth, clinic], async (request, resp
         veterinarianId: request.body['veterinarianId'],
         veterinarianName: request.body['veterinarianName'],
       };
+      
       const schema = {
         veterinarianId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
         veterinarianName: { type: 'string', optional: false, max: 100, min: 5 }

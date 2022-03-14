@@ -14,6 +14,50 @@ const apiMessage = require('../utils/messages.js');
 // Setup the express server routeAuth
 const routePatientExam = express.Router();
 
+routePatientExam.get('/api/patientexam/:VeterinarianVeterinarianId&:PatientPetPatientPetId', async (request, response) => {
+  var query = `SELECT COUNT(patientExamId)as found from ${process.env.MYSQL_D_B_}.patientExams
+               where VeterinarianVeterinarianId=? AND PatientPetPatientPetId=?`;
+  var values = [
+    parseInt(request.params.VeterinarianVeterinarianId),
+    parseInt(request.params.PatientPetPatientPetId),
+  ];
+  console.log('/api/patientexam/', values);
+  await mysqlConnection.query(query, values, function (err, rows, fields) {
+    if (err) {
+      response.status(501).json({
+        message: apiMessage['501'][1],
+        ok: false,
+        error: err
+      });
+    }
+    if (rows[0].found > 0) {
+      query = `SELECT MAX(patientExamId) as found from ${process.env.MYSQL_D_B_}.patientExams
+      where VeterinarianVeterinarianId=? AND PatientPetPatientPetId=?`;
+      mysqlConnection.query(query, values, function (err, rows, fields) {
+        if (err) {
+          response.status(501).json({
+            message: apiMessage['501'][1],
+            ok: false,
+            error: err
+          });
+        }
+        response.send({
+          ok: true,
+          found: rows[0].found
+        });
+      });
+    } else {
+      console.log('found: ', rows[0].found, ' of ', values[0], ' and ', values[1]);
+      response.send({
+        ok: true,
+        found: rows[0].found
+      });
+    }
+  });
+  // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
+  // in 'Body' use none
+});
+
 // On post
 routePatientExam.post('/api/patientexam/get', [auth, viewer], async (request, response) => {
   var query = await `SELECT pe.*, pp.patientPetName, pp.patientPetGender, pp.patientPetBirthday ,
@@ -32,7 +76,16 @@ routePatientExam.post('/api/patientexam/get', [auth, viewer], async (request, re
   (SELECT GROUP_CONCAT(lt.laboratoryTestName SEPARATOR ',') 
     FROM patientexam_laboratorytests pl 
     INNER JOIN laboratorytests lt ON pl.laboratoryTestId = lt.laboratoryTestId
-    WHERE pl.patientExamId = pe.patientExamId) AS laboratoryTestNames
+    WHERE pl.patientExamId = pe.patientExamId) AS laboratoryTestNames,
+  (SELECT GROUP_CONCAT(lt.TestTypeTestTypeId SEPARATOR ',') 
+    FROM patientexam_laboratorytests pl 
+    INNER JOIN laboratorytests lt ON pl.laboratoryTestId = lt.laboratoryTestId
+    WHERE pl.patientExamId = pe.patientExamId) AS TestTypeTestTypeIds,
+  (SELECT GROUP_CONCAT(tt.testTypeIsMultiple SEPARATOR ',') 
+    FROM patientexam_laboratorytests pl 
+    INNER JOIN laboratorytests lt ON pl.laboratoryTestId = lt.laboratoryTestId
+    INNER JOIN testtypes tt ON tt.testTypeId = lt.TestTypeTestTypeId
+    WHERE pl.patientExamId = pe.patientExamId) AS testTypeIsMultiples
   FROM ${process.env.MYSQL_D_B_}.PatientExams pe
   INNER JOIN PatientPets pp ON pe.PatientPetPatientPetId = pp.patientPetId
   INNER JOIN petOwners pw ON pp.PetOwnerPetOwnerId = pw.petOwnerId
@@ -41,7 +94,7 @@ routePatientExam.post('/api/patientexam/get', [auth, viewer], async (request, re
   INNER JOIN medicalcenters mc ON pp.MedicalCenterMedicalCenterId = mc.medicalCenterId
   INNER JOIN veterinarians ve on pe.VeterinarianVeterinarianId = ve.veterinarianId
   WHERE mc.medicalCenterId IN (?)
-  ORDER BY pe.patientExamId DESC`;
+  ORDER BY pe.patientExamId DESC LIMIT 100`;
   var jsonValues = await {
     medicalCenterArray: request.body['medicalCenterArray']
   };
@@ -74,38 +127,40 @@ routePatientExam.post('/api/patientexam/get', [auth, viewer], async (request, re
 });
 
 routePatientExam.post('/api/patientexam', [auth, clinic], async (request, response) => {
-  var query = await `INSERT into ${process.env.MYSQL_D_B_}.PatientPets
-              (patientPetName, patientPetBirthday, patientPetGender, patientPetHeight,
-                patientPetWeight, createdAt, updatedAt, SpeciesSpeciesId,
-                PetOwnerPetOwnerId, BreedBreedId, MedicalCenterMedicalCenterId)
-              VALUE (?,?,?,?,?,NOW(),NOW(),?,?,?,?)`;
+  var query = await `INSERT into ${process.env.MYSQL_D_B_}.PatientExams
+              (patientExamRemarks, patientExamAddress, patientExamTelNumber, patientExamIsUrgency,
+                patientAnotherTypeOfSample, createdAt, updatedAt, 
+                VeterinarianVeterinarianId, PatientPetPatientPetId)
+              VALUE (?,?,?,?,?,NOW(),NOW(),?,?)`;
   var jsonValues = await {
-    patientPetName: request.body['patientPetName'],
-    patientPetBirthday: request.body['patientPetBirthday'],
-    patientPetGender: request.body['patientPetGender'],
-    patientPetHeight: request.body['patientPetHeight'],
-    patientPetWeight: request.body['patientPetWeight'],
-    SpeciesSpeciesId: request.body['SpeciesSpeciesId'],
-    PetOwnerPetOwnerId: request.body['PetOwnerPetOwnerId'],
-    BreedBreedId: request.body['BreedBreedId'],
+    patientExamRemarks: request.body['patientExamRemarks'],
+    patientExamAddress: request.body['patientExamAddress'],
+    patientExamTelNumber: request.body['patientExamTelNumber'],
+    patientExamIsUrgency: request.body['patientExamIsUrgency'],
+    patientAnotherTypeOfSample: request.body['patientAnotherTypeOfSample'],
+    VeterinarianVeterinarianId: request.body['VeterinarianVeterinarianId'],
+    patientPetId: request.body['patientPetId'],
     MedicalCenterMedicalCenterId: request.body['MedicalCenterMedicalCenterId'],
-    petOwnerName: request.body['petOwnerName'],
+    arrTypeOfSamples: request.body['arrTypeOfSamples'],
+    arrLabTests: request.body['arrLabTests'],
     TokenExternal: request.body['TokenExternal'],
+    veterinarianName: request.body['veterinarianName'],
 
   };
-  console.log('post:patientpet', jsonValues);
+  console.log('post:patientexam', jsonValues);
   const schema = await {
-    patientPetName: { type: 'string', optional: false, max: 100, min: 2 },
-    patientPetBirthday: { type: 'array', optional: false, items: 'string', length: 3 },
-    patientPetGender: { type: 'string', optional: false, length: 1 },
-    patientPetHeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99999 },
-    patientPetWeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
-    SpeciesSpeciesId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 999 },
-    PetOwnerPetOwnerId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
-    BreedBreedId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 999999 },
+    patientExamRemarks: { type: 'string', optional: true, max: 255 },
+    patientExamAddress: { type: 'string', optional: false, max: 255, min: 8 },
+    patientExamTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
+    patientExamIsUrgency: { type: 'boolean', optional: false },
+    patientAnotherTypeOfSample: { type: 'string', optional: true, max: 255 },
+    VeterinarianVeterinarianId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
+    patientPetId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
     MedicalCenterMedicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
-    petOwnerName: { type: 'string', optional: false, max: 100, min: 5 },
+    arrTypeOfSamples: { type: 'array', optional: false, max: 10, min: 1 },
+    arrLabTests: { type: 'array', optional: false, max: 10, min: 1 },
     TokenExternal: { type: 'string', optional: true },
+    veterinarianName: { type: 'string', optional: false, max: 100, min: 5 },
 
   }
   const v = await new Validator();
@@ -119,10 +174,7 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
     });
   }
 
-  jsonValues.patientPetBirthday = new Date(`${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`);
-  console.log('patientPetBirthday: ', jsonValues.patientPetBirthday);
-
-  await fetch(process.env.EMAIL_API_ + 'petowner', {
+  await fetch(process.env.EMAIL_API_ + 'veterinarian', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -130,8 +182,8 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
       'x-auth-token': jsonValues.TokenExternal
     },
     body: JSON.stringify({
-      petOwnerId: jsonValues.PetOwnerPetOwnerId,
-      petOwnerName: jsonValues.petOwnerName,
+      veterinarianId: jsonValues.VeterinarianVeterinarianId,
+      veterinarianName: jsonValues.veterinarianName,
     })
   })
     .then(res => res.json())
@@ -142,7 +194,6 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
     });
 
   var arrayValues = await Object.values(jsonValues);
-
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
@@ -155,6 +206,61 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
       message: apiMessage['201'][1],
       ok: true,
     });
+    var patientExamId = 0;
+    fetch(process.env.EMAIL_API_ + 'patientexam/' + jsonValues.VeterinarianVeterinarianId + '&'
+      + jsonValues.patientPetId, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => res.json())
+      .then((data) => {
+        patientExamId = data.found;
+        if (jsonValues.arrTypeOfSamples[0] && patientExamId > 0) {
+          fetch(process.env.EMAIL_API_ + 'patientexam_typeofsample', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'x-auth-token': jsonValues.TokenExternal
+            },
+            body: JSON.stringify({
+              patientExamId: patientExamId,
+              arrTypeOfSamples: jsonValues.arrTypeOfSamples,
+            })
+          })
+            .then(res => res.json())
+            .then((data) => {
+              console.log('patientexam_typeofsample(ok)', data);
+            }, (error) => {
+              console.log('patientexam_typeofsample(error)', error);
+            });
+        };
+        if (jsonValues.arrLabTests[0] && patientExamId > 0) {
+          fetch(process.env.EMAIL_API_ + 'patientexam_laboratorytest', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'x-auth-token': jsonValues.TokenExternal
+            },
+            body: JSON.stringify({
+              patientExamId: patientExamId,
+              arrLabTests: jsonValues.arrLabTests,
+            })
+          })
+            .then(res => res.json())
+            .then((data) => {
+              console.log('patientexam_laboratorytest(ok)', data);
+            }, (error) => {
+              console.log('patientexam_laboratorytest(error)', error);
+            });
+        };
+      }, (err) => {
+        console.log(err);
+      });
   });
   // To Test in Postman use POST with this URL "http://localhost:49146/api/patientpet"
   // in "Body" use raw and select JSON, put this JSON: {"PetName": "BPO"}
@@ -162,20 +268,20 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
 });
 
 routePatientExam.put('/api/patientexam', [auth, clinic], async (request, response) => {
-    var query = await `UPDATE ${process.env.MYSQL_D_B_}.PatientPets
-               SET patientPetName=?, patientPetBirthday=?, patientPetGender=?, 
-               patientPetHeight=?, patientPetWeight=?,SpeciesSpeciesId=?,
-               PetOwnerPetOwnerId=?, BreedBreedId=?,
+  var query = await `UPDATE ${process.env.MYSQL_D_B_}.PatientExams
+               SET patientExamRemarks=?, patientExamAddress=?, patientExamTelNumber=?, 
+               patientExamIsUrgency=?, patientAnotherTypeOfSample=?,SpeciesSpeciesId=?,
+               VeterinarianVeterinarianId=?, BreedBreedId=?,
                MedicalCenterMedicalCenterId=?, updatedAt=NOW()
                WHERE patientPetId=?`;
   var jsonValues = await {
-    patientPetName: request.body['patientPetName'],
-    patientPetBirthday: request.body['patientPetBirthday'],
-    patientPetGender: request.body['patientPetGender'],
-    patientPetHeight: request.body['patientPetHeight'],
-    patientPetWeight: request.body['patientPetWeight'],
+    patientExamRemarks: request.body['patientExamRemarks'],
+    patientExamAddress: request.body['patientExamAddress'],
+    patientExamTelNumber: request.body['patientExamTelNumber'],
+    patientExamIsUrgency: request.body['patientExamIsUrgency'],
+    patientAnotherTypeOfSample: request.body['patientAnotherTypeOfSample'],
     SpeciesSpeciesId: request.body['SpeciesSpeciesId'],
-    PetOwnerPetOwnerId: request.body['PetOwnerPetOwnerId'],
+    VeterinarianVeterinarianId: request.body['VeterinarianVeterinarianId'],
     BreedBreedId: request.body['BreedBreedId'],
     MedicalCenterMedicalCenterId: request.body['MedicalCenterMedicalCenterId'],
     patientPetId: request.body['patientPetId'],
@@ -184,13 +290,13 @@ routePatientExam.put('/api/patientexam', [auth, clinic], async (request, respons
   };
   console.log('put:patientpet', jsonValues);
   const schema = await {
-    patientPetName: { type: 'string', optional: false, max: 100, min: 2 },
-    patientPetBirthday: { type: 'array', optional: false, items: 'string', length: 3 },
-    patientPetGender: { type: 'string', optional: false, length: 1 },
-    patientPetHeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99999 },
-    patientPetWeight: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
+    patientExamRemarks: { type: 'string', optional: false, max: 100, min: 2 },
+    patientExamAddress: { type: 'array', optional: false, items: 'string', length: 3 },
+    patientExamTelNumber: { type: 'string', optional: false, length: 1 },
+    patientExamIsUrgency: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99999 },
+    patientAnotherTypeOfSample: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
     SpeciesSpeciesId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 999 },
-    PetOwnerPetOwnerId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
+    VeterinarianVeterinarianId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
     BreedBreedId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 999999 },
     MedicalCenterMedicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
     patientPetId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
@@ -207,8 +313,8 @@ routePatientExam.put('/api/patientexam', [auth, clinic], async (request, respons
     });
   }
 
-  jsonValues.patientPetBirthday = new Date(`${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`);
-  console.log('patientPetBirthday: ', jsonValues.patientPetBirthday);
+  jsonValues.patientExamAddress = new Date(`${jsonValues.patientExamAddress[0]}-${jsonValues.patientExamAddress[1]}-${jsonValues.patientExamAddress[2]}`);
+  console.log('patientExamAddress: ', jsonValues.patientExamAddress);
 
   await fetch(process.env.EMAIL_API_ + 'petowner', {
     method: 'POST',
@@ -218,7 +324,7 @@ routePatientExam.put('/api/patientexam', [auth, clinic], async (request, respons
       'x-auth-token': jsonValues.TokenExternal
     },
     body: JSON.stringify({
-      petOwnerId: jsonValues.PetOwnerPetOwnerId,
+      petOwnerId: jsonValues.VeterinarianVeterinarianId,
       petOwnerName: jsonValues.petOwnerName,
     })
   })
