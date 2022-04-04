@@ -24,7 +24,6 @@ routeVeterinarian.post('/api/veterinarian', [auth, clinic], async (request, resp
       });
     }
     if (rows[0].found === 0 && values[0] > 0) {
-
       query = `INSERT into ${process.env.MYSQL_D_B_}.veterinarians 
               (createdAt, updatedAt, veterinarianId, veterinarianName)
               VALUE (NOW(), NOW(), ?, ?)`;

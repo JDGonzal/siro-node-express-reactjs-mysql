@@ -126,6 +126,73 @@ routePatientExam.post('/api/patientexam/get', [auth, viewer], async (request, re
   // in "Body" use none
 });
 
+addVeterinarian = async (jsonValues) => {
+  await fetch(process.env.EMAIL_API_ + 'veterinarian', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'x-auth-token': jsonValues.TokenExternal
+    },
+    body: JSON.stringify({
+      veterinarianId: jsonValues.VeterinarianVeterinarianId,
+      veterinarianName: jsonValues.veterinarianName,
+    })
+  })
+    .then(res => res.json())
+    .then((data) => {
+      console.log('addVeterinarian(ok)', data);
+    }, (error) => {
+      console.log('addVeterinarian(error)', error);
+    });
+}
+
+addTypeOfSample = async (jsonValues) => {
+  if (jsonValues.arrTypeOfSamples[0] && jsonValues.patientExamId > 0) {
+    fetch(process.env.EMAIL_API_ + 'patientexam_typeofsample', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-auth-token': jsonValues.TokenExternal
+      },
+      body: JSON.stringify({
+        patientExamId: jsonValues.patientExamId,
+        arrTypeOfSamples: jsonValues.arrTypeOfSamples,
+      })
+    })
+      .then(res => res.json())
+      .then((data) => {
+        console.log('patientexam_typeofsample(ok)', data);
+      }, (error) => {
+        console.log('patientexam_typeofsample(error)', error);
+      });
+  };
+};
+
+addLaboratoryTest = async (jsonValues) => {
+  if (jsonValues.arrLabTests[0] && jsonValues.patientExamId > 0) {
+    fetch(process.env.EMAIL_API_ + 'patientexam_laboratorytest', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-auth-token': jsonValues.TokenExternal
+      },
+      body: JSON.stringify({
+        patientExamId: jsonValues.patientExamId,
+        arrLabTests: jsonValues.arrLabTests,
+      })
+    })
+      .then(res => res.json())
+      .then((data) => {
+        console.log('patientexam_laboratorytest(ok)', data);
+      }, (error) => {
+        console.log('patientexam_laboratorytest(error)', error);
+      });
+  };
+}
+
 routePatientExam.post('/api/patientexam', [auth, clinic], async (request, response) => {
   var query = await `INSERT into ${process.env.MYSQL_D_B_}.PatientExams
               (patientExamRemarks, patientExamAddress, patientExamTelNumber, patientExamIsUrgency,
@@ -145,7 +212,7 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
     arrLabTests: request.body['arrLabTests'],
     TokenExternal: request.body['TokenExternal'],
     veterinarianName: request.body['veterinarianName'],
-
+    patientExamId: 0,
   };
   console.log('post:patientexam', jsonValues);
   const schema = await {
@@ -174,25 +241,7 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
     });
   }
 
-  await fetch(process.env.EMAIL_API_ + 'veterinarian', {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'x-auth-token': jsonValues.TokenExternal
-    },
-    body: JSON.stringify({
-      veterinarianId: jsonValues.VeterinarianVeterinarianId,
-      veterinarianName: jsonValues.veterinarianName,
-    })
-  })
-    .then(res => res.json())
-    .then((data) => {
-      console.log(data);
-    }, (error) => {
-      console.log(error);
-    });
-
+  await addVeterinarian(jsonValues);
   var arrayValues = await Object.values(jsonValues);
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
@@ -206,7 +255,7 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
       message: apiMessage['201'][1],
       ok: true,
     });
-    var patientExamId = 0;
+
     fetch(process.env.EMAIL_API_ + 'patientexam/' + jsonValues.VeterinarianVeterinarianId + '&'
       + jsonValues.patientPetId, {
       method: 'GET',
@@ -217,47 +266,9 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
     })
       .then(res => res.json())
       .then((data) => {
-        patientExamId = data.found;
-        if (jsonValues.arrTypeOfSamples[0] && patientExamId > 0) {
-          fetch(process.env.EMAIL_API_ + 'patientexam_typeofsample', {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'x-auth-token': jsonValues.TokenExternal
-            },
-            body: JSON.stringify({
-              patientExamId: patientExamId,
-              arrTypeOfSamples: jsonValues.arrTypeOfSamples,
-            })
-          })
-            .then(res => res.json())
-            .then((data) => {
-              console.log('patientexam_typeofsample(ok)', data);
-            }, (error) => {
-              console.log('patientexam_typeofsample(error)', error);
-            });
-        };
-        if (jsonValues.arrLabTests[0] && patientExamId > 0) {
-          fetch(process.env.EMAIL_API_ + 'patientexam_laboratorytest', {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'x-auth-token': jsonValues.TokenExternal
-            },
-            body: JSON.stringify({
-              patientExamId: patientExamId,
-              arrLabTests: jsonValues.arrLabTests,
-            })
-          })
-            .then(res => res.json())
-            .then((data) => {
-              console.log('patientexam_laboratorytest(ok)', data);
-            }, (error) => {
-              console.log('patientexam_laboratorytest(error)', error);
-            });
-        };
+        jsonValues.patientExamId = data.found;
+        addTypeOfSample(jsonValues);
+        addLaboratoryTest(jsonValues);
       }, (err) => {
         console.log(err);
       });
@@ -270,38 +281,39 @@ routePatientExam.post('/api/patientexam', [auth, clinic], async (request, respon
 routePatientExam.put('/api/patientexam', [auth, clinic], async (request, response) => {
   var query = await `UPDATE ${process.env.MYSQL_D_B_}.PatientExams
                SET patientExamRemarks=?, patientExamAddress=?, patientExamTelNumber=?, 
-               patientExamIsUrgency=?, patientAnotherTypeOfSample=?,SpeciesSpeciesId=?,
-               VeterinarianVeterinarianId=?, BreedBreedId=?,
-               MedicalCenterMedicalCenterId=?, updatedAt=NOW()
-               WHERE patientPetId=?`;
+               patientExamIsUrgency=?, patientAnotherTypeOfSample=?,
+               VeterinarianVeterinarianId=?, PatientPetPatientPetId=?, updatedAt=NOW()
+               WHERE patientExamId=?`;
   var jsonValues = await {
     patientExamRemarks: request.body['patientExamRemarks'],
     patientExamAddress: request.body['patientExamAddress'],
     patientExamTelNumber: request.body['patientExamTelNumber'],
     patientExamIsUrgency: request.body['patientExamIsUrgency'],
     patientAnotherTypeOfSample: request.body['patientAnotherTypeOfSample'],
-    SpeciesSpeciesId: request.body['SpeciesSpeciesId'],
     VeterinarianVeterinarianId: request.body['VeterinarianVeterinarianId'],
-    BreedBreedId: request.body['BreedBreedId'],
-    MedicalCenterMedicalCenterId: request.body['MedicalCenterMedicalCenterId'],
     patientPetId: request.body['patientPetId'],
-    petOwnerName: request.body['petOwnerName'],
+    patientExamId: request.body['patientExamId'],
+    MedicalCenterMedicalCenterId: request.body['MedicalCenterMedicalCenterId'],
+    arrTypeOfSamples: request.body['arrTypeOfSamples'],
+    arrLabTests: request.body['arrLabTests'],
     TokenExternal: request.body['TokenExternal'],
+    veterinarianName: request.body['veterinarianName'],
   };
-  console.log('put:patientpet', jsonValues);
+  console.log('put:patientexam', jsonValues);
   const schema = await {
-    patientExamRemarks: { type: 'string', optional: false, max: 100, min: 2 },
-    patientExamAddress: { type: 'array', optional: false, items: 'string', length: 3 },
-    patientExamTelNumber: { type: 'string', optional: false, length: 1 },
-    patientExamIsUrgency: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 99999 },
-    patientAnotherTypeOfSample: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
-    SpeciesSpeciesId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 999 },
+    patientExamRemarks: { type: 'string', optional: true, max: 255 },
+    patientExamAddress: { type: 'string', optional: false, max: 255, min: 8 },
+    patientExamTelNumber: { type: 'number', optional: false, positive: true, integer: true, min: 1000000, max: 9999999999 },
+    patientExamIsUrgency: { type: 'boolean', optional: false },
+    patientAnotherTypeOfSample: { type: 'string', optional: true, max: 255 },
     VeterinarianVeterinarianId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
-    BreedBreedId: { type: 'number', optional: false, positive: true, integer: true, min: 1000, max: 999999 },
-    MedicalCenterMedicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
     patientPetId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
-    petOwnerName: { type: 'string', optional: false, max: 100, min: 5 },
+    patientExamId: { type: 'number', optional: false, positive: true, integer: true, min: 1, max: 9999999 },
+    MedicalCenterMedicalCenterId: { type: 'number', optional: false, positive: true, integer: true, min: 10000, max: 9999999999 },
+    arrTypeOfSamples: { type: 'array', optional: false, max: 10, min: 1 },
+    arrLabTests: { type: 'array', optional: false, max: 10, min: 1 },
     TokenExternal: { type: 'string', optional: true },
+    veterinarianName: { type: 'string', optional: false, max: 100, min: 5 },
   }
   const v = await new Validator();
   const validationResponse = await v.validate(jsonValues, schema);
@@ -312,30 +324,9 @@ routePatientExam.put('/api/patientexam', [auth, clinic], async (request, respons
       errors: validationResponse
     });
   }
-
-  jsonValues.patientExamAddress = new Date(`${jsonValues.patientExamAddress[0]}-${jsonValues.patientExamAddress[1]}-${jsonValues.patientExamAddress[2]}`);
-  console.log('patientExamAddress: ', jsonValues.patientExamAddress);
-
-  await fetch(process.env.EMAIL_API_ + 'petowner', {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'x-auth-token': jsonValues.TokenExternal
-    },
-    body: JSON.stringify({
-      petOwnerId: jsonValues.VeterinarianVeterinarianId,
-      petOwnerName: jsonValues.petOwnerName,
-    })
-  })
-    .then(res => res.json())
-    .then((data) => {
-      console.log(data);
-    }, (error) => {
-      console.log(error);
-    });
-
+  await addVeterinarian(jsonValues);
   var arrayValues = await Object.values(jsonValues);
+
   await mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
     if (err) {
       response.status(501).json({
@@ -344,11 +335,14 @@ routePatientExam.put('/api/patientexam', [auth, clinic], async (request, respons
         error: err
       });
     }
-    console.log(query);
     response.status(202).json({
       message: apiMessage['202'][1],
       ok: true,
     });
+
+    addTypeOfSample(jsonValues);
+    addLaboratoryTest(jsonValues);
+
   });
   // To Test in Postman use PUT with this URL "http://localhost:49146/api/patientpet"
   // in "Body" use raw and select JSON, put this JSON: {"PetName": "BPOX", "PetId": "3"}
@@ -356,8 +350,8 @@ routePatientExam.put('/api/patientexam', [auth, clinic], async (request, respons
 });
 
 routePatientExam.delete('/api/patientexam/:id', [auth, admin], async (request, response) => {
-  var query = await `DELETE from ${process.env.MYSQL_D_B_}.PatientPets
-               where PetId=?`;
+  var query = await `DELETE from ${process.env.MYSQL_D_B_}.PatientExams
+               where patientExamId=?`;
   var values = await [
     parseInt(request.params.id)
   ];

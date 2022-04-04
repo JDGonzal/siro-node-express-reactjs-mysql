@@ -32,7 +32,6 @@ routePatientexam_TypeOfSample.post('/api/patientexam_typeofsample', [auth, clini
         request.body['patientExamId'],
         parseInt(arrTypeOfSamples[i]),
       ];
-      console.log(query,'\n',values);
       mysqlConnection.query(query, values, (err, rows, fields) => {
         if (err) {
           console.log('/api/patientexam_typeofsample',err);

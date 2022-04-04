@@ -82,8 +82,8 @@ export class Exams extends Component {
     this.site7 = 'testtype';
     this.site8 = 'laboratorytest';
     this.backLabel = 'input-group-text col-md-5 col-form-label ';
-    this.backLabel0 = 'input-group-text col-md-3 col-form-label '
-
+    this.backLabel0 = 'input-group-text col-md-3 col-form-label ';
+    this.veterinarianNameWrote = '';
     this.lim = 5;
     this.date = new Date();
   }
@@ -236,10 +236,12 @@ export class Exams extends Component {
       .then(res => res.json())
       .then(data => {
         if (!data || data.ok === false) {
+          console.log('getPatientPetId(error)', data);
           this.setState({ patientPetId: 0, patientPetName: '', });
           return false;
         }
         this.setState({ patientPetId: data[0].patientPetId, });
+        console.log('getPatientPetId(ok)', data);
         return true;
       });
   }
@@ -265,7 +267,10 @@ export class Exams extends Component {
             veterinarianExists: true,
           });
         } else {
-          this.setState({ veterinarianExists: false, });
+          this.setState({
+            veterinarianName: this.veterinarianNameWrote,
+            veterinarianExists: false,
+          });
         }
       }, (error) => {
         console.log(error);
@@ -510,6 +515,7 @@ export class Exams extends Component {
 
   onChangeVeterinarianName = async (e) => {
     await this.setState({ veterinarianName: e.target.value });
+    this.veterinarianNameWrote = await this.state.veterinarianName;
   }
 
   onBlurVeterinarian = async (e) => {
@@ -563,6 +569,7 @@ export class Exams extends Component {
   }
 
   onChangeLaboratoryTest = async (e, i, isMultiple) => {
+    console.log('onChangeLaboratoryTest.1', e, i, isMultiple);
     let idOption = null;
     let index = -1;
     let array = [];
@@ -602,7 +609,9 @@ export class Exams extends Component {
       if (await array.length > 0) {
         index = await array.indexOf(idOption);
       };
+      console.log('onChangeLaboratoryTest.2', index, array, array.length, idOption);
       if (await index < 0 && idOption !== null) {
+        array = await array.length === 0 || array === 0 ? [] : array;
         await array.push(idOption);
         this.state.backLabTests[i] = await this.backLabel + 'alert-success';
       };
@@ -730,6 +739,7 @@ export class Exams extends Component {
       petOwnerName: '',
       VeterinarianVeterinarianId: '',
       veterinarianName: '',
+      veterinarianExists: false,
       arrTypeOfSamples: [],
       patientAnotherTypeOfSample: '',
       notAnotherTypeOfSample: true,
@@ -742,6 +752,7 @@ export class Exams extends Component {
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true,],
     });
+    this.veterinarianNameWrote = await '';
     console.log('clean fields "addClick"');
     if (await this.state.badToken === false) {
       await this.refreshMedicalCenters();
@@ -782,13 +793,14 @@ export class Exams extends Component {
       petOwnerName: dep.petOwnerName,
       VeterinarianVeterinarianId: dep.VeterinarianVeterinarianId,
       veterinarianName: dep.veterinarianName,
+      veterinarianExists: true,
       dateTimeReadOnly: this.getLongNow(new Date(dep.createdAt)),
       MedicalCenterMedicalCenterId: dep.MedicalCenterMedicalCenterId,
       patientAnotherTypeOfSample: (dep.patientAnotherTypeOfSample === null ? '' : dep.patientAnotherTypeOfSample),
       patientExamRemarks: dep.patientExamRemarks,
       patientExamAddress: dep.patientExamAddress,
       patientExamTelNumber: dep.patientExamTelNumber,
-      patientExamIsUrgency: (dep.patientExamIsUrgency === null ? false : dep.patientExamIsUrgency),
+      patientExamIsUrgency: (dep.patientExamIsUrgency === null ? false : dep.patientExamIsUrgency===1),
       validateMessage: '',
       arrTypeOfSamples: dep.typeOfSampleIds.split(','),
       arrayValidate: [true, true, true, true, true, true, true,],
@@ -804,6 +816,7 @@ export class Exams extends Component {
       arrLabTests8: this.getlabTests(dep.laboratoryTestIds.split(','), 8, dep.TestTypeTestTypeIds.split(','), dep.testTypeIsMultiples.split(',')),
       arrLabTests9: this.getlabTests(dep.laboratoryTestIds.split(','), 9, dep.TestTypeTestTypeIds.split(','), dep.testTypeIsMultiples.split(',')),
     });
+    this.veterinarianNameWrote = await '';
     await this.setState({ notAnotherTypeOfSample: (this.state.arrTypeOfSamples.indexOf('0') > -1 ? false : true) });
     if (await this.state.badToken === false) {
       await this.refreshMedicalCenters();
@@ -904,11 +917,18 @@ export class Exams extends Component {
         'x-auth-token': this.state.Token.token
       },
       body: JSON.stringify({
-        PetOwnerPetOwnerId: parseInt(this.state.PetOwnerPetOwnerId),
-        VeterinarianVeterinarianId: parseInt(this.state.VeterinarianVeterinarianId),
-        veterinarianName: parseInt(this.state.veterinarianName),
-        MedicalCenterMedicalCenterId: parseInt(this.state.MedicalCenterMedicalCenterId),
         patientExamId: parseInt(this.state.patientExamId),
+        patientExamRemarks: this.state.patientExamRemarks,
+        patientExamAddress: this.state.patientExamAddress,
+        patientExamTelNumber: parseInt(this.state.patientExamTelNumber),
+        patientExamIsUrgency: this.state.patientExamIsUrgency,
+        patientAnotherTypeOfSample: this.state.patientAnotherTypeOfSample,
+        VeterinarianVeterinarianId: parseInt(this.state.VeterinarianVeterinarianId),
+        veterinarianName: this.state.veterinarianName,
+        patientPetId: parseInt(this.state.patientPetId),
+        MedicalCenterMedicalCenterId: parseInt(this.state.MedicalCenterMedicalCenterId),
+        arrTypeOfSamples: this.state.arrTypeOfSamples,
+        arrLabTests: this.getArrLabTests(),
         TokenExternal: this.state.Token.token,
       })
     })
@@ -1155,7 +1175,7 @@ export class Exams extends Component {
                       onChange={this.onChangeVeterinarianId} onBlur={this.onBlurVeterinarian}
                       id='VeterinarianVeterinarianId' required='required' />
                     <Form.Control type='name' value={veterinarianName} placeholder='Nombre del veterinario'
-                      onChange={this.onChangeVeterinarianName} onBlur={this.onBlurVeterinarian}
+                      onChange={this.onChangeVeterinarianName} onBlur={this.onBlurVeterinarian} 
                       readOnly={veterinarianExists} id='veterinarianName' required='required' />
                   </Form.Group>
                   <Form.Label size='md'></Form.Label>

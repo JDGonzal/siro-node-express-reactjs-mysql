@@ -32,7 +32,6 @@ routePatientexam_Laboratorytest.post('/api/patientexam_laboratorytest', [auth, c
         request.body['patientExamId'],
         parseInt(arrLabTests[i]),
       ];
-      console.log(query,'\n',values);
       mysqlConnection.query(query, values, (err, rows, fields) => {
         if (err) {
           console.log('/api/patientexam_laboratorytest',err);

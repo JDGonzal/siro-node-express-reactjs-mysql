@@ -43,6 +43,7 @@ export class Pets extends Component {
     this.site3 = 'breed';
     this.site4 = 'petowner';
     this.site5 = 'medicalcenter';
+    this.patientOwnerNameWrote = '';
 
     this.lim = 5;
     this.date = new Date();
@@ -208,7 +209,10 @@ export class Pets extends Component {
             petOwnerExists: true,
           });
         } else {
-          this.setState({ petOwnerExists: false, });
+          this.setState({
+            petOwnerName: this.patientOwnerNameWrote,
+            petOwnerExists: false,
+          });
         }
       }, (error) => {
         console.log(error);
@@ -284,9 +288,18 @@ export class Pets extends Component {
   }
 
   onBlurPetOwner = async (e) => {
-    await this.state.petOwnerName.length > this.lim && String(this.state.PetOwnerPetOwnerId).length > this.lim ?
+    await String(this.state.PetOwnerPetOwnerId).length > this.lim ?
       this.state.arrayValidate[1] = await true :
       this.state.arrayValidate[1] = await false;
+    await this.onBlurPatientPetName()
+    await this.fillValidateMessage();
+  }
+
+  onBlurPetOwnerName = async (e) => {
+    await this.state.petOwnerName.length > this.lim ?
+      this.state.arrayValidate[1] = await true :
+      this.state.arrayValidate[1] = await false;
+    this.patientOwnerNameWrote = this.state.petOwnerName;
     await this.onBlurPatientPetName()
     await this.fillValidateMessage();
   }
@@ -432,6 +445,7 @@ export class Pets extends Component {
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true, true],
     });
+    this.patientOwnerNameWrote = '';
     console.log('clean fields "addClick"');
     if (await this.state.badToken === false) {
       await this.refreshMedicalCenters();
@@ -455,6 +469,7 @@ export class Pets extends Component {
       validateMessage: '',
       arrayValidate: [true, true, true, true, true, true, true, true],
     });
+    this.patientOwnerNameWrote = '';
     if (await this.state.badToken === false) {
       await this.refreshBreeds(this.state.SpeciesSpeciesId);
       await this.setState({
@@ -713,7 +728,7 @@ export class Pets extends Component {
                     <Form.Control type='number' value={PetOwnerPetOwnerId} placeholder='ID. del propietario'
                       onChange={this.onChangePetOwnerId} onBlur={this.onBlurPetOwner} id='PetOwnerPetOwnerId' />
                     <Form.Control type='name' value={petOwnerName} placeholder='Nombre del propietario'
-                      onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwner} readOnly={petOwnerExists}
+                      onChange={this.onChangePetOwnerName} onBlur={this.onBlurPetOwnerName} readOnly={petOwnerExists}
                       id='petOwnerName' required='required' />
                   </Form.Group>
                   <Form.Label size='sm'></Form.Label>
