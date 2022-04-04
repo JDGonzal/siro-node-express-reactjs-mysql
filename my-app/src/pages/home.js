@@ -537,7 +537,7 @@ export class Home extends Component {
                 .then((data) => {
                   alert(data.message);
                   console.log(data);
-                  if (data.ok){
+                  if (data.ok) {
                     this.submitClick(); //Clean fields after the correct creation
                   }
                 }, (error) => {
@@ -613,7 +613,7 @@ export class Home extends Component {
                     <Form.Group size='lg' controlId='email' className='form-group required'>
                       <Form.Label className='control-label'>Correo</Form.Label>
                       <Form.Control autoFocus type='email' value={email} placeholder='correo@electronico.srv'
-                        onChange={this.onChangeEmail} onBlur={this.onBlurEmail}
+                        onChange={this.onChangeEmail} onBlur={this.onBlurEmail} id='email'
                         autoComplete='username' required='required' />
                     </Form.Group>
                     {!isLogin ?
@@ -622,24 +622,28 @@ export class Home extends Component {
                         <Form.Label className='control-label'>Centro Médico</Form.Label>
                         <Form.Control type='number' className='form-control' value={medicalCenterId}
                           onChange={this.onChangeMedicalCenterId} placeholder='Nit Centro Médico'
-                          onBlur={this.onBlurMedicalCenterId} required='required' />
-
+                          onBlur={this.onBlurMedicalCenterId} id='medicalCenterId' required='required' />
                         {medicalCenterNew === 0 ?
                           <div>
-                            <Form.Control type='name' className='form-control' value={medicalCenterName} placeholder='Nombre Centro Médico'
+                            <Form.Control type='name' className='form-control' placeholder='Nombre Centro Médico'
+                              value={medicalCenterName} id='medicalCenterName'
                               onChange={this.onChangeMedicalCenterName} onBlur={this.onBlurMedicalCenter} />
-                            <Form.Control type='name' className='form-control' value={medicalCenterAddress} placeholder='Dirección Centro Médico'
+                            <Form.Control type='name' className='form-control' placeholder='Dirección Centro Médico'
+                              value={medicalCenterAddress} id='medicalCenterAddress'
                               onChange={this.onChangeMedicalCenterAddress} onBlur={this.onBlurMedicalCenter} />
-                            <Form.Control type='number' className='form-control' value={medicalCenterTelNumber} placeholder='Teléfono Centro Médico'
+                            <Form.Control type='number' className='form-control' placeholder='Teléfono Centro Médico'
+                              value={medicalCenterTelNumber} id='medicalCenterTelNumber'
                               onChange={this.onChangeMedicalCenterTelNumber} onBlur={this.onBlurMedicalCenter} />
                             <div className='input-group mb-3'>
-                              <select className='form-select' value={StateStateId} onChange={this.onChangeState} onBlur={this.onBlurStateCity}>
+                              <select className='form-select' value={StateStateId} id='StateStateId'
+                                onChange={this.onChangeState} onBlur={this.onBlurStateCity}>
                                 <option hidden defaultValue value='0' key='0'>Departamento</option>
                                 {states.map(sta => <option value={sta.stateId} key={sta.stateId}>
                                   {sta.stateName}
                                 </option>)}
                               </select>
-                              <select className='form-select' value={CityCityId} onChange={this.onChangeCity} onBlur={this.onBlurStateCity}>
+                              <select className='form-select' value={CityCityId} id='CityCityId'
+                                onChange={this.onChangeCity} onBlur={this.onBlurStateCity}>
                                 <option hidden defaultValue value='0' key='0'>Municipio</option>
                                 {cities.map(cit => <option value={cit.cityId} key={cit.cityId}>
                                   {cit.cityName}
@@ -668,17 +672,18 @@ export class Home extends Component {
                       : null}
                     <Form.Group size='lg' controlId='password' className='form-group required'>
                       <Form.Label className='control-label'>Contraseña</Form.Label>
-                      <Form.Control type='password' value={password} onChange={this.onChangePassword} placeholder='Contraseña'
-                        name='password' aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
-                        autoComplete='current-password' spellCheck='false' required='required' onBlur={this.onBlurPassword} />
+                      <Form.Control type='password' value={password} placeholder='Contraseña' name='password'
+                        aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
+                        onChange={this.onChangePassword} onBlur={this.onBlurPassword}
+                        autoComplete='current-password' spellCheck='false' id='password' required='required' />
                     </Form.Group>
                     {!isLogin ?
                       <Form.Group size='lg' controlId='passwordAgain' className='form-group required'>
                         <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
                         <Form.Label className='control-label'>Confirmar Contraseña</Form.Label>
                         <Form.Control type='password' value={passwordAgain} placeholder='Confirmar contraseña'
-                          autoComplete='current-password' required='required'
-                          onChange={this.onChangePasswordAgain} onBlur={this.onBlurPasswordAgain} />
+                          onChange={this.onChangePasswordAgain} onBlur={this.onBlurPasswordAgain}
+                          autoComplete='current-password' id='passwordAgain' required='required' />
                         <div className='input-group mb-3'></div>
                         <Form.Label className='control-label'>Tipo de Usuario</Form.Label>
                         {['checkbox'].map((type) => (

@@ -103,12 +103,12 @@ routePatientPet.post('/api/patientpet/getpatientpetid', [auth, viewer], async (r
   var jsonValues = await {
     patientPetName: request.body['patientPetName'],
     petOwnerName: request.body['petOwnerName'],
-    petOwnerId: request.body['petOwnerId'],
+    PetOwnerPetOwnerId: request.body['PetOwnerPetOwnerId'],
   };
   const schema = await {
     patientPetName: { type: 'string', optional: false, max: 100, min: 2 },
     petOwnerName: { type: 'string', optional: true, max: 100, min: 0 },
-    petOwnerId: { type: 'number', optional: true, positive: true, integer: true, min: 0, max: 9999999999 },
+    PetOwnerPetOwnerId: { type: 'number', optional: true, positive: true, integer: true, min: 0, max: 9999999999 },
   }
   const v = await new Validator();
   const validationResponse = await v.validate(jsonValues, schema);
@@ -129,7 +129,7 @@ routePatientPet.post('/api/patientpet/getpatientpetid', [auth, viewer], async (r
         error: err,
       });
     }
-    console.log('getpatientpetid:\n', rows);
+    console.log('getpatientpetid:', rows);
     if (!rows || rows.length === 0) {
       response.status(404).json({
         message: apiMessage['404'][1],
