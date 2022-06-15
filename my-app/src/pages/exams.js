@@ -670,6 +670,7 @@ export class Exams extends Component {
     await (this.validateLabTests()) ?
       this.state.arrayValidate[4] = await true :
       this.state.arrayValidate[4] = await false;
+    await this.onBlurPetOwner();
     await this.onBlurPatientPetName();
     await this.onBlurVeterinarian();
     await this.onBlurTypeOfSample();
@@ -689,15 +690,32 @@ export class Exams extends Component {
   }
 
   onBlurpatientExamAddress = async (e) => {
-
+    await this.state.patientExamAddress.length > this.lim ?
+      this.state.arrayValidate[5] = await true :
+      this.state.arrayValidate[5] = await false;
+    await this.onBlurPetOwner();
+    await this.onBlurPatientPetName();
+    await this.onBlurVeterinarian();
+    await this.onBlurTypeOfSample();
+    await this.onBlurLaboratoryTest();
+    await this.fillValidateMessage();
   }
 
   onChangepatientExamTelNumber = async (e) => {
-    await this.setState({ patientExamTelNumber: e.target });
+    await this.setState({ patientExamTelNumber: e.target.value });
   }
 
   onBlurpatientExamTelNumber = async (e) => {
-
+    await String(this.state.patientExamTelNumber).length > this.lim ?
+    this.state.arrayValidate[6] = await true :
+    this.state.arrayValidate[6] = await false;
+  await this.onBlurPetOwner();
+  await this.onBlurPatientPetName();
+  await this.onBlurVeterinarian();
+  await this.onBlurTypeOfSample();
+  await this.onBlurLaboratoryTest();
+  await this.onBlurpatientExamAddress();
+  await this.fillValidateMessage();
   }
 
   onChangepatientExamIsUrgency = async (e) => {
@@ -800,7 +818,7 @@ export class Exams extends Component {
       patientExamRemarks: dep.patientExamRemarks,
       patientExamAddress: dep.patientExamAddress,
       patientExamTelNumber: dep.patientExamTelNumber,
-      patientExamIsUrgency: (dep.patientExamIsUrgency === null ? false : dep.patientExamIsUrgency===1),
+      patientExamIsUrgency: (dep.patientExamIsUrgency === null ? false : dep.patientExamIsUrgency === 1),
       validateMessage: '',
       arrTypeOfSamples: dep.typeOfSampleIds.split(','),
       arrayValidate: [true, true, true, true, true, true, true,],
@@ -979,7 +997,8 @@ export class Exams extends Component {
         this.state.veterinarianName.length > this.lim && String(this.state.VeterinarianVeterinarianId).length > this.lim &&
         this.state.arrTypeOfSamples.length > 0 &&
         (this.state.arrTypeOfSamples.indexOf('0') === -1 || this.state.patientAnotherTypeOfSample.length > this.lim) &&
-        (this.validateLabTests()) &&
+        (this.validateLabTests()) && 
+        String(this.state.patientExamTelNumber).length > this.lim && this.state.patientExamAddress.length > this.lim &&
         this.state.badToken === false
       );
     } catch (e) {
@@ -1175,7 +1194,7 @@ export class Exams extends Component {
                       onChange={this.onChangeVeterinarianId} onBlur={this.onBlurVeterinarian}
                       id='VeterinarianVeterinarianId' required='required' />
                     <Form.Control type='name' value={veterinarianName} placeholder='Nombre del veterinario'
-                      onChange={this.onChangeVeterinarianName} onBlur={this.onBlurVeterinarian} 
+                      onChange={this.onChangeVeterinarianName} onBlur={this.onBlurVeterinarian}
                       readOnly={veterinarianExists} id='veterinarianName' required='required' />
                   </Form.Group>
                   <Form.Label size='md'></Form.Label>
@@ -1333,7 +1352,7 @@ export class Exams extends Component {
                       id='patientExamAddress' required='required' />
                     <Form.Control type='number' value={patientExamTelNumber} placeholder='Número de Contacto'
                       onChange={this.onChangepatientExamTelNumber} onBlur={this.onBlurpatientExamTelNumber}
-                      id='patientExamAddress' required='required' />
+                      id='patientExamTelNumber' required='required' />
                   </Form.Group>
                   <Form.Label size='md'></Form.Label>
                 </div>
