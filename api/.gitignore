@@ -106,3 +106,4 @@ dist
 # ZIP or compress files
 *.zip
 *.7z
+/.idea

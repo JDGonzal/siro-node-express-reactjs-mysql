@@ -1,13 +1,13 @@
 // Import dependencies
 const express = require('express');
 const { request, response } = require('express');
-const bcrypt = require('bcryptjs');
+
 const Validator = require('fastest-validator');
 require('dotenv').config(); // import config = require('config');
 const fetch = require('cross-fetch');
 
 // Import middlewares
-const passwordEncrypt = require('../utils/generatePassword.js');
+const {encrypted, compare} = require('../utils/generatePassword.js');
 const sendEmail = require('../utils/email.js');
 const auth = require('../middleware/auth.js');
 const { admin, clinic, laboratory, viewer } = require('../middleware/roles.js');
@@ -20,12 +20,12 @@ const routeAuth = express.Router();
 
 // On post
 routeAuth.post('/api/auth/signin', async (request, response) => {
-  var query = `SELECT COUNT(userId)as found from ${process.env.MYSQL_D_B_}.Users
+  var query = `SELECT password from ${process.env.MYSQL_D_B_}.Users
                where email=?`;
   // Get to user from the database, if the user is not there return error
   var jsonValues = {
-    email: String(request.body['email']).toLowerCase(),
-    password: request.body['password']
+    email: await String(request.body['email']).toLowerCase(),
+    password: request.body['password'], // Never "encrypt" because the "compare" will not work
   };
   var values = [jsonValues.email];
   console.log('/api/auth/signin', values);
@@ -37,8 +37,9 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
         error: err
       });
     }
-    console.log(rows[0]);
-    if (rows[0].found !== 0) {
+    // Compare the password with the password in the database
+    var isValid = compare(jsonValues.password, rows[0].password, );
+    if (rows[0].password.length > 0) {
       query = `SELECT u.*, (SELECT GROUP_CONCAT(ur.roleId SEPARATOR ',')
                             FROM ${process.env.MYSQL_D_B_}.user_roles ur 
                           WHERE ur.userId = u.userId) AS userRole,
@@ -47,7 +48,6 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
                           WHERE um.userId = u.userId) AS medicalCenterArray
                from ${process.env.MYSQL_D_B_}.Users u
                where email=? or password=?`;
-      console.log('/api/auth/signin');
 
       const schema = {
         email: { type: 'email', optional: false },
@@ -89,9 +89,8 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
             ok: false,
           });
         }
-        // Compare the password with the password in the database
-        const valid = bcrypt.compare(jsonValues.password, rows[0].password);
-        if (!valid) {
+
+        if (!isValid) {
           return response.status(403).json({
             message: apiMessage['403'][1],
             ok: false,
@@ -181,8 +180,8 @@ routeAuth.post('/api/auth/signup', async (request, response) => {
               VALUE (?,?,?,NOW(),NOW())`;
   var jsonValues = {
     email: await String(request.body['email']).toLowerCase(),
-    password: await passwordEncrypt(request.body['password']),
-    token: await passwordEncrypt(request.body['email']),
+    password: await encrypted(request.body['password']),
+    token: await encrypted(request.body['email']),
     RolesArray: await request.body['Roles'],
     TokenExternal: await request.body['TokenExternal'],
     medicalCenterId: await request.body['medicalCenterId'],
