@@ -30,8 +30,8 @@ routeAuth.post('/api/auth/signin', async (request, response) => {
   var values = [jsonValues.email];
   console.log('/api/auth/signin', values);
   mysqlConnection.query(query, values, function (err, rows, fields) {
-    if (err) {
-      response.status(501).json({
+    if (err || !rows ||rows.length===0 || !fields) {
+      return response.status(501).json({
         message: apiMessage['501'][1],
         ok: false,
         error: err
@@ -138,7 +138,7 @@ routeAuth.get('/api/auth/signup/:email', async (request, response) => {
   ];
   console.log('/api/auth/signup/', values);
   await mysqlConnection.query(query, values, function (err, rows, fields) {
-    if (err) {
+    if (err || !values) {
       response.status(501).json({
         message: apiMessage['501'][1],
         ok: false,
