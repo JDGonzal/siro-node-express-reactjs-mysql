@@ -1,21 +1,27 @@
 const mysql = require('mysql');
-require("dotenv").config(); // import config = require('config');
-//const passwordEncrypt = require('./utils/generatePassword.js')
-//const sendEmail= require("../utils/email.js");
-const mysqlConnection = mysql.createConnection({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASS,
-  database: process.env.MYSQL_D_B_
+
+const dbConfig = require('../config/db.config.js');
+
+//create mysql connection pool
+const mysqlConnection = mysql.createPool({
+  connectionLimit:10,
+  host: dbConfig.HOST,
+  user: dbConfig.USER,
+  password: dbConfig.PASSWORD,
+  database: dbConfig.DB,
 });
 
-mysqlConnection.connect(function(err){
-  if(err) {
-    console.log(err);
-    return;
-  } else {
-    console.log('DB is connected');
-  }
-})
+// Attempt to catch disconnects
+mysqlConnection.on('connection', function (connection) {
+  console.log('DB Connection established');
+
+  connection.on('error', function (err) {
+    console.error(new Date(), 'MySQL error', err.code);
+  });
+  connection.on('close', function (err) {
+    console.error(new Date(), 'MySQL close', err);
+  });
+
+});
 
 module.exports = mysqlConnection;
