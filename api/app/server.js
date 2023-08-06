@@ -19,6 +19,7 @@ app.use(express.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
+app.disable('x-powered-by');  // disable the header X-Powered-By: Express
 
 // simple route
 app.get("/", (req, res) => {
