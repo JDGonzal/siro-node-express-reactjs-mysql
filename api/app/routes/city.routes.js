@@ -13,7 +13,9 @@ routeCity.get("/api/city/:id", (request, response) => {
             WHERE StateStateId = ?
             ORDER BY CitySort, CityName`;
   var values = [parseInt(request.params.id)];
+  console.log("/api/city/:", values);
   mysqlConnection.getConnection(function (err, connection) {
+    console.log('getConnection.city-id', values);
     if (err) {
       response.status(501).json({
         message: apiMessage["501"][1],
@@ -24,6 +26,7 @@ routeCity.get("/api/city/:id", (request, response) => {
     }
     mysqlConnection.query(query, values, (err, rows, fields) => {
       connection.release();
+      console.log('connection.state:',connection.state, values);
       if (err) {
         response.status(501).json({
           message: apiMessage["501"][1],
@@ -34,6 +37,7 @@ routeCity.get("/api/city/:id", (request, response) => {
       response.send(rows);
     });
     connection.on("error", function (err) {
+      console.error(new Date(), 'MySQL error', err.code);
       return;
     });
   });

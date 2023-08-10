@@ -9,7 +9,7 @@ export class Exams extends Component {
 
   constructor(props) {
     super(props);
-
+    this.cleanToken='{"ok":false,"token":"","rolesArray":[],"medicalCenterArray":[]}';
     this.state = {
       patientExams: [],
       patientPets: [],
@@ -28,7 +28,7 @@ export class Exams extends Component {
 
       //Add Modal by each pet 
       modalTitle: '',
-      badToken: false,
+      
       createdAt: Date.now(),
       dateTimeReadOnly: '',
       patientExamId: 0,
@@ -61,7 +61,8 @@ export class Exams extends Component {
       createdAtFilter: '',
       veterinarianNameFilter: '',
       petsWithoutFilter: [],
-      Token: JSON.parse(localStorage.getItem('Token')),
+      Token: JSON.parse(localStorage.getItem('Token')!== null?localStorage.getItem('Token'):this.cleanToken),
+      badToken: localStorage.getItem('Token')!== null?false:true,
       arrayValidate: [true, true, true, true, true, true, true],
       arrayMessages: ['Paciente', 'Propietario', 'Veterinario', 'Muestra', 'Examen', 'Dirección', 'Teléfono'],
       validateMessage: '',
@@ -89,7 +90,11 @@ export class Exams extends Component {
   }
 
   async alertMessage() {
-    const message = await 'Por favor Inicia Sesión para acceder a este sitio'
+    const message = await 'Por favor Inicia Sesión para acceder a este sitio';
+    if (this.state.Token.token.length>0){
+      //localStorage.removeItem('Token');
+      this.setState({ Token: JSON.parse(this.cleanToken) });
+    }
     await this.setState({ badToken: true });
     await alert(message);
   }
@@ -443,7 +448,6 @@ export class Exams extends Component {
 
   async componentDidMount() {
     await this.refreshPatientExams();
-    console.log('wasOk', this.state.badToken);
     if (await this.state.badToken === false) {
       await this.refreshPatientPets();
       await this.refreshtypeOfSamples();

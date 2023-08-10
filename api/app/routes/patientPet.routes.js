@@ -24,9 +24,11 @@ routePatientPet.get(
     INNER JOIN ${process.env.MYSQL_D_B_}.medicalcenters mc ON pp.MedicalCenterMedicalCenterId = mc.medicalCenterId
     WHERE mc.medicalCenterId IN (?)
     ORDER BY pp.patientPetName`;
+    
     var jsonValues = await {
       medicalCenterArray: request.params["medicalCenterArray"],
     };
+    console.log('/api/patientpet/:',jsonValues);
     const schema = await {
       medicalCenterArray: { type: "string", optional: false, max: 255, min: 5 },
     };

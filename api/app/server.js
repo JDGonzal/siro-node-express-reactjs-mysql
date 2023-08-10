@@ -4,22 +4,21 @@ const cors = require("cors");
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:8081",
+  origin: ["http://localhost:3000","https://sirio-ui-v01.azurewebsites.net","http://sirioia.com.co"],
 };
 app.use(cors());
+// parse requests of content-type - application/json
+app.use(express.json());
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+// disable the header X-Powered-By: Express
+app.disable('x-powered-by');  
 
 const init_All = require("./data");
 const { laboratoryTest } = require("./models");
 
 // the next line to call the 'initial()' method to create each role
 // init_All();
-
-// parse requests of content-type - application/json
-app.use(express.json());
-
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
-app.disable('x-powered-by');  // disable the header X-Powered-By: Express
 
 // simple route
 app.get("/", (req, res) => {
@@ -48,5 +47,6 @@ app.use(require("./routes/patientexam_typeofsample.routes.js"));
 // set port, listen for requests
 const PORT = process.env.PORT || 49146;
 app.listen(PORT, () => {
+  console.log('starting');
   console.log(`Server is running on port ${PORT}.`);
 });

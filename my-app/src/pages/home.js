@@ -121,7 +121,6 @@ export class Home extends Component {
     await fetch(`${REACT_APP_API_URL}${this.site2}/medicalcentername/${parseInt(this.state.medicalCenterId)}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
     })
@@ -152,7 +151,6 @@ export class Home extends Component {
     await fetch(`${REACT_APP_API_URL}${this.site3}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
     })
@@ -170,6 +168,7 @@ export class Home extends Component {
               console.log(this.state.stateName);
             });
         }
+        return data;
       }, (error) => {
         console.log(error);
       });
@@ -179,7 +178,6 @@ export class Home extends Component {
     await fetch(`${REACT_APP_API_URL}${this.site4}/${cityId}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
     })
@@ -203,8 +201,15 @@ export class Home extends Component {
   }
 
   async componentDidMount() {
+    console.log('componentDidMount');
     await this.refreshStates();
-    await this.refreshCities(this.state.states[1].stateId);
+    try {
+      await this.refreshCities(this.state.states[1].stateId);
+    } catch (error) {
+      console.log('states:',this.state.states);
+      await this.refreshCities(1);
+    }
+    
   }
 
   fillValidateMessage() {
@@ -443,7 +448,6 @@ export class Home extends Component {
       fetch(`${REACT_APP_API_URL}${this.site}/signup/${this.state.email}`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       })
@@ -453,9 +457,9 @@ export class Home extends Component {
             fetch(`${REACT_APP_API_URL}${this.site}/signin`, {
               method: 'POST',
               headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json'
               },
+              mode: 'cors',
               body: JSON.stringify({
                 email: this.state.email,
                 password: this.state.password
@@ -494,7 +498,6 @@ export class Home extends Component {
       fetch(`${REACT_APP_API_URL}${this.site}/signup/${this.state.email}`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       })
@@ -517,7 +520,6 @@ export class Home extends Component {
               fetch(`${REACT_APP_API_URL}${this.site}/signup`, {
                 method: 'POST',
                 headers: {
-                  'Accept': 'application/json',
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -610,7 +612,7 @@ export class Home extends Component {
 
                 <Form onSubmit={this.handleSubmit}>
                   <div>
-                    <Form.Group size='lg' controlId='email' className='form-group required'>
+                    <Form.Group size='lg' className='form-group required'>
                       <Form.Label className='control-label'>Correo</Form.Label>
                       <Form.Control autoFocus type='email' value={email} placeholder='correo@electronico.srv'
                         onChange={this.onChangeEmail} onBlur={this.onBlurEmail} id='email'
@@ -670,7 +672,7 @@ export class Home extends Component {
 
                       </Form.Group>
                       : null}
-                    <Form.Group size='lg' controlId='password' className='form-group required'>
+                    <Form.Group size='lg'  className='form-group required'>
                       <Form.Label className='control-label'>Contraseña</Form.Label>
                       <Form.Control type='password' value={password} placeholder='Contraseña' name='password'
                         aria-labelledby='password-uid4-label password-uid4-helper password-uid4-valid password-uid4-error'
@@ -678,7 +680,7 @@ export class Home extends Component {
                         autoComplete='current-password' spellCheck='false' id='password' required='required' />
                     </Form.Group>
                     {!isLogin ?
-                      <Form.Group size='lg' controlId='passwordAgain' className='form-group required'>
+                      <Form.Group size='lg'  className='form-group required'>
                         <span id='StrengthDisp' className={backgroundColor} >{strengthBadge}</span>
                         <Form.Label className='control-label'>Confirmar Contraseña</Form.Label>
                         <Form.Control type='password' value={passwordAgain} placeholder='Confirmar contraseña'

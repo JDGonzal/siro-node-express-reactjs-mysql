@@ -9,14 +9,14 @@ export class Pets extends Component {
 
   constructor(props) {
     super(props);
-
+    this.cleanToken='{"ok":false,"token":"","rolesArray":[],"medicalCenterArray":[]}';
     this.state = {
       patientPets: [],
       species: [],
       breeds: [],
       //Add Modal by each pet 
       modalTitle: '',
-      badToken: false,
+      
       patientPetId: 0,
       patientPetName: '',
       PetOwnerPetOwnerId: '',
@@ -33,7 +33,8 @@ export class Pets extends Component {
       PetNameFilter: '',
       PetOwnerFilter: '',
       petsWithoutFilter: [],
-      Token: JSON.parse(localStorage.getItem('Token')),
+      Token: JSON.parse(localStorage.getItem('Token')!== null?localStorage.getItem('Token'):this.cleanToken),
+      badToken: localStorage.getItem('Token')!== null?false:true,
       arrayValidate: [true, true, true, true, true, true, true, true],
       arrayMessages: ['Paciente', 'Propietario', 'Especie', 'Raza', 'Nacimiento', 'Género', 'Altura', 'Peso'],
       validateMessage: '',
@@ -50,7 +51,12 @@ export class Pets extends Component {
   }
 
   async alertMessage() {
-    const message = await 'Por favor Inicia Sesión para acceder a este sitio'
+    const message = await 'Por favor Inicia Sesión para acceder a este sitio';
+    if (this.state.Token.token.length>0){
+      //localStorage.removeItem('Token');
+      // this.setState({ Token: JSON.parse(this.cleanToken)});
+      console.log('Token:', this.state.Token);
+    }
     await this.setState({ badToken: true });
     await alert(message);
   }
@@ -94,7 +100,7 @@ export class Pets extends Component {
   }
 
   async refreshPatientPets() {
-    if (await this.state.Token === undefined || this.state.Token === null || this.state.badToken) {
+    if (await this.state.Token === undefined || this.state.Token === null || this.state.badToken ) {
       this.alertMessage();
       return false;
     };
@@ -245,7 +251,6 @@ export class Pets extends Component {
 
   async componentDidMount() {
     await this.refreshPatientPets();
-    console.log('wasOk', this.state.badToken);
     if (await this.state.badToken === false) {
       await this.refreshSpecies();
       await this.refreshBreeds(this.state.species[1].speciesId);
@@ -705,7 +710,8 @@ export class Pets extends Component {
             )}
           </tbody>
         </Table>
-        <div className='modal fade' id='exampleModal' tabIndex='-1' aria-hidden='true'>
+        {badToken ? null :
+        <dialog className='modal fade' id='exampleModal' tabIndex='-1' aria-hidden='true'>
           <div className='modal-dialog modal-lg modal-dialog-centred'>
             <div className='modal-content'>
               <div className='modal-header'>
@@ -779,6 +785,7 @@ export class Pets extends Component {
                   </Form.Group>
                   <Form.Label size='sm'></Form.Label>
                 </div>
+                <div>
                 {badToken ?
                   null :
                   <Form.Group className='form-inline col-md-12 input-group mb-0 form-group required' size='md'>
@@ -786,12 +793,13 @@ export class Pets extends Component {
                     <Form.Control as='select' className="form-select" value={MedicalCenterMedicalCenterId}
                       onChange={this.onChangeMedicalCenterId} id='MedicalCenterMedicalCenterId'>
                       {Token.medicalCenterArray.map(opt => (
-                        <option value={opt} key={opt}>{opt}</option>
+                        <option value={opt} key={opt}>{opt}</option> 
                       ))}
                     </Form.Control>
                     <Form.Control type='name' value={medicalCenterName} readOnly id='medicalCenterName' />
                   </Form.Group>
                 }
+                </div>
                 <pre> </pre>
                 {patientPetId === 0 ?
                   <button type='button' className='btn btn-primary float-start'
@@ -807,7 +815,7 @@ export class Pets extends Component {
               </div>
             </div>
           </div>
-        </div>
+        </dialog>}
       </div>
     )
   }
