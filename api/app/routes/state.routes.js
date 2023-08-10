@@ -9,6 +9,7 @@ const routeState = express.Router();
 routeState.get("/api/state", (request, response) => {
   var query = `SELECT stateId, stateName FROM ${process.env.MYSQL_D_B_}.States
             ORDER BY stateName`;
+  console.log("/api/state");
   mysqlConnection.getConnection(function (err, connection) {
     if (err) {
       response.status(501).json({

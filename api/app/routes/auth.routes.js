@@ -40,7 +40,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
       return;
     }
     mysqlConnection.query(query, values, function (err, rows, fields) {
-      connection.release();
+      console.log('connection.state:',connection.state, values);
       if (err || !rows || rows.length === 0 || !fields) {
         return response.status(501).json({
           message: apiMessage["501"][1],
@@ -75,6 +75,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
         }
         var arrayValues = Object.values(jsonValues);
         mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
+          connection.release();
           if (err) {
             response.status(501).json({
               message: apiMessage["501"][1],
@@ -111,9 +112,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
             let rolesArray = [];
             rows[0].userRole.includes("1") ? rolesArray.push("viewer") : null;
             rows[0].userRole.includes("2") ? rolesArray.push("clinic") : null;
-            rows[0].userRole.includes("3")
-              ? rolesArray.push("laboratory")
-              : null;
+            rows[0].userRole.includes("3") ? rolesArray.push("laboratory") : null;
             rows[0].userRole.includes("4") ? rolesArray.push("admin") : null;
             console.log("role:", rolesArray);
             const token = getToken("8h", rolesArray, rows[0].userId); //Expires in 8 hours
