@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const init_All = require("./data");
+const { laboratoryTest } = require("./models");
+const setLog = require('./utils/logs.utils.js');
 
 const app = express();
 
@@ -14,8 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 // disable the header X-Powered-By: Express
 app.disable('x-powered-by');  
 
-const init_All = require("./data");
-const { laboratoryTest } = require("./models");
+
 
 // the next line to call the 'initial()' method to create each role
 // init_All();
@@ -49,4 +51,5 @@ const PORT = process.env.PORT || 49146;
 app.listen(PORT, () => {
   console.log('starting');
   console.log(`Server is running on port ${PORT}.`);
+  setLog("INFO", __filename, arguments.callee.name, `Server is running on port ${PORT}.`);
 });

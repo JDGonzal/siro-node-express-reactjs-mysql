@@ -14,6 +14,7 @@ const { admin, clinic, laboratory, viewer } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
 const getToken = require("../utils/getToken.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeAuth
 const routeAuth = express.Router();
@@ -28,7 +29,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
     password: request.body["password"], // Never "encrypt" because the "compare" will not work
   };
   var values = [jsonValues.email];
-  console.log("/api/auth/signin", values);
+  setLog("TRACE",__filename,arguments.callee.name,"/api/auth/signin", values);
 
   mysqlConnection.getConnection(function (err, connection) {
     if (err) {
@@ -40,7 +41,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
       return;
     }
     mysqlConnection.query(query, values, function (err, rows, fields) {
-      console.log('connection.state:',connection.state, values);
+      setLog("DEBUG",__filename,arguments.callee.name,`'connection.state:',${connection.state}, ${values}`);
       if (err || !rows || rows.length === 0 || !fields) {
         return response.status(501).json({
           message: apiMessage["501"][1],
@@ -83,7 +84,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
               error: err,
             });
           }
-          console.log("row ", rows[0].password, rows[0].isActive);
+          setLog("TRACE",__filename,arguments.callee.name,`"row ", ${rows[0].password}, ${rows[0].isActive}`);
           //Validate an existing email and password from DB
           if (!rows) {
             return response.status(401).json({
@@ -114,7 +115,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
             rows[0].userRole.includes("2") ? rolesArray.push("clinic") : null;
             rows[0].userRole.includes("3") ? rolesArray.push("laboratory") : null;
             rows[0].userRole.includes("4") ? rolesArray.push("admin") : null;
-            console.log("role:", rolesArray);
+            setLog("TRACE",__filename,arguments.callee.name,`"role:", ${rolesArray}`);
             const token = getToken("8h", rolesArray, rows[0].userId); //Expires in 8 hours
             const medicalCenterArray = rows[0].medicalCenterArray.split(",");
             response.send({
@@ -124,11 +125,9 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
               medicalCenterArray: medicalCenterArray,
             });
             var date = new Date();
-            console.log(date.toLocaleString());
-            console.log(
-              new Date(date.getTime() + 8 * 60 * 60000).toLocaleString()
-            );
-            console.log(token);
+            setLog("TRACE",__filename,arguments.callee.name,date.toLocaleString());
+            setLog("TRACE",__filename,arguments.callee.name,new Date(date.getTime() + 8 * 60 * 60000).toLocaleString());
+            setLog("TRACE",__filename,arguments.callee.name,token);
           }
         });
       } else {
@@ -152,7 +151,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
   var query = `SELECT COUNT(userId)as found from ${process.env.MYSQL_D_B_}.Users
                where email=?`;
   var values = [String(request.params.email).toLowerCase()];
-  console.log("/api/auth/signup/", values);
+  setLog("TRACE",__filename,arguments.callee.name,`"/api/auth/signup/", ${values}`);
   mysqlConnection.getConnection(function (err, connection) {
     if (err) {
       response.status(501).json({
@@ -188,7 +187,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
           });
         });
       } else {
-        console.log("found: ", rows[0].found, " of ", values[0]);
+        setLog("TRACE",__filename,arguments.callee.name,`"found: ", ${rows[0].found}, " of ", ${values[0]}`);
         response.send({
           ok: true,
           found: rows[0].found,
@@ -220,7 +219,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
     StateStateId: await request.body["StateStateId"],
     CityCityId: await request.body["CityCityId"],
   };
-  console.log("body:", jsonValues);
+  setLog("TRACE",__filename,arguments.callee.name,`"body:", ${JSON.stringify(jsonValues)}`);
   try {
     if ((await jsonValues.RolesArray[0]) === true) {
       jsonValues.RolesArray[0] = "viewer";
@@ -234,8 +233,8 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
     if ((await jsonValues.RolesArray[3]) === true) {
       jsonValues.RolesArray[3] = "admin";
     }
-  } catch (e) {
-    console.log("RolesArray:", e);
+  } catch (err) {
+    setLog("TRACE",__filename,arguments.callee.name,`"RolesArray:", ${JSON.stringify(err)}`);
   }
 
   const schema = {
@@ -306,10 +305,10 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
     .then((res) => res.json())
     .then(
       (data) => {
-        console.log(data);
+        setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
       },
       (error) => {
-        console.log(error);
+        setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
       }
     );
 
@@ -340,7 +339,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       const urlRoute = `${process.env.EMAIL_APP_}token?value=${
         jsonValues.token
       }&Token=${getToken("12h", jsonValues.RolesArray, 0)}`;
-      console.log("To send email:", urlRoute);
+      setLog("TRACE",__filename,arguments.callee.name,`"To send email:", ${urlRoute}`);
       sendEmail(jsonValues.email, "Activar Cuenta.", urlRoute, 1);
       var userId = 0;
       fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
@@ -368,10 +367,10 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
                 .then((res) => res.json())
                 .then(
                   (data) => {
-                    console.log(data);
+                    setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                   },
                   (error) => {
-                    console.log(error);
+                    setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                   }
                 );
             }
@@ -390,10 +389,10 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
                 .then((res) => res.json())
                 .then(
                   (data) => {
-                    console.log(data);
+                    setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                   },
                   (error) => {
-                    console.log(error);
+                    setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                   }
                 );
             }
@@ -412,10 +411,10 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
                 .then((res) => res.json())
                 .then(
                   (data) => {
-                    console.log(data);
+                    setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                   },
                   (error) => {
-                    console.log(error);
+                    setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                   }
                 );
             }
@@ -434,10 +433,10 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
                 .then((res) => res.json())
                 .then(
                   (data) => {
-                    console.log(data);
+                    setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                   },
                   (error) => {
-                    console.log(error);
+                    setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                   }
                 );
             }
@@ -455,15 +454,15 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
               .then((res) => res.json())
               .then(
                 (data) => {
-                  console.log(data);
+                  setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                 },
                 (error) => {
-                  console.log(error);
+                  setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                 }
               );
           },
           (error) => {
-            console.log(error);
+            setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
           }
         );
     });
@@ -492,7 +491,7 @@ routeAuth.put(
       token: request.body["token"],
       TokenExternal: request.headers["x-auth-token"],
     };
-    console.log("query:", query, "\njsonValues:\n", jsonValues);
+    setLogg("TRACE",__filename,arguments.callee.name,`"query:", ${query}, "jsonValues:", ${JSON.stringify(jsonValues)}`);
     const schema = {
       token: { type: "string", optional: false, max: "60", min: "8" },
       TokenExternal: { type: "string", optional: false, max: "255", min: "8" },
@@ -523,7 +522,7 @@ routeAuth.put(
           query = `UPDATE ${process.env.MYSQL_D_B_}.Users
               set token=null,isActive=true,updatedAt=NOW()
               WHERE token=?`;
-          console.log(query);
+          setLog("TRACE",__filename,arguments.callee.name,query);
           mysqlConnection.getConnection(function (err, connection) {
             if (err) {
               response.status(501).json({
@@ -561,10 +560,10 @@ routeAuth.put(
                 .then((res) => res.json())
                 .then(
                   (data) => {
-                    console.log(data);
+                    setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                   },
                   (error) => {
-                    console.log(error);
+                    setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                   }
                 );
 
@@ -582,10 +581,10 @@ routeAuth.put(
                 .then((res) => res.json())
                 .then(
                   (data) => {
-                    console.log(data);
+                    setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
                   },
                   (error) => {
-                    console.log(error);
+                    setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
                   }
                 );
             });

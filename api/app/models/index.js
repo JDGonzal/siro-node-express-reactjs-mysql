@@ -26,6 +26,7 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+db.log = require('../models/log.model.js')(sequelize, Sequelize);
 db.user = require('../models/user.model.js')(sequelize, Sequelize);
 db.role = require('../models/role.model.js')(sequelize, Sequelize);
 db.medicalCenter = require('../models/medicalCenter.model.js')(sequelize, Sequelize);
@@ -131,4 +132,4 @@ db.laboratoryTest.belongsTo(db.testType);
 
 db.ROLES = ['viewer', 'clinic', 'laboratory', 'admin'];
 
-module.exports = db
+module.exports = db;

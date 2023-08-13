@@ -4,6 +4,7 @@ const express = require("express");
 const auth = require("../middleware/auth.js");
 const { admin, laboratory, clinic } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
+const setLog = require("../utils/logs.utils.js")
 
 // Setup the express server routeRoles
 const routeRoles = express.Router();
@@ -25,7 +26,7 @@ routeRoles.post("/api/auth/signup/roleV", async (request, response) => {
     mysqlConnection.query(query, values, function (err, rows, fields) {
       connection.release();
       if (err) {
-        console.log(err);
+        setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(err));
       }
     });
     connection.on("error", function (err) {
@@ -54,7 +55,7 @@ routeRoles.post(
       mysqlConnection.query(query, values, function (err, rows, fields) {
         connection.release();
         if (err) {
-          console.log(err);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(err));
         }
       });
       connection.on("error", function (err) {
@@ -84,7 +85,7 @@ routeRoles.post(
       mysqlConnection.query(query, values, function (err, rows, fields) {
         connection.release();
         if (err) {
-          console.log(err);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(err));
         }
       });
       connection.on("error", function (err) {
@@ -114,7 +115,7 @@ routeRoles.post(
       mysqlConnection.query(query, values, function (err, rows, fields) {
         connection.release();
         if (err) {
-          console.log(err);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(err));
         }
       });
       connection.on("error", function (err) {

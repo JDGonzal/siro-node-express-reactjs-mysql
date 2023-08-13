@@ -7,6 +7,7 @@ const auth = require("../middleware/auth.js");
 const { admin, clinic } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js")
 
 // Setup the express server routeVeterinarian
 const routeVeterinarian = express.Router();
@@ -92,12 +93,7 @@ routeVeterinarian.post(
             }
           );
         } else {
-          console.log(
-            "veterinarianId: ",
-            values[0],
-            ", Exists:",
-            rows[0].found
-          );
+          setLog("TRACE",__filename,arguments.callee.name,`"veterinarianId: ",${JSON.stringify(values[0])},", Exists:",${rows[0].found}`);
           response.send({
             ok: true,
             found: rows[0].found,

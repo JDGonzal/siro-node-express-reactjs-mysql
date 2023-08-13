@@ -1,6 +1,7 @@
 require('dotenv').config(); // import config = require('config');
 const csvtojson = require('csvtojson');
 const mysqlConnection = require('../utils/database.js');
+const setLog = require('../utils/logs.utils.js');
 
 function init_Breed() {
   const fileName = process.cwd() + '/app/data/breed.data.csv';
@@ -21,14 +22,13 @@ function init_Breed() {
         mysqlConnection.query(insertStatement, items,
           (err, results, fields) => {
             if (err) {
-              console.log('breedName', breedName, 'SpeciesSpeciesId', SpeciesSpeciesId);
-              console.log('Unable to insert item at row ', i + 1, '\n', err);
+              setLog("ERROR",__filename,arguments.callee.name,`'breedName', ${breedName}, 'SpeciesSpeciesId', ${SpeciesSpeciesId}`);
+              setLog("ERROR",__filename,arguments.callee.name,`Unable to insert item at row , ${i + 1}, ${err}`);
             }
           });
       }
     }
-    console.log(
-      `${i} record(s) for "Breeds" table was added successfully`);
+    setLog("INFO",__filename,arguments.callee.name,`${i} record(s) for "Breeds" table was added successfully`);
   });
 }
 
