@@ -14,7 +14,7 @@ routeCity.get("/api/city/:id", (request, response) => {
             WHERE StateStateId = ?
             ORDER BY CitySort, CityName`;
   var values = [parseInt(request.params.id)];
-  setLog("TRACE",__filename,arguments.callee.name,`"/api/city/:", ${JSON.stringify(value)}s`);
+  setLog("TRACE",__filename,arguments.callee.name,`"/api/city/:", ${JSON.stringify(values)}`);
   mysqlConnection.getConnection(function (err, connection) {
     setLog("TRACE",__filename,arguments.callee.name,`'getConnection.city-id', ${JSON.stringify(values)}`);
     if (err) {
