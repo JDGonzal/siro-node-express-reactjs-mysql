@@ -9,8 +9,9 @@ const init_TestType = require('./testType.data.js');
 const init_LaboratoryTests = require('./laboratoryTest.data.js');
 const setLog = require('../utils/logs.utils.js');
 
-async function init_All(){
-  await db.sequelize.sync({force: true}).then(async() => {
+async function init_All(force){
+  if (!force) return;
+  await db.sequelize.sync(force?{force: true}:null).then(async() => {
     await setLog("DEBUG",__filename,arguments.callee.name,'Drop and Resync Db');
     await init_Roles();
     await init_States();
