@@ -10,6 +10,7 @@ const auth = require("../middleware/auth.js");
 const { admin, clinic, laboratory, viewer } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js")
 
 // Setup the express server routeAuth
 const routePatientPet = express.Router();
@@ -327,10 +328,10 @@ routePatientPet.post(
       .then((res) => res.json())
       .then(
         (data) => {
-          console.log(data);
+          setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
         },
         (error) => {
-          console.log(error);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
         }
       );
 
@@ -499,10 +500,10 @@ routePatientPet.put(
       .then((res) => res.json())
       .then(
         (data) => {
-          console.log(data);
+          setLog("DEBUG",__filename,arguments.callee.name,JSON.stringify(data));
         },
         (error) => {
-          console.log(error);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
         }
       );
 

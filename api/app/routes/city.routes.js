@@ -3,6 +3,7 @@ const express = require("express");
 // Import middlewares
 const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeRoles
 const routeCity = express.Router();
@@ -13,9 +14,9 @@ routeCity.get("/api/city/:id", (request, response) => {
             WHERE StateStateId = ?
             ORDER BY CitySort, CityName`;
   var values = [parseInt(request.params.id)];
-  console.log("/api/city/:", values);
+  setLog("TRACE",__filename,arguments.callee.name,`"/api/city/:", ${JSON.stringify(values)}`);
   mysqlConnection.getConnection(function (err, connection) {
-    console.log('getConnection.city-id', values);
+    setLog("TRACE",__filename,arguments.callee.name,`'getConnection.city-id', ${JSON.stringify(values)}`);
     if (err) {
       response.status(501).json({
         message: apiMessage["501"][1],
@@ -26,7 +27,7 @@ routeCity.get("/api/city/:id", (request, response) => {
     }
     mysqlConnection.query(query, values, (err, rows, fields) => {
       connection.release();
-      console.log('connection.state:',connection.state, values);
+      setLog("TRACE",__filename,arguments.callee.name,`'connection.state:',${connection.state}, ´${JSON.stringify(values)}`);
       if (err) {
         response.status(501).json({
           message: apiMessage["501"][1],

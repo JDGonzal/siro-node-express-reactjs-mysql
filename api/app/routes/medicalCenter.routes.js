@@ -7,6 +7,7 @@ const auth = require("../middleware/auth.js");
 const { admin, clinic } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js")
 
 // Setup the express server routeMedicalCenter
 const routeMedicalCenter = express.Router();
@@ -120,7 +121,7 @@ routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
           });
         });
       } else {
-        console.log("medicalCenterId: ", values[0], ", Exists:", rows[0].found);
+        setLog("TRACE",__filename,arguments.callee.name,`"medicalCenterId: ", ${JSON.stringify(values[0])}, ", Exists:", ${rows[0].found}`);
         response.send({
           ok: true,
           found: rows[0].found,
@@ -140,7 +141,7 @@ routeMedicalCenter.post(
               (createdAt, updatedAt, medicalCenterId, userId)
               VALUE (NOW(), NOW(), ?, ?)`;
     var values = [request.body["medicalCenterId"], request.body["userId"]];
-    console.log("/api/medicalcenter/user");
+    setLog("TRACE",__filename,arguments.callee.name,"/api/medicalcenter/user");
     mysqlConnection.getConnection(function (err, connection) {
       if (err) {
         response.status(501).json({
@@ -153,7 +154,7 @@ routeMedicalCenter.post(
       mysqlConnection.query(query, values, function (err, rows, fields) {
         connection.release();
         if (err) {
-          console.log(err);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(err));
         }
         response.status(201).json({
           message: apiMessage["201"][1],

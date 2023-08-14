@@ -7,6 +7,7 @@ const auth = require("../middleware/auth.js");
 const { admin, clinic } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js")
 
 // Setup the express server routePetOwner
 const routePetOwner = express.Router();
@@ -18,7 +19,7 @@ routePetOwner.post(
     var query = `SELECT COUNT(petOwnerId)as found from ${process.env.MYSQL_D_B_}.petOwners
                where petOwnerId=?`;
     const values = [parseInt(request.body["petOwnerId"])];
-    console.log(query, "\n", values);
+    setLog("TRACE",__filename,arguments.callee.name,`${query}, ${JSON.stringify(values)}`);
     mysqlConnection.getConnection(function (err, connection) {
       if (err) {
         response.status(501).json({
@@ -87,7 +88,7 @@ routePetOwner.post(
             }
           );
         } else {
-          console.log("petOwnerId: ", values[0], ", Exists:", rows[0].found);
+          setLog("TRACE",__filename,arguments.callee.name,`"petOwnerId: ", ${JSON.stringify(values[0])}, ", Exists:", ${rows[0].found}`);
           response.send({
             ok: true,
             found: rows[0].found,

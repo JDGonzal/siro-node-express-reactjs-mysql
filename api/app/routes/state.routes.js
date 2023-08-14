@@ -5,11 +5,12 @@ const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
 // Setup the express server routeRoles
 const routeState = express.Router();
+const setLog = require("../utils/logs.utils.js")
 
 routeState.get("/api/state", (request, response) => {
   var query = `SELECT stateId, stateName FROM ${process.env.MYSQL_D_B_}.States
             ORDER BY stateName`;
-  console.log("/api/state");
+  setLog("TRACE",__filename,arguments.callee.name,"/api/state");
   mysqlConnection.getConnection(function (err, connection) {
     if (err) {
       response.status(501).json({

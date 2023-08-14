@@ -1,6 +1,7 @@
 require('dotenv').config(); // import config = require('config');
 const csvtojson = require('csvtojson');
 const mysqlConnection = require('../utils/database.js');
+const setLog = require('../utils/logs.utils.js');
 
 function init_TypeOfSample() {
   const fileName= process.cwd() +  '/app/data/typeOfSample.data.csv';
@@ -19,13 +20,12 @@ function init_TypeOfSample() {
       mysqlConnection.query(insertStatement, items,
         (err, results, fields) => {
           if (err) {
-            console.log('Unable to insert item at row ', i + 1, '\n', err);
+            setLog("ERROR",__filename,arguments.callee.name,`'Unable to insert item at row ', ${i + 1}, ${err}`);
           }
         });
       }
     }
-    console.log(
-      `${i} record(s) for "TypeOfSamples" table was added successfully`);
+    setLog("INFO",__filename,arguments.callee.name,`${i} record(s) for "TypeOfSamples" table was added successfully`);
   });
 }
 
