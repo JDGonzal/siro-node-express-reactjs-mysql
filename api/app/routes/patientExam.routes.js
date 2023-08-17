@@ -23,7 +23,7 @@ routePatientExam.get(
       parseInt(request.params.VeterinarianVeterinarianId),
       parseInt(request.params.PatientPetPatientPetId),
     ];
-    console.log("/api/patientexam/", values);
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientExam.get',`/api/patientexam/:${JSON.stringify(values)}`);
     mysqlConnection.getConnection(function (err, connection) {
       if (err) {
         response.status(501).json({
@@ -59,14 +59,7 @@ routePatientExam.get(
             });
           });
         } else {
-          console.log(
-            "found: ",
-            rows[0].found,
-            " of ",
-            values[0],
-            " and ",
-            values[1]
-          );
+          setLog("INFO",__filename,arguments.callee.name+'routePatientExam.get',`found:${rows[0].found} of ${values[0]}  and  ${values[1]}`);
           response.send({
             ok: true,
             found: rows[0].found,
@@ -185,10 +178,10 @@ addVeterinarian = async (jsonValues) => {
     .then((res) => res.json())
     .then(
       (data) => {
-        console.log("addVeterinarian(ok)", data);
+        setLog("INFO",__filename,arguments.callee.name,`ok: ${JSON.stringify(data)}`);
       },
       (error) => {
-        console.log("addVeterinarian(error)", error);
+        setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
       }
     );
 };
@@ -210,10 +203,10 @@ addTypeOfSample = async (jsonValues) => {
       .then((res) => res.json())
       .then(
         (data) => {
-          console.log("patientexam_typeofsample(ok)", data);
+          setLog("INFO",__filename,arguments.callee.name,`ok: ${JSON.stringify(data)}`);
         },
         (error) => {
-          console.log("patientexam_typeofsample(error)", error);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
         }
       );
   }
@@ -236,10 +229,10 @@ addLaboratoryTest = async (jsonValues) => {
       .then((res) => res.json())
       .then(
         (data) => {
-          console.log("patientexam_laboratorytest(ok)", data);
+          setLog("INFO",__filename,arguments.callee.name,`ok: ${JSON.stringify(data)}`);
         },
         (error) => {
-          console.log("patientexam_laboratorytest(error)", error);
+          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(error));
         }
       );
   }
@@ -270,7 +263,7 @@ routePatientExam.post(
       veterinarianName: request.body["veterinarianName"],
       patientExamId: 0,
     };
-    console.log("post:patientexam", jsonValues);
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientExam.post',`/api/patientexam/:${JSON.stringify(jsonValues)}`);
     const schema = await {
       patientExamRemarks: { type: "string", optional: true, max: 255 },
       patientExamAddress: { type: "string", optional: false, max: 255, min: 8 },
@@ -371,7 +364,7 @@ routePatientExam.post(
               addLaboratoryTest(jsonValues);
             },
             (err) => {
-              console.log(err);
+              setLog("ERROR",__filename,arguments.callee.name+'routePatientExam.post',JSON.stringify(error));
             }
           );
       });
@@ -410,7 +403,7 @@ routePatientExam.put(
       TokenExternal: request.body["TokenExternal"],
       veterinarianName: request.body["veterinarianName"],
     };
-    console.log("put:patientexam", jsonValues);
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientExam.put',`/api/patientexam/:${JSON.stringify(jsonValues)}`);
     const schema = await {
       patientExamRemarks: { type: "string", optional: true, max: 255 },
       patientExamAddress: { type: "string", optional: false, max: 255, min: 8 },

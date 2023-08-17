@@ -5,6 +5,7 @@ const auth = require("../middleware/auth.js");
 const { admin, laboratory, clinic } = require("../middleware/roles.js");
 const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeRoles
 const routeSqlQuery = express.Router();
@@ -14,7 +15,7 @@ routeSqlQuery.get(
   (request, response) => {
     var query = request.params.sql;
     try {
-      console.log(query);
+      setLog("TRACE",__filename,arguments.callee.name+'routeSqlQuery.get(',`/api/sqlquery/:${JSON.stringify(query)}`);
       const validationResponse =
         String(query).substring(0, 6).toLowerCase() === "select";
       if (validationResponse !== true) {

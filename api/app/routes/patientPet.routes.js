@@ -29,7 +29,7 @@ routePatientPet.get(
     var jsonValues = await {
       medicalCenterArray: request.params["medicalCenterArray"],
     };
-    console.log('/api/patientpet/:',jsonValues);
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientPet.get',`/api/patientpet/:${JSON.stringify(jsonValues)}`);
     const schema = await {
       medicalCenterArray: { type: "string", optional: false, max: 255, min: 5 },
     };
@@ -148,6 +148,7 @@ routePatientPet.post(
       petOwnerName: request.body["petOwnerName"],
       PetOwnerPetOwnerId: request.body["PetOwnerPetOwnerId"],
     };
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientPet.post(',`/api/patientpet/getpatientpetid|${JSON.stringify(jsonValues)}`);
     const schema = await {
       patientPetName: { type: "string", optional: false, max: 100, min: 2 },
       petOwnerName: { type: "string", optional: true, max: 100, min: 0 },
@@ -189,7 +190,7 @@ routePatientPet.post(
             error: err,
           });
         }
-        console.log("getpatientpetid:", rows);
+        setLog("DEBUG",__filename,arguments.callee.name+'routePatientPet.post(',`/api/patientpet/getpatientpetid:${JSON.stringify(rows)}`);
         if (!rows || rows.length === 0) {
           response.status(404).json({
             message: apiMessage["404"][1],
@@ -229,7 +230,7 @@ routePatientPet.post(
       petOwnerName: request.body["petOwnerName"],
       TokenExternal: request.body["TokenExternal"],
     };
-    console.log("post:patientpet", jsonValues);
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientPet.post(',`/api/patientpet|${JSON.stringify(jsonValues)}`);
     const schema = await {
       patientPetName: { type: "string", optional: false, max: 100, min: 2 },
       patientPetBirthday: {
@@ -311,8 +312,7 @@ routePatientPet.post(
         `${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`
       );
     }
-    console.log("patientPetBirthday: ", jsonValues.patientPetBirthday);
-
+    setLog("DEBUG",__filename,arguments.callee.name+'routePatientPet.post(',`/api/patientpet|patientPetBirthday|${JSON.stringify(jsonValues)}`);
     await fetch(process.env.EMAIL_API_ + "petowner", {
       method: "POST",
       headers: {
@@ -394,7 +394,7 @@ routePatientPet.put(
       petOwnerName: request.body["petOwnerName"],
       TokenExternal: request.body["TokenExternal"],
     };
-    console.log("put:patientpet", jsonValues);
+    setLog("TRACE",__filename,arguments.callee.name+'routePatientPet.put(',`/api/patientpet|${JSON.stringify(jsonValues)}`);
     const schema = await {
       patientPetName: { type: "string", optional: false, max: 100, min: 2 },
       patientPetBirthday: {
@@ -483,8 +483,7 @@ routePatientPet.put(
         `${jsonValues.patientPetBirthday[0]}-${jsonValues.patientPetBirthday[1]}-${jsonValues.patientPetBirthday[2]}`
       );
     }
-    console.log("patientPetBirthday: ", jsonValues.patientPetBirthday);
-
+    setLog("DEBUG",__filename,arguments.callee.name+'routePatientPet.put(',`/api/patientpet|${JSON.stringify(jsonValues)}`);
     await fetch(process.env.EMAIL_API_ + "petowner", {
       method: "POST",
       headers: {
@@ -526,7 +525,7 @@ routePatientPet.put(
             error: err,
           });
         }
-        console.log(query);
+        setLog("DEBUG",__filename,arguments.callee.name+'routePatientPet.put(',query);
         response.status(202).json({
           message: apiMessage["202"][1],
           ok: true,

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const setLog = require("./logs.utils.js");
 
 function messageMail(email, urlRoute, iPos) {
   const aMessage = [`
@@ -102,7 +103,7 @@ function messageMail(email, urlRoute, iPos) {
 }
 const sendEmail = async (email, subject, urlRoute, iPos) => {
   try {
-    console.log('host:', process.env.EMAIL_HOST,'service:', process.env.EMAIL_SERVICE,'port:', process.env.EMAIL_PORT);
+    setLog("TRACE",__filename,arguments.callee.name,`host:${process.env.EMAIL_HOST}, service:${process.env.EMAIL_SERVICE}, port:${process.env.EMAIL_PORT}`);
     const transporter = await nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       service: process.env.EMAIL_SERVICE, 
@@ -127,10 +128,9 @@ const sendEmail = async (email, subject, urlRoute, iPos) => {
       ${urlRoute}`,*/
       html: messageMail(email, urlRoute, iPos),
     });
-    console.log("email sent sucessfully");
+    setLog("INFO",__filename,arguments.callee.name,"email sent sucessfully");
   } catch (error) {
-    console.log("email not sent");
-    console.log('email error:', error);
+    setLog("ERROR",__filename,arguments.callee.name,`email not sent:${JSON.stringify(error)}`);
   }
 };
 
