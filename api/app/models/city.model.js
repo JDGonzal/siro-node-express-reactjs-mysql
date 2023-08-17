@@ -1,10 +1,10 @@
 module.exports = (sequelize, Sequelize) => {
   const City = sequelize.define('Cities', {
-    CityId: {
+    cityId: {
       type: Sequelize.INTEGER,
       primaryKey: true,
     },
-    CityName: {
+    cityName: {
       type: Sequelize.STRING,
       allowNull: false,
     },

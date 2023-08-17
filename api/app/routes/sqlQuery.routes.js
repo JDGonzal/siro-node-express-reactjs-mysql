@@ -1,54 +1,45 @@
 const express = require("express");
-
+const { QueryTypes } = require('sequelize');
 // Import middlewares
-const auth = require("../middleware/auth.js");
-const { admin, laboratory, clinic } = require("../middleware/roles.js");
-const mysqlConnection = require("../utils/database.js");
+const db = require("../models");
 const apiMessage = require("../utils/messages.js");
 const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeRoles
 const routeSqlQuery = express.Router();
 
-routeSqlQuery.get(
-  "/api/sqlquery/:sql" /*, [auth, clinic]*/,
-  (request, response) => {
+routeSqlQuery.get("/api/sqlquery/:sql" , async (request, response) => {
     var query = request.params.sql;
     try {
-      setLog("TRACE",__filename,arguments.callee.name+'routeSqlQuery.get(',`/api/sqlquery/:${JSON.stringify(query)}`);
-      const validationResponse =
-        String(query).substring(0, 6).toLowerCase() === "select";
+      await setLog("TRACE",__filename,arguments.callee.name+'routeSqlQuery.get(',`/api/sqlquery/:${JSON.stringify(query)}`);
+      query = String(query).toLowerCase();
+      const validationResponse = 
+        query.substring(0, 6) === "select" && !query.includes('table_name') && !query.includes('information_schema');
       if (validationResponse !== true) {
+        await setLog("ERROR",__filename,arguments.callee.name+'routeSqlQuery.get(',`/api/sqlquery/:${apiMessage["400"][1]}`);
         return response.status(400).json({
           message: apiMessage["400"][1],
           ok: false,
           errors: validationResponse,
         });
       }
-      mysqlConnection.getConnection(function (err, connection) {
-        connection.release();
-        if (err) {
-          response.status(501).json({
-            message: apiMessage["501"][1],
-            ok: false,
-            error: err,
-          });
-          return;
-        }
-        mysqlConnection.query(query, (err, rows, fields) => {
-          if (err) {
-            response.status(501).json({
-              message: apiMessage["501"][1],
-              ok: false,
-              error: err,
-            });
-          }
-          response.send(rows);
+      db.sequelize.query(query,{
+        type: QueryTypes.SELECT,
+      })
+      .then((rows)=>{
+        response.send(rows);
+      })
+      .catch((err)=>{
+        response.status(501).json({
+          message: apiMessage["501"][1],
+          ok: false,
+          error: err,
         });
-        connection.on("error", function (err) {
-          return;
-        });
-      });
+        setLog("ERROR",__filename,arguments.callee.name+'routeSqlQuery.get(',JSON.stringify(err));
+      })
+      .finally(()=>{
+        setLog("INFO",__filename,arguments.callee.name+'routeSqlQuery.get(',`(/api/sqlquery/:${JSON.stringify(query)}).end`);
+      })
     } catch (err) {
       response.status(501).json({
         message: apiMessage["501"][1],

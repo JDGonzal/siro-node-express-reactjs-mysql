@@ -1,0 +1,9 @@
+[
+  {"testTypeId": 1,"testTypeName": "PROMOCIONES SIRIO:","testTypeIsMultiple ": 1},
+  {"testTypeId": 2,"testTypeName": "EXÁMENES COMUNES:","testTypeIsMultiple ": 1},
+  {"testTypeId": 3,"testTypeName": "PRUEBAS INDIVIDUALES EN ORDEN:","testTypeIsMultiple ": 1},
+  {"testTypeId": 4,"testTypeName": "CULTIVOS MICROBIOLOGÍA (Antibiograma):","testTypeIsMultiple ": 0},
+  {"testTypeId": 5,"testTypeName": "EXÁMENES SOLICITADOS (Perfiles):","testTypeIsMultiple ": 1},
+  {"testTypeId": 6,"testTypeName": "TOXICOLOGÍA:","testTypeIsMultiple ": 0},
+  {"testTypeId": 0,"testTypeName": "OTROS:","testTypeIsMultiple ": 0}
+]

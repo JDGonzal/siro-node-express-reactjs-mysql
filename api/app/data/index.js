@@ -14,13 +14,10 @@ async function init_All(force){
   await db.sequelize.sync(force?{force: true}:null).then(async() => {
     await setLog("DEBUG",__filename,arguments.callee.name,'Drop and Resync Db');
     await init_Roles();
-    await init_States();
-    await init_Cities();
-    await init_Species();
-    await init_Breeds();
+    await init_States().then(() =>{init_Cities(true)});
+    await init_Species().then(() => { init_Breeds(true)});
     await init_TypeOfSample();
-    await init_TestType();
-    await init_LaboratoryTests(); 
+    await init_TestType().then(() => {init_LaboratoryTests(true)}); 
   })
   .finally(async () => {
     await setLog("DEBUG",__filename,arguments.callee.name,'End of init Tables');

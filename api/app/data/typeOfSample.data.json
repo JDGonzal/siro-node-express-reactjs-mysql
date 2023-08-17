@@ -1,0 +1,10 @@
+[
+  {"typeOfSampleId": "1","typeOfSampleName": "Materia Fecal"},
+  {"typeOfSampleId": "2","typeOfSampleName": "Orina"},
+  {"typeOfSampleId": "3","typeOfSampleName": "Sangre"},
+  {"typeOfSampleId": "4","typeOfSampleName": "Secreción 1 oído"},
+  {"typeOfSampleId": "5","typeOfSampleName": "Secreción 2 Oídos (OD-OI)"},
+  {"typeOfSampleId": "6","typeOfSampleName": "Secreción de piel"},
+  {"typeOfSampleId": "7","typeOfSampleName": "Pelos y escamas"},
+  {"typeOfSampleId": "0","typeOfSampleName": "Otros"}
+]
