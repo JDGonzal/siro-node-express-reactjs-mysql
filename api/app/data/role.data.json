@@ -1,0 +1,7 @@
+[
+  {"roleId": 1,"roleName": "viewer"},
+  {"roleId": 2,"roleName": "clinic"},
+  {"roleId": 3,"roleName": "laboratory"},
+  {"roleId": 4,"roleName": "admin"}
+
+]
