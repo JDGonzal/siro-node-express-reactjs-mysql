@@ -7,7 +7,7 @@ async function setLog(level, fileName, methodName, dataText) {
       logLevel: String(level),
       logFileName: String(fileName).substring(0,255),
       logMethodName: String(methodName).substring(0,255),
-      logDataText: String(dataText).substring(0,255),
+      logDataText: String(dataText).substring(0,1024),
     });
   } catch (error) {
     console.error(error);
