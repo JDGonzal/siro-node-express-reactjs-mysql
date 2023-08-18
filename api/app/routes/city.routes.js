@@ -10,7 +10,8 @@ const routeCity = express.Router();
 
 routeCity.get("/api/city/:id", (request, response) => {
   var values = [parseInt(request.params.id)];
-  setLog("TRACE",__filename,arguments.callee.name+'routeCity.get',`/api/city/:${JSON.stringify(values)}`);
+  const funcName = arguments.callee.name+'routeCity.get(';
+  setLog("TRACE",__filename, funcName,`/api/city/:${JSON.stringify(values)}`);
   var query = `SELECT cityId,cityName,IF(MOD(cityId,1000)=1,0,1) as citySort, StateStateId  
             FROM ${process.env.MYSQL_D_B_}.Cities
             WHERE StateStateId = :stateId
@@ -29,11 +30,11 @@ routeCity.get("/api/city/:id", (request, response) => {
         ok: false,
         error: err,
       });
-      setLog("ERROR",__filename,arguments.callee.name+'routeCity.get',JSON.stringify(err));
+      setLog("ERROR",__filename, funcName, JSON.stringify(err));
     })
     .finally(()=>{
-      setLog("INFO",__filename,arguments.callee.name+'routeCity.get',`(/api/city/:${JSON.stringify(values)}).end`);
-    })
+      setLog("INFO",__filename, funcName, `(/api/city/:${JSON.stringify(values)}).end`);
+    });
   
   // To Test in Postman use a GET with this URL "http://localhost:49146/api/employee"
   // in "Body" use none

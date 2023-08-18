@@ -19,7 +19,7 @@ module.exports = (Sequelize, DataTypes) => {
       type: DataTypes.STRING,
     },
     logDataText: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(1024),
     },
   });
 
