@@ -50,7 +50,7 @@ function messageMail(email, urlRoute, iPos) {
       </table>
     </body>
   </html>
-  `,`
+  `, `
   <html xmlns="http://www.w3.org/1999/xhtml">  
   <head>  
     <title></title> 
@@ -101,12 +101,14 @@ function messageMail(email, urlRoute, iPos) {
   `];
   return aMessage[iPos]
 }
-const sendEmail = async (email, subject, urlRoute, iPos) => {
+
+async function sendEmail(email, subject, urlRoute, iPos) {
+  const funcName = arguments.callee.name ;
   try {
-    setLog("TRACE",__filename,arguments.callee.name,`host:${process.env.EMAIL_HOST}, service:${process.env.EMAIL_SERVICE}, port:${process.env.EMAIL_PORT}`);
+    setLog("TRACE", __filename, funcName, `host:${process.env.EMAIL_HOST}, service:${process.env.EMAIL_SERVICE}, port:${process.env.EMAIL_PORT}`);
     const transporter = await nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      service: process.env.EMAIL_SERVICE, 
+      service: process.env.EMAIL_SERVICE,
       port: process.env.EMAIL_PORT,
       secure: true,
       auth: {
@@ -128,9 +130,9 @@ const sendEmail = async (email, subject, urlRoute, iPos) => {
       ${urlRoute}`,*/
       html: messageMail(email, urlRoute, iPos),
     });
-    setLog("INFO",__filename,arguments.callee.name,"email sent sucessfully");
+    setLog("INFO", __filename, funcName, "email sent sucessfully");
   } catch (error) {
-    setLog("ERROR",__filename,arguments.callee.name,`email not sent:${JSON.stringify(error)}`);
+    setLog("ERROR", __filename, funcName, `email not sent:${JSON.stringify(error)}`);
   }
 };
 

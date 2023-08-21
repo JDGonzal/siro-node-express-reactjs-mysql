@@ -3,44 +3,32 @@ require("dotenv").config(); // import config = require('config');
 const Validator = require("fastest-validator");
 
 // Import middlewares
-const auth = require("../middleware/auth.js");
+const db = require("../models");
 const { admin, clinic } = require("../middleware/roles.js");
-const mysqlConnection = require("../utils/database.js");
 const apiMessage = require("../utils/messages.js");
-const setLog = require("../utils/logs.utils.js")
+const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeMedicalCenter
 const routeMedicalCenter = express.Router();
 
 routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
-  var query = `SELECT COUNT(medicalCenterId)as found from ${process.env.MYSQL_D_B_}.medicalCenters
-               where medicalCenterId=?`;
-  const values = [parseInt(request.body["medicalCenterId"])];
-  mysqlConnection.getConnection(function (err, connection) {
-    if (err) {
-      response.status(501).json({
-        message: apiMessage["501"][1],
-        ok: false,
-        error: err,
-      });
-      return;
-    }
-    mysqlConnection.query(query, values, function (err, rows, fields) {
-      connection.release();
-      if (err) {
-        response.status(501).json({
-          message: apiMessage["501"][1],
-          ok: false,
-          error: err,
-        });
-      }
-      if (rows[0].found === 0 && values[0] > 0) {
-        query = `INSERT into ${process.env.MYSQL_D_B_}.medicalCenters 
-              (createdAt, updatedAt, medicalCenterId, medicalCenterName, medicalCenterAddress,
-                medicalCenterTelNumber, StateStateId, CityCityId)
-              VALUE (NOW(), NOW(), ?, ?, ?, ?, ?, ?)`;
-
-        var jsonValues = {
+  const funcName = arguments.callee.name + "routeMedicalCenter.post(";
+  const apiUrl = "/api/medicalcenter|";
+  var jsonValues = {
+    medicalCenterId: parseInt(request.body["medicalCenterId"]),
+  };
+  setLog("TRACE", __filename, funcName, `${apiUrl}body:${JSON.stringify(jsonValues)}`);
+  db.medicalCenter.findAll({
+    attributes: [
+      [db.sequelize.fn("COUNT", db.sequelize.col("medicalCenterId")), "found"],
+    ],
+    where: { medicalCenterId: jsonValues.medicalCenterId },
+  })
+  .then((rows)=>{
+    console.log(rows);
+    setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(rows)}`);
+    if (rows[0].dataValues.found === 0 && jsonValues.medicalCenterId > 0) {
+      jsonValues = {
           medicalCenterId: request.body["medicalCenterId"],
           medicalCenterName: request.body["medicalCenterName"],
           medicalCenterAddress: request.body["medicalCenterAddress"],
@@ -96,76 +84,93 @@ routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
         };
         const v = new Validator();
         const validationResponse = v.validate(jsonValues, schema);
-
         if (validationResponse !== true) {
+          setLog(
+            "ERROR",
+            __filename,
+            funcName,
+            `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`
+          );
           return response.status(400).json({
             message: apiMessage["400"][1],
             ok: false,
             errors: validationResponse,
           });
-        }
-        var arrayValues = Object.values(jsonValues);
-        mysqlConnection.query(query, arrayValues, function (err, rows, fields) {
-          if (err) {
-            response.status(501).json({
-              message: apiMessage["501"][1],
-              ok: false,
-              error: err,
-            });
-          }
+        };
+        setLog("TRACE", __filename, funcName, `Creating the Medical Center`);
+        db.medicalCenter.create({
+          medicalCenterId: jsonValues.medicalCenterId,
+          medicalCenterName: jsonValues.medicalCenterName,
+          medicalCenterAddress: jsonValues.medicalCenterAddress,
+          medicalCenterTelNumber: jsonValues.medicalCenterTelNumber,
+          StateStateId: jsonValues.StateStateId,
+          CityCityId: jsonValues.CityCityId,
+        })
+        .then(()=>{
           response.status(201).json({
             message: apiMessage["201"][1],
             ok: true,
-            medicalCenterId: values[0],
-            medicalCenterName: values[1],
+            medicalCenterId: jsonValues.medicalCenterId,
+            medicalCenterName: jsonValues.medicalCenterName,
           });
+        })
+        .catch((err)=>{
+          response.status(501).json({
+            message: apiMessage["501"][1],
+            ok: false,
+            error: err,
+          });
+        })
+        .finally(()=>{
+          setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
         });
-      } else {
-        setLog("TRACE",__filename,arguments.callee.name,`"medicalCenterId: ", ${JSON.stringify(values[0])}, ", Exists:", ${rows[0].found}`);
-        response.send({
-          ok: true,
-          found: rows[0].found,
-        });
-      }
+        
+    } else{
+      setLog("TRACE",__filename, funcName, `(${apiUrl}).medicalCenterId:${JSON.stringify(values[0])}.Exists:${rows[0].found}`);
+      response.send({
+        ok: true,
+        found: rows[0].dataValues.found,
+      });
+    }
+  })
+  .catch((err)=>{
+    setLog("ERROR",__filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
+    response.status(501).json({
+      message: apiMessage["501"][1],
+      ok: false,
+      error: err,
     });
-    connection.on("error", function (err) {
-      return;
-    });
-  });
+  })
+  .finally(()=>{setLog("DEBUG",  __filename, funcName, `(${apiUrl}).end` );});
 });
 
-routeMedicalCenter.post(
-  "/api/medicalcenter/user",
+routeMedicalCenter.post("/api/medicalcenter/user",
   async (request, response) => {
-    var query = `INSERT into ${process.env.MYSQL_D_B_}.user_medicalCenters
-              (createdAt, updatedAt, medicalCenterId, userId)
-              VALUE (NOW(), NOW(), ?, ?)`;
-    var values = [request.body["medicalCenterId"], request.body["userId"]];
-    setLog("TRACE",__filename,arguments.callee.name,"/api/medicalcenter/user");
-    mysqlConnection.getConnection(function (err, connection) {
-      if (err) {
-        response.status(501).json({
-          message: apiMessage["501"][1],
-          ok: false,
-          error: err,
-        });
-        return;
-      }
-      mysqlConnection.query(query, values, function (err, rows, fields) {
-        connection.release();
-        if (err) {
-          setLog("ERROR",__filename,arguments.callee.name,JSON.stringify(err));
-        }
-        response.status(201).json({
-          message: apiMessage["201"][1],
-          ok: true,
-          medicalCenterId: values[0],
-          userId: values[1],
-        });
+    const funcName = arguments.callee.name + "routeMedicalCenter.post(";
+    const apiUrl = "/api/medicalcenter/user|";
+    var jsonValues = {
+      medicalCenterId : await request.body["medicalCenterId"],
+      userId : request.body["userId"],
+    }
+    setLog("TRACE", __filename, funcName, `${apiUrl}.body:${JSON.stringify(jsonValues)}`);
+    // var query = `INSERT into ${process.env.MYSQL_D_B_}.user_medicalCenters (createdAt, updatedAt, medicalCenterId, userId) VALUE (NOW(), NOW(), ?, ?)`;
+    db.user_medicalCenters.create({
+      medicalCenterId: jsonValues.medicalCenterId,
+      userId: jsonValues.userId,
+    })
+    .then(()=>{
+      response.status(201).json({
+        message: apiMessage["201"][1],
+        ok: true,
+        medicalCenterId: jsonValues.medicalCenterId,
+        userId: jsonValues.userId,
       });
-      connection.on("error", function (err) {
-        return;
-      });
+    })
+    .catch((err)=>{
+      setLog("ERROR",__filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
+    })
+    .finally(()=>{
+      setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
     });
   }
 );
@@ -173,13 +178,12 @@ routeMedicalCenter.post(
 routeMedicalCenter.get(
   "/api/medicalcenter/medicalcentername/:id",
   async (request, response) => {
-    var query = `SELECT COUNT(MedicalCenterId)as found from ${process.env.MYSQL_D_B_}.MedicalCenters
-               where medicalCenterId=?`;
-    var values = [parseInt(request.params.id)];
-
+    const funcName = arguments.callee.name + "routeMedicalCenter.get(";
+    const apiUrl = "/api/medicalcenter/medicalcentername/:";
     var jsonValues = await {
       medicalCenterId: parseInt(request.params.id),
     };
+    setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
     const schema = await {
       medicalCenterId: {
         type: "number",
@@ -193,6 +197,12 @@ routeMedicalCenter.get(
     const v = await new Validator();
     const validationResponse = await v.validate(jsonValues, schema);
     if ((await validationResponse) !== true) {
+      setLog(
+        "ERROR",
+        __filename,
+        funcName,
+        `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`
+      );
       return response.status(400).json({
         found: 0,
         message: apiMessage["400"][1],
@@ -200,64 +210,71 @@ routeMedicalCenter.get(
         errors: validationResponse,
       });
     }
-    var arrayValues = await Object.values(jsonValues);
-    mysqlConnection.getConnection(function (err, connection) {
-      if (err) {
-        response.status(501).json({
-          message: apiMessage["501"][1],
-          ok: false,
-          error: err,
-        });
-        return;
-      }
-      mysqlConnection.query(query, values, function (err, rows, fields) {
-        connection.release();
-        if (err) {
+    // var query = `SELECT COUNT(MedicalCenterId)as found from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`;
+    db.medicalCenter.findAll({
+      attributes: [
+        [db.sequelize.fn("COUNT", db.sequelize.col("medicalCenterId")), "found"],
+      ],
+      where: { medicalCenterId: jsonValues.medicalCenterId },
+    })
+    .then((rows)=>{
+      console.log(apiUrl,rows);
+      setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)},${rows[0].dataValues.found}`);
+      if (rows[0].dataValues.found > 0) {
+        // query = `SELECT medicalCenterId as found, medicalCenterName, medicalCenterAddress, medicalCenterTelNumber, StateStateId, CityCityId from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`
+        db.medicalCenter.findAll({
+          attributes: 
+          [['medicalCenterId','found'],'medicalCenterName','medicalCenterAddress','medicalCenterTelNumber','StateStateId','CityCityId'],
+          where: { emamedicalCenterId: jsonValues.medicalCenterId },
+        }).then((rows)=>{
+          setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
+          response.send({
+            ok: true,
+            found: rows[0].found,
+            medicalCenterName: rows[0].medicalCenterName,
+            medicalCenterAddress: rows[0].medicalCenterAddress,
+            medicalCenterTelNumber: rows[0].medicalCenterTelNumber,
+            StateStateId: rows[0].StateStateId,
+            CityCityId: rows[0].CityCityId,
+          });
+        })
+        .catch((err)=>{
+          setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
           response.status(501).json({
             message: apiMessage["501"][1],
             ok: false,
             error: err,
           });
-        }
-        if (rows[0].found > 0) {
-          query = `SELECT medicalCenterId as found, medicalCenterName, medicalCenterAddress,
-              medicalCenterTelNumber, StateStateId, CityCityId
-              from ${process.env.MYSQL_D_B_}.MedicalCenters
-              where medicalCenterId=?`;
-          mysqlConnection.query(
-            query,
-            arrayValues,
-            function (err, rows, fields) {
-              if (err) {
-                response.status(501).json({
-                  message: apiMessage["501"][1],
-                  ok: false,
-                  error: err,
-                });
-              }
-              response.send({
-                ok: true,
-                found: rows[0].found,
-                medicalCenterName: rows[0].medicalCenterName,
-                medicalCenterAddress: rows[0].medicalCenterAddress,
-                medicalCenterTelNumber: rows[0].medicalCenterTelNumber,
-                StateStateId: rows[0].StateStateId,
-                CityCityId: rows[0].CityCityId,
-              });
-            }
-          );
-        } else {
-          response.send({
-            ok: true,
-            found: rows[0].found,
-          });
-        }
+        })
+        .finally(()=>{
+          setLog("DEBUG", __filename, funcName, `(db.medicalCenter.findAll).end`);
+        })
+      } else{
+
+        response.send({
+          ok: true,
+          found: rows[0].dataValues.found,
+          medicalCenterName: '',
+          medicalCenterAddress: '',
+          medicalCenterTelNumber: '',
+          StateStateId: 0,
+          CityCityId: 0,
+        });
+      }
+    })
+    .catch((err)=>{
+      setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
+      response.status(501).json({
+        message: apiMessage["501"][1],
+        ok: false,
+        error: err,
       });
-      connection.on("error", function (err) {
-        return;
-      });
+    })
+    .finally(()=>{
+      setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
     });
-    // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
+
+    // To Test in Postman use GET with this URL 'http://localhost:49146//api/medicalcenter/medicalcentername/909090'
     // in 'Body' use none
   }
 );
