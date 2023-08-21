@@ -43,6 +43,7 @@ db.veterinarian = require('../models/veterinarian.model.js')(sequelize, Sequeliz
 db.testType = require('../models/testType.model.js')(sequelize, Sequelize);
 
 /*============== user_roles =============== */
+db.user_roles = require('../models/user_roles.model.js')(sequelize, Sequelize);
 db.role.belongsToMany(db.user, {
   through: 'user_roles',
   foreignKey: 'roleId',
@@ -56,6 +57,7 @@ db.user.belongsToMany(db.role, {
 });
 
 /*=========== user_medicalCenters ============ */
+db.user_medicalCenters = require('../models/user_medicalCenters.model.js')(sequelize, Sequelize);
 db.medicalCenter.belongsToMany(db.user, {
   through: 'user_medicalCenters',
   foreignKey: 'medicalCenterId',
@@ -67,7 +69,6 @@ db.user.belongsToMany(db.medicalCenter, {
   foreignKey: 'userId',
   otherKey: 'medicalCenterId'
 });
-
 /*======== PatientExam_TypeOfSamples ========= */
 db.patientExam.belongsToMany(db.typeOfSample, {
   through: 'PatientExam_TypeOfSamples',

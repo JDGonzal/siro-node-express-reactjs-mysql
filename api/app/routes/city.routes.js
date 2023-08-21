@@ -1,5 +1,5 @@
 const express = require("express");
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require("sequelize");
 // Import middlewares
 const db = require("../models");
 const apiMessage = require("../utils/messages.js");
@@ -9,33 +9,45 @@ const setLog = require("../utils/logs.utils.js");
 const routeCity = express.Router();
 
 routeCity.get("/api/city/:id", (request, response) => {
-  var values = [parseInt(request.params.id)];
-  const funcName = arguments.callee.name+'routeCity.get(';
-  setLog("TRACE",__filename, funcName,`/api/city/:${JSON.stringify(values)}`);
+  var values = [parseInt(String(request.params.id))];
+  const funcName = arguments.callee.name + "routeCity.get(";
+  const apiUrl = "/api/city/:";
+  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(values)}`);
   var query = `SELECT cityId,cityName,IF(MOD(cityId,1000)=1,0,1) as citySort, StateStateId  
             FROM ${process.env.MYSQL_D_B_}.Cities
             WHERE StateStateId = :stateId
-            ORDER BY CitySort, CityName`;
-            //FROM ${process.env.MYSQL_D_B_}.Cities
-  db.sequelize.query(query,{
-      replacements:{stateId:values},
-      type: QueryTypes.SELECT,
-    })
-    .then((rows)=>{
-      response.send(rows);
-    })
-    .catch((err)=>{
-      response.status(501).json({
-        message: apiMessage["501"][1],
-        ok: false,
-        error: err,
-      });
-      setLog("ERROR",__filename, funcName, JSON.stringify(err));
-    })
-    .finally(()=>{
-      setLog("INFO",__filename, funcName, `(/api/city/:${JSON.stringify(values)}).end`);
+            ORDER BY citySort, cityName`;
+  if (!values) {
+    setLog("ERROR",__filename,funcName,`${apiUrl}:${JSON.stringify(values)}`);
+    response.status(400).json({
+      message: apiMessage["400"][1],
+      ok: false,
+      errors: validationResponse,
     });
-  
+  } else {
+    setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
+    db.sequelize
+      .query(query, {
+        replacements: { stateId: values },
+        type: QueryTypes.SELECT,
+      })
+      .then((rows) => {
+        setLog("DEBUG",__filename,funcName,`${apiUrl}.rows:${JSON.stringify(rows)}`);
+        response.send(rows);
+      })
+      .catch((err) => {
+        response.status(501).json({
+          message: apiMessage["501"][1],
+          ok: false,
+          error: err,
+        });
+        setLog("ERROR", __filename, funcName, JSON.stringify(err));
+      })
+      .finally(() => {
+        setLog("INFO",__filename,funcName,`(/api/city/:${JSON.stringify(values)}).end`);
+      });
+  }
+
   // To Test in Postman use a GET with this URL "http://localhost:49146/api/employee"
   // in "Body" use none
 });
