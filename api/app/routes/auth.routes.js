@@ -152,7 +152,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
       where: { email: jsonValues.email },
     })
     .then((rows) => {
-      setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
+      setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}.qty:${rows[0].dataValues.found}`);
       response.send({
         ok: true,
         found: rows[0].dataValues.found,
@@ -276,6 +276,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
     token: jsonValues.token,
   })
     .then((rows) => {
+      setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
       response.status(201).json({
         message: apiMessage["201"][1] + "\n" + apiMessage["204"][1],
         ok: true,
@@ -401,16 +402,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
                 (error) => { setLog("ERROR", __filename, funcName, `POST"medicalCenter/user".error:${JSON.stringify(error)}`); }
               );
           },
-          (error) => {
-            setLog(
-              "ERROR",
-              __filename,
-              funcName,
-              `GET"auth/signup/"+${jsonValues.email}.error:${JSON.stringify(
-                error
-              )}`
-            );
-          }
+          (error) => { setLog("ERROR", __filename, funcName, `GET"auth/signup/"+${jsonValues.email}.error:${JSON.stringify(error)}`); }
         );
     })
     .catch((err) => {
@@ -421,9 +413,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
         error: err,
       });
     })
-    .finally(() => {
-      setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
-    });
+    .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`); });
 
   // To Test in Postman use POST with this URL 'http://localhost:49146//api/auth/signup'
   // in 'Body' use raw and select JSON, put this JSON:
