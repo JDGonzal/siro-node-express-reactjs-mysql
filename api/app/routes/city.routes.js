@@ -9,16 +9,16 @@ const setLog = require("../utils/logs.utils.js");
 const routeCity = express.Router();
 
 routeCity.get("/api/city/:id", (request, response) => {
-  var values = [parseInt(String(request.params.id))];
+  var jsonValues = {StateStateId:parseInt(String(request.params.id))};
   const funcName = arguments.callee.name + "routeCity.get(";
   const apiUrl = "/api/city/:";
-  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(values)}`);
+  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   var query = `SELECT cityId,cityName,IF(MOD(cityId,1000)=1,0,1) as citySort, StateStateId  
             FROM ${process.env.MYSQL_D_B_}.Cities
             WHERE StateStateId = :stateId
             ORDER BY citySort, cityName`;
-  if (!values) {
-    setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(values)}`);
+  if (!jsonValues.StateStateId) {
+    setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
     response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
@@ -28,7 +28,7 @@ routeCity.get("/api/city/:id", (request, response) => {
     setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
     db.sequelize
       .query(query, {
-        replacements: { stateId: values },
+        replacements: { stateId: jsonValues.StateStateId },
         type: QueryTypes.SELECT,
       })
       .then((rows) => {
@@ -43,7 +43,7 @@ routeCity.get("/api/city/:id", (request, response) => {
         });
         setLog("ERROR", __filename, funcName, JSON.stringify(err));
       })
-      .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}${JSON.stringify(values)}).end`); });
+      .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
   }
 
   // To Test in Postman use a GET with this URL "http://localhost:49146/api/employee"
