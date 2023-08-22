@@ -28,13 +28,12 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
     email: String(request.body["email"]).toLowerCase(),
     password: request.body["password"], // Never "encrypt" because the "compare" will not work
   };
-  var values = [jsonValues.email];
-  setLog("TRACE", __filename, funcName, `${apiUrl}${values[0]}`);
+  setLog("TRACE", __filename, funcName, `${apiUrl}${jsonValues.email}`);
   // console.log('password:', encrypted(jsonValues.password));
   db.user
     .findAll({
       attributes: ["password"],
-      where: { email: values[0] },
+      where: { email: jsonValues.email },
     })
     .then((rows) => {
       setLog("INFO", __filename, funcName, `${apiUrl}rows1: ${JSON.stringify(rows)}`);
@@ -47,7 +46,6 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
       const v = new Validator();
       const validationResponse = v.validate(jsonValues, schema);
 
-      var arrayValues = Object.values(jsonValues);
       setLog("DEBUG", __filename, funcName, `${apiUrl}isValid:${isValid} = compare(${jsonValues.password},${rows[0].password}); 
       validationResponse:${validationResponse}`);
       if (
@@ -63,7 +61,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
             WHERE um.userId = u.userId) AS medicalCenterArray
         from ${process.env.MYSQL_D_B_}.Users u
         where email=:email or password=:password`;
-        setLog("DEBUG", __filename, funcName, `${apiUrl}query:${query}, replacements:${JSON.stringify(jsonValues)}`);
+        setLog("DEBUG", __filename, funcName, `${apiUrl}query:${query}, replacements:${jsonValues.email}`);
         db.sequelize
           .query(query, {
             replacements: jsonValues,
@@ -132,7 +130,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
       });
     })
     .finally(() => {
-      setLog("INFO", __filename, funcName, `(/api/auth/signin|${values}).end`);
+      setLog("INFO", __filename, funcName, `(${apiUrl}).end`);
     });
 
   // To Test in Postman use POST with this URL 'http://localhost:49146/api/auth/signin
@@ -142,16 +140,16 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
 });
 
 routeAuth.get("/api/auth/signup/:email", async (request, response) => {
-  var values = [String(request.params.email).toLowerCase()];
+  var jsonValues = { email: String(request.params.email).toLowerCase() }
   const funcName = arguments.callee.name + "routeAuth.get(";
   const apiUrl = "/api/auth/signup/:email|";
-  setLog("TRACE", __filename, funcName, `${apiUrl}${values}`);
+  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   db.user
     .findAll({
       attributes: [
         [db.sequelize.fn("COUNT", db.sequelize.col("userId")), "found"],
       ],
-      where: { email: values[0] },
+      where: { email: jsonValues.email },
     })
     .then((rows) => {
       setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
@@ -169,7 +167,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
       });
     })
     .finally(() => {
-      setLog("INFO", __filename, funcName, `(${apiUrl}${values}).end`);
+      setLog("INFO", __filename, funcName, `(${apiUrl}).end`);
     });
 
   // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
@@ -192,28 +190,14 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
     StateStateId: await request.body["StateStateId"],
     CityCityId: await request.body["CityCityId"],
   };
-  setLog(
-    "TRACE",
-    __filename,
-    funcName,
-    `${apiUrl}body:${JSON.stringify(jsonValues)}`
-  );
+  setLog("TRACE", __filename, funcName, `${apiUrl}body:${JSON.stringify(jsonValues)}`);
   try {
-    if ((await jsonValues.RolesArray[0]) === true)
-      jsonValues.RolesArray[0] = "viewer";
-    if ((await jsonValues.RolesArray[1]) === true)
-      jsonValues.RolesArray[1] = "clinic";
-    if ((await jsonValues.RolesArray[2]) === true)
-      jsonValues.RolesArray[2] = "laboratory";
-    if ((await jsonValues.RolesArray[3]) === true)
-      jsonValues.RolesArray[3] = "admin";
+    if ((await jsonValues.RolesArray[0]) === true) jsonValues.RolesArray[0] = "viewer";
+    if ((await jsonValues.RolesArray[1]) === true) jsonValues.RolesArray[1] = "clinic";
+    if ((await jsonValues.RolesArray[2]) === true) jsonValues.RolesArray[2] = "laboratory";
+    if ((await jsonValues.RolesArray[3]) === true) jsonValues.RolesArray[3] = "admin";
   } catch (err) {
-    setLog(
-      "ERROR",
-      __filename,
-      funcName,
-      `${apiUrl}RolesArray.error:${JSON.stringify(err)}`
-    );
+    setLog("ERROR", __filename, funcName, `${apiUrl}RolesArray.error:${JSON.stringify(err)}`);
   }
   const schema = {
     email: { type: "email", optional: false },
@@ -259,12 +243,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
   const v = new Validator();
   const validationResponse = v.validate(jsonValues, schema);
   if (validationResponse !== true) {
-    setLog(
-      "ERROR",
-      __filename,
-      funcName,
-      `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`
-    );
+    setLog("ERROR", __filename, funcName, `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`);
     return response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
@@ -291,12 +270,11 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       (error) => { setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(error)}`); });
   setLog("TRACE", __filename, funcName, `Creating the user`);
   // var query = `INSERT into ${process.env.MYSQL_D_B_}.Users (email,password,token,createdAt,updatedAt) VALUE (?,?,?,NOW(),NOW())`;
-  db.user
-    .create({
-      email: jsonValues.email,
-      password: jsonValues.password,
-      token: jsonValues.token,
-    })
+  db.user.create({
+    email: jsonValues.email,
+    password: jsonValues.password,
+    token: jsonValues.token,
+  })
     .then((rows) => {
       response.status(201).json({
         message: apiMessage["201"][1] + "\n" + apiMessage["204"][1],

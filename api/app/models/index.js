@@ -10,8 +10,8 @@ const sequelize = new Sequelize(
     port: dbConfig.PORT,
     dialect: dbConfig.dialect,
     operatorsAliases: false,
-    username:dbConfig.USER,
-    password:dbConfig.PASSWORD,
+    username: dbConfig.USER,
+    password: dbConfig.PASSWORD,
     pool: {
       max: dbConfig.pool.max,
       min: dbConfig.pool.min,
@@ -30,20 +30,20 @@ db.log = require('../models/log.model.js')(sequelize, Sequelize);
 db.user = require('../models/user.model.js')(sequelize, Sequelize);
 db.role = require('../models/role.model.js')(sequelize, Sequelize);
 db.medicalCenter = require('../models/medicalCenter.model.js')(sequelize, Sequelize);
-db.state = require('../models/state.model.js')(sequelize,Sequelize);
-db.city = require('../models/city.model.js')(sequelize,Sequelize);
-db.patientPet = require('../models/patientPet.model.js')(sequelize,Sequelize);
-db.petOwner = require('../models/petOwner.model.js')(sequelize,Sequelize);
-db.species = require('./species.model.js')(sequelize,Sequelize);
-db.breed = require('../models/breed.model.js')(sequelize,Sequelize);
-db.patientExam = require('../models/patientExam.model.js')(sequelize,Sequelize);
+db.state = require('../models/state.model.js')(sequelize, Sequelize);
+db.city = require('../models/city.model.js')(sequelize, Sequelize);
+db.patientPet = require('../models/patientPet.model.js')(sequelize, Sequelize);
+db.petOwner = require('../models/petOwner.model.js')(sequelize, Sequelize);
+db.species = require('./species.model.js')(sequelize, Sequelize);
+db.breed = require('../models/breed.model.js')(sequelize, Sequelize);
+db.patientExam = require('../models/patientExam.model.js')(sequelize, Sequelize);
 db.laboratoryTest = require('../models/laboratoryTest.model.js')(sequelize, Sequelize);
 db.typeOfSample = require('./typeOfSample.model.js')(sequelize, Sequelize);
 db.veterinarian = require('../models/veterinarian.model.js')(sequelize, Sequelize);
 db.testType = require('../models/testType.model.js')(sequelize, Sequelize);
 
 /*============== user_roles =============== */
-db.user_roles = require('../models/user_roles.model.js')(sequelize, Sequelize);
+db.user_roles = require('./user_Roles.model.js')(sequelize, Sequelize);
 db.role.belongsToMany(db.user, {
   through: 'user_roles',
   foreignKey: 'roleId',
@@ -57,7 +57,7 @@ db.user.belongsToMany(db.role, {
 });
 
 /*=========== user_medicalCenters ============ */
-db.user_medicalCenters = require('../models/user_medicalCenters.model.js')(sequelize, Sequelize);
+db.user_medicalCenters = require('./user_MedicalCenters.model.js')(sequelize, Sequelize);
 db.medicalCenter.belongsToMany(db.user, {
   through: 'user_medicalCenters',
   foreignKey: 'medicalCenterId',
@@ -70,6 +70,7 @@ db.user.belongsToMany(db.medicalCenter, {
   otherKey: 'medicalCenterId'
 });
 /*======== PatientExam_TypeOfSamples ========= */
+db.patientExam_TypeOfSamples = require('./patientExam_TypeOfSamples.model.js')(sequelize, Sequelize);
 db.patientExam.belongsToMany(db.typeOfSample, {
   through: 'PatientExam_TypeOfSamples',
   foreignKey: 'patientExamId',
@@ -83,6 +84,7 @@ db.typeOfSample.belongsToMany(db.patientExam, {
 });
 
 /*======== PatientExam_LaboratoryTests ========= */
+db.patientExam_LaboratoryTests = require('./patientExam_LaboratoryTests.model.js')(sequelize, Sequelize);
 db.patientExam.belongsToMany(db.laboratoryTest, {
   through: 'PatientExam_LaboratoryTests',
   foreignKey: 'patientExamId',

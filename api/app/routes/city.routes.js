@@ -18,7 +18,7 @@ routeCity.get("/api/city/:id", (request, response) => {
             WHERE StateStateId = :stateId
             ORDER BY citySort, cityName`;
   if (!values) {
-    setLog("ERROR",__filename,funcName,`${apiUrl}:${JSON.stringify(values)}`);
+    setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(values)}`);
     response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
@@ -32,7 +32,7 @@ routeCity.get("/api/city/:id", (request, response) => {
         type: QueryTypes.SELECT,
       })
       .then((rows) => {
-        setLog("DEBUG",__filename,funcName,`${apiUrl}.rows:${JSON.stringify(rows)}`);
+        setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
         response.send(rows);
       })
       .catch((err) => {
@@ -43,9 +43,7 @@ routeCity.get("/api/city/:id", (request, response) => {
         });
         setLog("ERROR", __filename, funcName, JSON.stringify(err));
       })
-      .finally(() => {
-        setLog("INFO",__filename,funcName,`(/api/city/:${JSON.stringify(values)}).end`);
-      });
+      .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}${JSON.stringify(values)}).end`); });
   }
 
   // To Test in Postman use a GET with this URL "http://localhost:49146/api/employee"
