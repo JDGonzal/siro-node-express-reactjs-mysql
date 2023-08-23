@@ -3,43 +3,36 @@ const express = require("express");
 // Import middlewares
 const auth = require("../middleware/auth.js");
 const { admin, laboratory, clinic } = require("../middleware/roles.js");
-const mysqlConnection = require("../utils/database.js");
+const db = require("../models");
 const apiMessage = require("../utils/messages.js");
 
 // Setup the express server routeRoles
 const routeTypeOfSample = express.Router();
 
-routeTypeOfSample.get(
-  "/api/typeofsample",
-  [auth, clinic],
-  async (request, response) => {
-    var query = `SELECT typeOfSampleId, typeOfSampleName FROM ${process.env.MYSQL_D_B_}.TypeOfSamples
-            WHERE typeOfSampleId >0
-            ORDER BY typeOfSampleName`;
-    mysqlConnection.getConnection(function (err, connection) {
-      if (err) {
-        response.status(501).json({
-          message: apiMessage["501"][1],
-          ok: false,
-          error: err,
-        });
-        return;
-      }
-      mysqlConnection.query(query, (err, rows, fields) => {
-        connection.release();
-        if (err) {
-          response.status(501).json({
-            message: apiMessage["501"][1],
-            ok: false,
-            error: err,
-          });
-        }
-        response.send(rows);
+routeTypeOfSample.get( "/api/typeofsample", [auth, clinic], async (request, response) => {
+  const funcName = arguments.callee.name + "routeTypeOfSample.get(";
+  const apiUrl = "/api/typeofsample|";
+  setLog("TRACE", __filename, funcName, apiUrl);
+    // var query = `SELECT typeOfSampleId, typeOfSampleName FROM ${process.env.MYSQL_D_B_}.TypeOfSamples WHERE typeOfSampleId >0 ORDER BY typeOfSampleName`;
+  db.typeOfSample.findAll({
+    attributes: ['typeOfSampleId', 'typeOfSampleName'],
+    where: { typeOfSampleId: { [Op.gt]: 0 } /*>0*/ },
+    order: ['typeOfSampleName'],
+  })
+    .then((rows) => {
+      setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
+      response.send(rows);
+    })
+    .catch((err) => {
+      response.status(501).json({
+        message: apiMessage["501"][1],
+        ok: false,
+        error: err,
       });
-      connection.on("error", function (err) {
-        return;
-      });
-    });
+      setLog("ERROR", __filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
+    })
+    .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`);  });
+
     // To Test in Postman use a GET with this URL "http://localhost:49146/api/employee"
     // in "Body" use none
   }
