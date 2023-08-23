@@ -8,7 +8,7 @@ const setLog = require("../utils/logs.utils.js");
 
 routeState.get("/api/state", async (request, response) => {
   const funcName = arguments.callee.name + "routeState.get(";
-  const apiUrl = "/api/state/|";
+  const apiUrl = "/api/state|";
   setLog("TRACE", __filename, funcName, apiUrl);
   //var query = `SELECT stateId, stateName FROM ${process.env.MYSQL_D_B_}.States ORDER BY stateName`;
   db.state.findAll({
@@ -16,6 +16,7 @@ routeState.get("/api/state", async (request, response) => {
     order: ['stateName'],
   })
     .then((rows) => {
+      setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
       response.send(rows);
     })
     .catch((err) => {
@@ -26,9 +27,7 @@ routeState.get("/api/state", async (request, response) => {
       });
       setLog("ERROR", __filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
     })
-    .finally(() => {
-      setLog("INFO", __filename, funcName, `(${apiUrl}).end`);
-    });
+    .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
 
   // To Test in Postman use a GET with this URL "http://localhost:49146/api/employee"
   // in "Body" use none
