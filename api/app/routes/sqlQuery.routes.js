@@ -20,7 +20,7 @@ routeSqlQuery.get("/api/sqlquery/:sql" , async (request, response) => {
         return response.status(400).json({
           message: apiMessage["400"][1],
           ok: false,
-          errors: validationResponse,
+          errors: apiMessage["400"][1],
         });
       }
       db.sequelize.query(query,{

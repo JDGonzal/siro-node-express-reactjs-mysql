@@ -23,7 +23,7 @@ routePatientexam_Laboratorytest.post("/api/patientexam_laboratorytest", [auth, c
     response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
-      errors: validationResponse,
+      errors: apiMessage["400"][1],
     });
   } else {
     db.patientExam_LaboratoryTests.destroy({

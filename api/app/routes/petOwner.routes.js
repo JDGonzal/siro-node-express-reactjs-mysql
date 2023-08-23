@@ -23,7 +23,7 @@ routePetOwner.post("/api/petowner", [auth, clinic], async (request, response) =>
     attributes: [
       [db.sequelize.fn("COUNT", db.sequelize.col("petOwnerId")), "found"],
     ],
-    where: { petOwnerId: jsonValues.petOwnerId },
+    where: jsonValues,
   })
     .then((rows) => {
       setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(rows)}`);
@@ -72,7 +72,7 @@ routePetOwner.post("/api/petowner", [auth, clinic], async (request, response) =>
             .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}.created:${JSON.stringify(jsonValues)}).end`); });
         }
       } else {
-        setLog("TRACE", __filename, funcName, `${apiUrl}.petOwnerId:${jsonValues.petOwnerId}.exists:${rows[0].found}`);
+        setLog("TRACE", __filename, funcName, `${apiUrl}.petOwnerId:${jsonValues.petOwnerId}.exists:${rows[0].dataValues.found}`);
         response.send({
           ok: true,
           found: rows[0].found,
@@ -123,7 +123,7 @@ routePetOwner.get("/api/petowner/petownername/:id", [auth, clinic], async (reque
       attributes: [
         [db.sequelize.fn("COUNT", db.sequelize.col("petOwnerId")), "found"],
       ],
-      where: { petOwnerId: jsonValues.petOwnerId },
+      where: jsonValues,
     })
       .then((rows) => {
         setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(rows)}`);
@@ -134,6 +134,7 @@ routePetOwner.get("/api/petowner/petownername/:id", [auth, clinic], async (reque
             where: { petOwnerId: jsonValues.petOwnerId },
           })
             .then((rows) => {
+              setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(rows)}`);
               response.send({
                 ok: true,
                 found: rows[0].found,
@@ -141,6 +142,7 @@ routePetOwner.get("/api/petowner/petownername/:id", [auth, clinic], async (reque
               });
             })
             .catch((err) => {
+              setLog("ERROR", __filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
               response.status(501).json({
                 message: apiMessage["501"][1],
                 ok: false,
@@ -157,6 +159,7 @@ routePetOwner.get("/api/petowner/petownername/:id", [auth, clinic], async (reque
         }
       })
       .catch((err) => {
+        setLog("ERROR", __filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
         response.status(501).json({
           message: apiMessage["501"][1],
           ok: false,
@@ -199,23 +202,24 @@ routePetOwner.post("/api/petowner/petownernames", [auth, clinic], async (request
     });
   } else {
     setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
+    db.petOwner.query(query, {
+      replacements: { stateId: jsonValues.StateStateId },
+      type: QueryTypes.SELECT,
+    })
+      .then((rows) => {
+        setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
+        response.send(rows);
+      })
+      .catch((err) => {
+        setLog("ERROR", __filename, funcName, `${apiUrl}.error:${JSON.stringify(err)}`);
+        response.status(501).json({
+          message: apiMessage["501"][1],
+          ok: false,
+          error: err,
+        });
+      })
+      .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
   }
-  db.petOwner.query(query, {
-    replacements: { stateId: jsonValues.StateStateId },
-    type: QueryTypes.SELECT,
-  })
-    .then((rows) => {
-      setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
-      response.send(rows);
-    })
-    .catch((err) => {
-      response.status(501).json({
-        message: apiMessage["501"][1],
-        ok: false,
-        error: err,
-      });
-    })
-    .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
 
   // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
   // in 'Body' use none
