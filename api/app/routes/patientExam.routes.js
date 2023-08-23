@@ -30,7 +30,7 @@ routePatientExam.get("/api/patientexam/:VeterinarianVeterinarianId&:PatientPetPa
     response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
-      errors: validationResponse,
+      errors: apiMessage["400"][1],
     });
   } else {
     db.patientExam.findAll({
@@ -486,7 +486,7 @@ routePatientExam.delete("/api/patientexam/:id", [auth, admin], async (request, r
     response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
-      errors: validationResponse,
+      errors: apiMessage["400"][1],
     });
   } else {
     db.patientExam.destroy({

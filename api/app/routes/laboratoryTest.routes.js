@@ -22,7 +22,7 @@ routeLaboratoryTest.get('/api/laboratorytest/:id', [auth, clinic], async (reques
     response.status(400).json({
       message: apiMessage["400"][1],
       ok: false,
-      errors: validationResponse,
+      errors: apiMessage["400"][1],
     });
   } else {
     db.laboratoryTest.findAll({

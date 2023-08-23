@@ -190,12 +190,7 @@ routeMedicalCenter.get(
     const v = await new Validator();
     const validationResponse = await v.validate(jsonValues, schema);
     if ((await validationResponse) !== true) {
-      setLog(
-        "ERROR",
-        __filename,
-        funcName,
-        `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`
-      );
+      setLog( "ERROR", __filename, funcName, `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`);
       return response.status(400).json({
         found: 0,
         message: apiMessage["400"][1],
