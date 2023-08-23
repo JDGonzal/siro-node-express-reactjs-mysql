@@ -535,9 +535,7 @@ routeAuth.put(
           error: err,
         });
       })
-      .finally(() => {
-        setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
-      });
+      .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`); });
 
     // To Test in Postman use POST with this URL 'http://localhost:49146//api/auth/signup'
     // in 'Body' use raw and select JSON, put this JSON:

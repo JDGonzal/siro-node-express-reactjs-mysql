@@ -1,5 +1,4 @@
 const express = require("express");
-const { QueryTypes } = require('sequelize');
 // Import middlewares
 const db = require("../models");
 const apiMessage = require("../utils/messages.js");
@@ -12,11 +11,10 @@ routeState.get("/api/state", async (request, response) => {
   const apiUrl = "/api/state/|";
   setLog("TRACE", __filename, funcName, apiUrl);
   //var query = `SELECT stateId, stateName FROM ${process.env.MYSQL_D_B_}.States ORDER BY stateName`;
-  db.state
-    .findAll({
-      attributes: ['stateId', 'stateName'],
-      order: ['stateName'],
-    })
+  db.state.findAll({
+    attributes: ['stateId', 'stateName'],
+    order: ['stateName'],
+  })
     .then((rows) => {
       response.send(rows);
     })
