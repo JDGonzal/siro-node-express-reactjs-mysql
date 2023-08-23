@@ -9,7 +9,7 @@ const setLog = require("../utils/logs.utils.js");
 const routeCity = express.Router();
 
 routeCity.get("/api/city/:id", (request, response) => {
-  var jsonValues = {StateStateId:parseInt(String(request.params.id))};
+  var jsonValues = { StateStateId: parseInt(String(request.params.id)) };
   const funcName = arguments.callee.name + "routeCity.get(";
   const apiUrl = "/api/city/:";
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
@@ -26,11 +26,10 @@ routeCity.get("/api/city/:id", (request, response) => {
     });
   } else {
     setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
-    db.sequelize
-      .query(query, {
-        replacements: { stateId: jsonValues.StateStateId },
-        type: QueryTypes.SELECT,
-      })
+    db.sequelize.query(query, {
+      replacements: { stateId: jsonValues.StateStateId },
+      type: QueryTypes.SELECT,
+    })
       .then((rows) => {
         setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
         response.send(rows);

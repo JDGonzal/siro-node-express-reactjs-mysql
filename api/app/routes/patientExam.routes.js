@@ -17,13 +17,13 @@ const routePatientExam = express.Router();
 
 routePatientExam.get("/api/patientexam/:VeterinarianVeterinarianId&:PatientPetPatientPetId", async (request, response) => {
   const funcName = arguments.callee.name + "routePatientExam.get(";
-  const apiUrl = "/api/patientexam/:VeterinarianVeterinarianId&:PatientPetPatientPetId|";
+  const apiUrl = "/api/patientexam/:";
   var jsonValues =
   {
     VeterinarianVeterinarianId: parseInt(String(request.params.VeterinarianVeterinarianId)),
     PatientPetPatientPetId: parseInt(String(request.params.PatientPetPatientPetId)),
   };
-  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `${apiUrl}${jsonValues.VeterinarianVeterinarianId}&${jsonValues.PatientPetPatientPetId}`);
   // var query = `SELECT COUNT(patientExamId)as found from ${process.env.MYSQL_D_B_}.patientExams where VeterinarianVeterinarianId=? AND PatientPetPatientPetId=?`;
   if (!jsonValues.VeterinarianVeterinarianId || !jsonValues.PatientPetPatientPetId) {
     setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);

@@ -35,9 +35,8 @@ routePatientexam_Laboratorytest.post("/api/patientexam_laboratorytest", [auth, c
         // query = `INSERT into ${process.env.MYSQL_D_B_}.patientexam_laboratorytests (createdAt, updatedAt, patientExamId, laboratoryTestId) VALUE (NOW(), NOW(), ?, ?)`;
         for (var i = 0; i < arrLabTests.length; i++) {
           jsonValues['laboratoryTestId'] = parseInt(arrLabTests[i]); //{patientExamId: X, laboratoryTestId: Y}
-          db.patientExam_LaboratoryTests.create(
-            jsonValues
-          ).then((rows) => { setLog("TRACE", __filename, funcName, `${apiUrl}.created:${JSON.stringify(jsonValues)}.rows:${rows}`); })
+          db.patientExam_LaboratoryTests.create(jsonValues)
+            .then((rows) => { setLog("TRACE", __filename, funcName, `${apiUrl}.created:${JSON.stringify(jsonValues)}.rows:${rows}`); })
             .catch((err) => {
               setLog("ERROR", __filename, funcName, `${apiUrl}.creating:${JSON.stringify(jsonValues)}.error:${JSON.stringify(err)}`);
               response.status(501).json({
