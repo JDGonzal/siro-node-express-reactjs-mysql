@@ -56,16 +56,16 @@ db.user.belongsToMany(db.role, {
   otherKey: 'roleId'
 });
 
-/*=========== user_medicalCenters ============ */
-db.user_medicalCenters = require('./user_MedicalCenters.model.js')(sequelize, Sequelize);
+/*=========== user_medicalcenters ============ */
+db.user_medicalcenters = require('./user_medicalcenters.model.js')(sequelize, Sequelize);
 db.medicalCenter.belongsToMany(db.user, {
-  through: 'user_medicalCenters',
+  through: 'user_medicalcenters',
   foreignKey: 'medicalCenterId',
   otherKey: 'userId'
 });
 
 db.user.belongsToMany(db.medicalCenter, {
-  through: 'user_medicalCenters',
+  through: 'user_medicalcenters',
   foreignKey: 'userId',
   otherKey: 'medicalCenterId'
 });
