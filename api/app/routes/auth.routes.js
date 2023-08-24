@@ -225,14 +225,19 @@ async function addUserMedicalCenter(jsonValues) {
     );
 }
 
-async function getUserbyEmail(jsonValues, attemp) {
+async function getUserbyEmail(jsonValues, firstTry) {
   const funcName = arguments.callee.name;
-  await setLog("TRACE", __filename, funcName, `Attemp:${attemp}, ${JSON.stringify(jsonValues)}`);
-  await db.user.findAll({
-    attributes: [userId],
-    where: { email: jsonValues.email },
+  setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `GET${process.env.EMAIL_API_}auth/signup/${jsonValues.email}`);
+  await fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
   })
-    .then(async (rows) => {
+    .then((res) => res.json())
+    .then(async (data) => {
       await setLog("INFO", __filename, funcName, `ok: ${JSON.stringify(rows)}`);
       await addUserRole(jsonValues, data.found, 'V');
       await addUserRole(jsonValues, data.found, 'E');
@@ -240,18 +245,17 @@ async function getUserbyEmail(jsonValues, attemp) {
       await addUserRole(jsonValues, data.found, 'A');
       await addUserMedicalCenter(jsonValues);
       return rows[0].userId;
-    })
-    .catch((err) => {
-      setLog("ERROR", __filename, funcName, `user.findAll${JSON.stringify(err)}`);
-      if (attemp < 3) setTimeout(() => { getUserbyEmail(jsonValues, attemp + 1); }, 5000)
+    },
+    (error) => {
+      setLog("ERROR", __filename, funcName, JSON.stringify(error));
+      if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000)
       else return 0;
-    })
-    .finally(() => { setLog("INFO", __filename, funcName, `(user.findAll).end`); });
+    });
 }
 
 async function addMedicalCenter(jsonValues) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `POST"medicalCenter"${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `POST${process.env.EMAIL_API_}medicalCenter.body(${JSON.stringify(jsonValues)})`);
   await fetch(process.env.EMAIL_API_ + "medicalCenter", {
     method: "POST",
     headers: {
@@ -364,7 +368,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
           roles: rows,
         });
 
-        var userId = await getUserbyEmail(jsonValues, 0);
+        var userId = await getUserbyEmail(jsonValues, true);
         if (await userId > 0) {
           // Going to send the email to verify the user/password
           const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken("12h", jsonValues.RolesArray, 0)}`;
