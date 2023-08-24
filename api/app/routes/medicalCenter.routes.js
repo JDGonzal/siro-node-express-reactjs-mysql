@@ -17,8 +17,8 @@ routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
   var jsonValues = {
     medicalCenterId: parseInt(request.body["medicalCenterId"]),
   };
-  setLog("TRACE", __filename, funcName, `${apiUrl}body:${JSON.stringify(jsonValues)}`);
-  db.medicalCenter.findAll({
+  await setLog("TRACE", __filename, funcName, `${apiUrl}body:${JSON.stringify(jsonValues)}`);
+  await db.medicalCenter.findAll({
     attributes: [
       [db.sequelize.fn("COUNT", db.sequelize.col("medicalCenterId")), "found"],
     ],

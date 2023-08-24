@@ -12,6 +12,7 @@ const routeRoles = express.Router();
 routeRoles.post("/api/auth/signup/roleV", async (request, response) => {
   const funcName = arguments.callee.name + "routeRoles.post(";
   const apiUrl = "/api/auth/signup/roleV|";
+  setLog("TRACE", __filename, funcName, `${apiUrl}user_roles.create(${request.body})`);
   //var query = `INSERT into ${process.env.MYSQL_D_B_}.User_Roles (createdAt, updatedAt, roleId, userId) VALUE (NOW(), NOW(), ?, ?)`;
   db.user_roles.create({
     roleId: "1",
@@ -24,6 +25,7 @@ routeRoles.post("/api/auth/signup/roleV", async (request, response) => {
 routeRoles.post("/api/auth/signup/roleE", [auth, clinic], async (request, response) => {
   const funcName = arguments.callee.name + "routeRoles.post(";
   const apiUrl = "/api/auth/signup/roleE|";
+  setLog("TRACE", __filename, funcName, `${apiUrl}user_roles.create(${request.body})`);
   //var query = `INSERT into ${process.env.MYSQL_D_B_}.User_Roles (createdAt, updatedAt, roleId, userId) VALUE (NOW(), NOW(), ?, ?)`;
   db.user_roles.create({
     roleId: "2",
@@ -36,6 +38,7 @@ routeRoles.post("/api/auth/signup/roleE", [auth, clinic], async (request, respon
 routeRoles.post("/api/auth/signup/roleL", [auth, laboratory], async (request, response) => {
   const funcName = arguments.callee.name + "routeRoles.post(";
   const apiUrl = "/api/auth/signup/roleL|";
+  setLog("TRACE", __filename, funcName, `${apiUrl}user_roles.create(${request.body})`);
   //var query = `INSERT into ${process.env.MYSQL_D_B_}.User_Roles (createdAt, updatedAt, roleId, userId) VALUE (NOW(), NOW(), ?, ?)`;
   db.user_roles.create({
     roleId: "3",
@@ -48,6 +51,7 @@ routeRoles.post("/api/auth/signup/roleL", [auth, laboratory], async (request, re
 routeRoles.post("/api/auth/signup/roleA", [auth, admin], async (request, response) => {
   const funcName = arguments.callee.name + "routeRoles.post(";
   const apiUrl = "/api/auth/signup/roleA|";
+  setLog("TRACE", __filename, funcName, `${apiUrl}user_roles.create(${request.body})`);
   //var query = `INSERT into ${process.env.MYSQL_D_B_}.User_Roles (createdAt, updatedAt, roleId, userId) VALUE (NOW(), NOW(), ?, ?)`;
   db.user_roles.create({
     roleId: "4",
