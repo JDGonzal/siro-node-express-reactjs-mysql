@@ -142,19 +142,33 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
   const funcName = arguments.callee.name + "routeAuth.get(";
   const apiUrl = "/api/auth/signup/:email|";
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
-  db.user
-    .findAll({
-      attributes: [
-        [db.sequelize.fn("COUNT", db.sequelize.col("userId")), "found"],
-      ],
-      where: { email: jsonValues.email },
-    })
+  db.user.findAll({
+    attributes: [
+      [db.sequelize.fn("COUNT", db.sequelize.col("userId")), "found"],
+    ],
+    where: { email: jsonValues.email },
+  })
     .then((rows) => {
       setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}.qty:${rows[0].dataValues.found}`);
-      response.send({
-        ok: true,
-        found: rows[0].dataValues.found,
-      });
+      if (rows[0].dataValues.found > 0) {
+        db.user.findAll({
+          attributes: [userId],
+          where: { email: jsonValues.email },
+        })
+          .then((rows) => {
+            response.send({
+              ok: true,
+              found: rows[0].userId,
+            });
+          })
+          .catch((err) => { setLog("ERROR", __filename, funcName, `${apiUrl}.findAll${JSON.stringify(err)}`); })
+          .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}.findAll).end`);});
+      } else {
+        response.send({
+          ok: true,
+          found: rows[0].dataValues.found,
+        });
+      }
     })
     .catch((err) => {
       setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
@@ -164,9 +178,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
         error: err,
       });
     })
-    .finally(() => {
-      setLog("INFO", __filename, funcName, `(${apiUrl}).end`);
-    });
+    .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
 
   // To Test in Postman use GET with this URL 'http://localhost:49146/api/auth/signup/im.user@no.matter.com'
   // in 'Body' use none
@@ -174,7 +186,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
 
 async function addUserRole(jsonValues, userId, lastChar) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `userId:${userId}, lastChar:${lastChar}, ${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `POST"medicalCenter/user",userId:${userId}, lastChar:${lastChar}, ${JSON.stringify(jsonValues)}`);
   fetch(process.env.EMAIL_API_ + "auth/signup/role" + lastChar, {
     method: "POST",
     headers: {
@@ -193,9 +205,9 @@ async function addUserRole(jsonValues, userId, lastChar) {
     );
 }
 
-async function addUserMedicalCenter(jsonValues){
+async function addUserMedicalCenter(jsonValues) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `POST"medicalCenter/user"${JSON.stringify(jsonValues)}`);
   fetch(process.env.EMAIL_API_ + "medicalCenter/user", {
     method: "POST",
     headers: {
@@ -216,6 +228,7 @@ async function addUserMedicalCenter(jsonValues){
 async function getUserbyEmail(jsonValues, firstTry) {
   const funcName = arguments.callee.name;
   setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `GET"auth/signup/",firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
   await fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
     method: "GET",
     headers: {
@@ -355,7 +368,7 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       sendEmail(jsonValues.email, "Activar Cuenta.", urlRoute, 1);
       // Get the userId based on the email address
       var userId = getUserbyEmail(jsonValues, true);
-      
+
     })
     .catch((err) => {
       setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
