@@ -140,7 +140,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
 routeAuth.get("/api/auth/signup/:email", async (request, response) => {
   var jsonValues = { email: String(request.params.email).toLowerCase() }
   const funcName = arguments.callee.name + "routeAuth.get(";
-  const apiUrl = "/api/auth/signup/:email|";
+  const apiUrl = "/api/auth/signup/:";
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   db.user.findAll({
     attributes: [
@@ -148,14 +148,16 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
     ],
     where: { email: jsonValues.email },
   })
-    .then((rows) => {
-      setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}.qty:${rows[0].dataValues.found}`);
-      if (rows[0].dataValues.found > 0) {
-        db.user.findAll({
-          attributes: [userId],
+    .then(async (rows) => {
+      const quantity = await rows[0].dataValues.found
+      await setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}.qty:${quantity}`);
+      if (await quantity > 0) {
+        await db.user.findAll({
+          attributes: ["userId"],
           where: { email: jsonValues.email },
         })
           .then((rows) => {
+            setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
             response.send({
               ok: true,
               found: rows[0].userId,
@@ -228,7 +230,7 @@ async function addUserMedicalCenter(jsonValues) {
 async function getUserbyEmail(jsonValues, firstTry) {
   const funcName = arguments.callee.name;
   setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
-  setLog("TRACE", __filename, funcName, `GET${process.env.EMAIL_API_}auth/signup/${jsonValues.email}`);
+  setLog("TRACE", __filename, funcName, `GET"${process.env.EMAIL_API_}auth/signup/${jsonValues.email}"`);
   await fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
     method: "GET",
     headers: {
@@ -246,16 +248,16 @@ async function getUserbyEmail(jsonValues, firstTry) {
       await addUserMedicalCenter(jsonValues);
       return rows[0].userId;
     },
-    (error) => {
-      setLog("ERROR", __filename, funcName, JSON.stringify(error));
-      if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000)
-      else return 0;
-    });
+      (error) => {
+        setLog("ERROR", __filename, funcName, JSON.stringify(error));
+        if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000)
+        else return 0;
+      });
 }
 
 async function addMedicalCenter(jsonValues) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `POST${process.env.EMAIL_API_}medicalCenter.body(${JSON.stringify(jsonValues)})`);
+  setLog("TRACE", __filename, funcName, `POST"${process.env.EMAIL_API_}medicalCenter".body(${JSON.stringify(jsonValues)})`);
   await fetch(process.env.EMAIL_API_ + "medicalCenter", {
     method: "POST",
     headers: {
