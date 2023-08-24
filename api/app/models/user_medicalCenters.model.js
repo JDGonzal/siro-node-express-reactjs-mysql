@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-  const user_MedicalCenters = sequelize.define('user_medicalCenters');
+  const user_medicalcenters = sequelize.define('user_medicalcenters');
 
-  return user_MedicalCenters;
+  return user_medicalcenters;
 };

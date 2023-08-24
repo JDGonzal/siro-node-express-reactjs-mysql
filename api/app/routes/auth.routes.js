@@ -172,6 +172,74 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
   // in 'Body' use none
 });
 
+async function addUserRole(jsonValues, userId, lastChar) {
+  const funcName = arguments.callee.name;
+  setLog("TRACE", __filename, funcName, `userId:${userId}, lastChar:${lastChar}, ${JSON.stringify(jsonValues)}`);
+  fetch(process.env.EMAIL_API_ + "auth/signup/role" + lastChar, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "x-auth-token": jsonValues.TokenExternal,
+    },
+    body: JSON.stringify({
+      userId: userId,
+    }),
+  })
+    .then((res) => res.json())
+    .then(
+      (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/role${lastChar}":${JSON.stringify(data)}`); },
+      (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/role${lastChar}".error:${JSON.stringify(error)}`); }
+    );
+}
+
+async function addUserMedicalCenter(jsonValues){
+  const funcName = arguments.callee.name;
+  setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
+  fetch(process.env.EMAIL_API_ + "medicalCenter/user", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      medicalCenterId: jsonValues.medicalCenterId,
+      userId: userId,
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => { setLog("DEBUG", __filename, funcName, `POST"medicalCenter/user":${JSON.stringify(data)}`); },
+      (error) => { setLog("ERROR", __filename, funcName, `POST"medicalCenter/user".error:${JSON.stringify(error)}`); }
+    );
+}
+
+async function getUserbyEmail(jsonValues, firstTry) {
+  const funcName = arguments.callee.name;
+  setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
+  await fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      setLog("INFO", __filename, funcName, `ok: ${JSON.stringify(data)}`);
+      addUserRole(jsonValues, data.found, 'V');
+      addUserRole(jsonValues, data.found, 'E');
+      addUserRole(jsonValues, data.found, 'L');
+      addUserRole(jsonValues, data.found, 'A');
+      addUserMedicalCenter(jsonValues);
+      return data.found;
+    },
+      (error) => {
+        setLog("ERROR", __filename, funcName, JSON.stringify(error));
+        if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000)
+        else return 0;
+      });
+}
+
 routeAuth.post("/api/auth/signup", async (request, response) => {
   const funcName = arguments.callee.name + "routeAuth.post(";
   const apiUrl = "/api/auth/signup|";
@@ -286,122 +354,8 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       setLog("TRACE", __filename, funcName, `To send email:${urlRoute}`);
       sendEmail(jsonValues.email, "Activar Cuenta.", urlRoute, 1);
       // Get the userId based on the email address
-      var userId = 0;
-      fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      })
-        .then((res) => res.json())
-        .then(
-          (data) => {
-            setLog("DEBUG", __filename, funcName, `GET"auth/signup/"+${jsonValues.email}:${JSON.stringify(data)}`);
-            userId = data.found;
-            if (jsonValues.RolesArray[0] && userId > 0) {
-              fetch(process.env.EMAIL_API_ + "auth/signup/roleV", {
-                method: "POST",
-                headers: {
-                  Accept: "application/json",
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  userId: userId,
-                }),
-              })
-                .then((res) => res.json())
-                .then(
-                  (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleV":${JSON.stringify(data)}`); },
-                  (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleV".error:${JSON.stringify(error)}`); }
-                );
-            }
-            if (jsonValues.RolesArray[1] && userId > 0) {
-              fetch(process.env.EMAIL_API_ + "auth/signup/roleE", {
-                method: "POST",
-                headers: {
-                  Accept: "application/json",
-                  "Content-Type": "application/json",
-                  "x-auth-token": jsonValues.TokenExternal,
-                },
-                body: JSON.stringify({
-                  userId: userId,
-                }),
-              })
-                .then((res) => res.json())
-                .then(
-                  (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleE":${JSON.stringify(data)}`); },
-                  (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
-                );
-            }
-            if (jsonValues.RolesArray[2] && userId > 0) {
-              fetch(process.env.EMAIL_API_ + "auth/signup/roleL", {
-                method: "POST",
-                headers: {
-                  Accept: "application/json",
-                  "Content-Type": "application/json",
-                  "x-auth-token": jsonValues.TokenExternal,
-                },
-                body: JSON.stringify({
-                  userId: userId,
-                }),
-              })
-                .then((res) => res.json())
-                .then(
-                  (data) => {
-                    setLog(
-                      "DEBUG",
-                      __filename,
-                      funcName,
-                      `POST"auth/signup/roleVL":${JSON.stringify(data)}`
-                    );
-                  },
-                  (error) => {
-                    setLog(
-                      "ERROR",
-                      __filename,
-                      funcName,
-                      `POST"auth/signup/roleVL".error:"${JSON.stringify(error)}`
-                    );
-                  }
-                );
-            }
-            if (jsonValues.RolesArray[3] && userId > 0) {
-              fetch(process.env.EMAIL_API_ + "auth/signup/roleA", {
-                method: "POST",
-                headers: {
-                  Accept: "application/json",
-                  "Content-Type": "application/json",
-                  "x-auth-token": jsonValues.TokenExternal,
-                },
-                body: JSON.stringify({
-                  userId: userId,
-                }),
-              })
-                .then((res) => res.json())
-                .then(
-                  (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleA":${JSON.stringify(data)}`); },
-                  (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleA".error:${JSON.stringify(error)}`); }
-                );
-            }
-            fetch(process.env.EMAIL_API_ + "medicalCenter/user", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                medicalCenterId: jsonValues.medicalCenterId,
-                userId: userId,
-              }),
-            })
-              .then((res) => res.json())
-              .then((data) => { setLog("DEBUG", __filename, funcName, `POST"medicalCenter/user":${JSON.stringify(data)}`); },
-                (error) => { setLog("ERROR", __filename, funcName, `POST"medicalCenter/user".error:${JSON.stringify(error)}`); }
-              );
-          },
-          (error) => { setLog("ERROR", __filename, funcName, `GET"auth/signup/"+${jsonValues.email}.error:${JSON.stringify(error)}`); }
-        );
+      var userId = getUserbyEmail(jsonValues, true);
+      
     })
     .catch((err) => {
       setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
@@ -423,127 +377,124 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       Token: 'abc12de36eer84d'*/
 });
 
-routeAuth.put(
-  "/api/token/activate",
-  [auth, viewer],
-  async (request, response) => {
-    const funcName = arguments.callee.name + "routeAuth.put(";
-    const apiUrl = "/api/token/activate|";
+routeAuth.put("/api/token/activate", [auth, viewer], async (request, response) => {
+  const funcName = arguments.callee.name + "routeAuth.put(";
+  const apiUrl = "/api/token/activate|";
 
-    var jsonValues = {
-      token: request.body["token"],
-      TokenExternal: request.headers["x-auth-token"],
-    };
-    setLog("TRACE", __filename, funcName, `${apiUrl}.jsonValues: ${JSON.stringify(jsonValues)}`);
-    const schema = {
-      token: { type: "string", optional: false, max: "60", min: "8" },
-      TokenExternal: { type: "string", optional: false, max: "255", min: "8" },
-    };
-    const v = new Validator();
-    const validationResponse = v.validate(jsonValues, schema);
-    if (validationResponse !== true) {
-      return response.status(400).json({
-        message: apiMessage["400"][1],
-        ok: false,
-        errors: validationResponse,
-      });
-    }
-    // var query = `SELECT COUNT(UserId) as found, UserId FROM ${process.env.MYSQL_D_B_}.Users WHERE token=?`;
-    db.user
-      .findAll({
-        attributes: [
-          [db.sequelize.fn("COUNT", db.sequelize.col("userId")), "found"],
-        ],
-        where: { token: jsonValues.token },
-      })
-      .then((rows) => {
-        setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
-        if (rows[0].dataValues.found > 0) {
-          const userId = rows[0].dataValues.found;
-          setLog("TRACE", __filename, funcName, `${apiUrl}user.update:${userId}`);
-          // query = `UPDATE ${process.env.MYSQL_D_B_}.Users set token=null,isActive=true,updatedAt=NOW() WHERE token=?`;
-          db.user.update({
-            token: null,
-            isActive: true,
-          }, {
-            where: { token: jsonValues.token },
-          }).then((rows) => {
-            setLog("TRACE", __filename, funcName, `${apiUrl}user.updated.ok:${userId}, ${rows}`);
-            response.status(203).json({
-              message: apiMessage["203"][1],
-              ok: true,
-            });
-            setLog("TRACE", __filename, funcName, `POST"auth/signup/roleE"`);
-            fetch(process.env.EMAIL_API_ + "auth/signup/roleE", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "x-auth-token": jsonValues.TokenExternal,
-              },
-              body: JSON.stringify({
-                userId: userId,
-              }),
-            })
-              .then((res) => res.json())
-              .then(
-                (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleE":${JSON.stringify(data)}`); },
-                (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
-              );
-
-            setLog("TRACE", __filename, funcName, `${apiUrl}POST"auth/signup/roleL"`);
-            fetch(process.env.EMAIL_API_ + "auth/signup/roleL", {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "x-auth-token": jsonValues.TokenExternal,
-              },
-              body: JSON.stringify({
-                userId: userId,
-              }),
-            })
-              .then((res) => res.json())
-              .then(
-                (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleL"${JSON.stringify(data)}`); },
-                (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
-              );
-          })
-            .catch((err) => {
-              setLog("ERROR", __filename, funcName, `${apiUrl}user.update.error:${JSON.stringify(err)}`);
-              response.status(501).json({
-                message: apiMessage["501"][1],
-                ok: false,
-                error: err,
-              });
-            })
-            .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}user.update).end`); });
-        } else {
-          response.status(409).json({
-            ok: false,
-            error: apiMessage["409"][1],
-          });
-        }
-      })
-      .catch((err) => {
-        setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
-        response.status(501).json({
-          message: apiMessage["501"][1],
-          ok: false,
-          error: err,
-        });
-      })
-      .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`); });
-
-    // To Test in Postman use POST with this URL 'http://localhost:49146//api/auth/signup'
-    // in 'Body' use raw and select JSON, put this JSON:
-    /* {'email': 'xxx@yycom',
-      password: 'abcd1234',
-      firstName: 'firstName',
-      lastName: 'lastName',
-      RolesArray: ['asmin','clinic','laboratory','viewer'],
-      Token: 'abc12de36eer84d'*/
+  var jsonValues = {
+    token: request.body["token"],
+    TokenExternal: request.headers["x-auth-token"],
+  };
+  setLog("TRACE", __filename, funcName, `${apiUrl}.jsonValues: ${JSON.stringify(jsonValues)}`);
+  const schema = {
+    token: { type: "string", optional: false, max: "60", min: "8" },
+    TokenExternal: { type: "string", optional: false, max: "255", min: "8" },
+  };
+  const v = new Validator();
+  const validationResponse = v.validate(jsonValues, schema);
+  if (validationResponse !== true) {
+    return response.status(400).json({
+      message: apiMessage["400"][1],
+      ok: false,
+      errors: validationResponse,
+    });
   }
+  // var query = `SELECT COUNT(UserId) as found, UserId FROM ${process.env.MYSQL_D_B_}.Users WHERE token=?`;
+  db.user
+    .findAll({
+      attributes: [
+        [db.sequelize.fn("COUNT", db.sequelize.col("userId")), "found"],
+      ],
+      where: { token: jsonValues.token },
+    })
+    .then((rows) => {
+      setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
+      if (rows[0].dataValues.found > 0) {
+        const userId = rows[0].dataValues.found;
+        setLog("TRACE", __filename, funcName, `${apiUrl}user.update:${userId}`);
+        // query = `UPDATE ${process.env.MYSQL_D_B_}.Users set token=null,isActive=true,updatedAt=NOW() WHERE token=?`;
+        db.user.update({
+          token: null,
+          isActive: true,
+        }, {
+          where: { token: jsonValues.token },
+        }).then((rows) => {
+          setLog("TRACE", __filename, funcName, `${apiUrl}user.updated.ok:${userId}, ${rows}`);
+          response.status(203).json({
+            message: apiMessage["203"][1],
+            ok: true,
+          });
+          setLog("TRACE", __filename, funcName, `POST"auth/signup/roleE"`);
+          fetch(process.env.EMAIL_API_ + "auth/signup/roleE", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              "x-auth-token": jsonValues.TokenExternal,
+            },
+            body: JSON.stringify({
+              userId: userId,
+            }),
+          })
+            .then((res) => res.json())
+            .then(
+              (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleE":${JSON.stringify(data)}`); },
+              (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
+            );
+
+          setLog("TRACE", __filename, funcName, `${apiUrl}POST"auth/signup/roleL"`);
+          fetch(process.env.EMAIL_API_ + "auth/signup/roleL", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              "x-auth-token": jsonValues.TokenExternal,
+            },
+            body: JSON.stringify({
+              userId: userId,
+            }),
+          })
+            .then((res) => res.json())
+            .then(
+              (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleL"${JSON.stringify(data)}`); },
+              (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
+            );
+        })
+          .catch((err) => {
+            setLog("ERROR", __filename, funcName, `${apiUrl}user.update.error:${JSON.stringify(err)}`);
+            response.status(501).json({
+              message: apiMessage["501"][1],
+              ok: false,
+              error: err,
+            });
+          })
+          .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}user.update).end`); });
+      } else {
+        response.status(409).json({
+          ok: false,
+          error: apiMessage["409"][1],
+        });
+      }
+    })
+    .catch((err) => {
+      setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
+      response.status(501).json({
+        message: apiMessage["501"][1],
+        ok: false,
+        error: err,
+      });
+    })
+    .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`); });
+
+  // To Test in Postman use POST with this URL 'http://localhost:49146//api/auth/signup'
+  // in 'Body' use raw and select JSON, put this JSON:
+  /* {'email': 'xxx@yycom',
+    password: 'abcd1234',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    RolesArray: ['asmin','clinic','laboratory','viewer'],
+    Token: 'abc12de36eer84d'*/
+}
 );
 
 // Export the routeAuth

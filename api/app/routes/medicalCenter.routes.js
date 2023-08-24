@@ -145,8 +145,8 @@ routeMedicalCenter.post("/api/medicalcenter/user",
       userId: request.body["userId"],
     }
     setLog("TRACE", __filename, funcName, `${apiUrl}.body:${JSON.stringify(jsonValues)}`);
-    // var query = `INSERT into ${process.env.MYSQL_D_B_}.user_medicalCenters (createdAt, updatedAt, medicalCenterId, userId) VALUE (NOW(), NOW(), ?, ?)`;
-    db.user_medicalCenters.create({
+    // var query = `INSERT into ${process.env.MYSQL_D_B_}.user_medicalcenters (createdAt, updatedAt, medicalCenterId, userId) VALUE (NOW(), NOW(), ?, ?)`;
+    db.user_medicalcenters.create({
       medicalCenterId: jsonValues.medicalCenterId,
       userId: jsonValues.userId,
     })
