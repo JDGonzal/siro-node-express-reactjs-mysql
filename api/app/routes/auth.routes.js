@@ -162,7 +162,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
             });
           })
           .catch((err) => { setLog("ERROR", __filename, funcName, `${apiUrl}.findAll${JSON.stringify(err)}`); })
-          .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}.findAll).end`);});
+          .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}.findAll).end`); });
       } else {
         response.send({
           ok: true,
@@ -187,7 +187,7 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
 async function addUserRole(jsonValues, userId, lastChar) {
   const funcName = arguments.callee.name;
   setLog("TRACE", __filename, funcName, `POST"medicalCenter/user",userId:${userId}, lastChar:${lastChar}, ${JSON.stringify(jsonValues)}`);
-  fetch(process.env.EMAIL_API_ + "auth/signup/role" + lastChar, {
+  await fetch(process.env.EMAIL_API_ + "auth/signup/role" + lastChar, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -208,7 +208,7 @@ async function addUserRole(jsonValues, userId, lastChar) {
 async function addUserMedicalCenter(jsonValues) {
   const funcName = arguments.callee.name;
   setLog("TRACE", __filename, funcName, `POST"medicalCenter/user"${JSON.stringify(jsonValues)}`);
-  fetch(process.env.EMAIL_API_ + "medicalCenter/user", {
+  await fetch(process.env.EMAIL_API_ + "medicalCenter/user", {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -225,32 +225,51 @@ async function addUserMedicalCenter(jsonValues) {
     );
 }
 
-async function getUserbyEmail(jsonValues, firstTry) {
+async function getUserbyEmail(jsonValues, attemp) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
-  setLog("TRACE", __filename, funcName, `GET"auth/signup/",firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
-  await fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
-    method: "GET",
+  await setLog("TRACE", __filename, funcName, `Attemp:${attemp}, ${JSON.stringify(jsonValues)}`);
+  await db.user.findAll({
+    attributes: [userId],
+    where: { email: jsonValues.email },
+  })
+    .then(async (rows) => {
+      await setLog("INFO", __filename, funcName, `ok: ${JSON.stringify(rows)}`);
+      await addUserRole(jsonValues, data.found, 'V');
+      await addUserRole(jsonValues, data.found, 'E');
+      await addUserRole(jsonValues, data.found, 'L');
+      await addUserRole(jsonValues, data.found, 'A');
+      await addUserMedicalCenter(jsonValues);
+      return rows[0].userId;
+    })
+    .catch((err) => {
+      setLog("ERROR", __filename, funcName, `user.findAll${JSON.stringify(err)}`);
+      if (attemp < 3) setTimeout(() => { getUserbyEmail(jsonValues, attemp + 1); }, 5000)
+      else return 0;
+    })
+    .finally(() => { setLog("INFO", __filename, funcName, `(user.findAll).end`); });
+}
+
+async function addMedicalCenter(jsonValues) {
+  const funcName = arguments.callee.name;
+  setLog("TRACE", __filename, funcName, `POST"medicalCenter"${JSON.stringify(jsonValues)}`);
+  await fetch(process.env.EMAIL_API_ + "medicalCenter", {
+    method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      medicalCenterId: jsonValues.medicalCenterId,
+      medicalCenterName: jsonValues.medicalCenterName,
+      medicalCenterAddress: jsonValues.medicalCenterAddress,
+      medicalCenterTelNumber: jsonValues.medicalCenterTelNumber,
+      StateStateId: jsonValues.StateStateId,
+      CityCityId: jsonValues.CityCityId,
+    }),
   })
     .then((res) => res.json())
-    .then((data) => {
-      setLog("INFO", __filename, funcName, `ok: ${JSON.stringify(data)}`);
-      addUserRole(jsonValues, data.found, 'V');
-      addUserRole(jsonValues, data.found, 'E');
-      addUserRole(jsonValues, data.found, 'L');
-      addUserRole(jsonValues, data.found, 'A');
-      addUserMedicalCenter(jsonValues);
-      return data.found;
-    },
-      (error) => {
-        setLog("ERROR", __filename, funcName, JSON.stringify(error));
-        if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000)
-        else return 0;
-      });
+    .then((data) => { setLog("DEBUG", __filename, funcName, `POST"medicalCenter"${JSON.stringify(data)}`); },
+      (error) => { setLog("ERROR", __filename, funcName, `POST"medicalCenter"${JSON.stringify(error)}`); });
 }
 
 routeAuth.post("/api/auth/signup", async (request, response) => {
@@ -328,57 +347,52 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       ok: false,
       errors: validationResponse,
     });
-  }
-  await fetch(process.env.EMAIL_API_ + "medicalCenter", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      medicalCenterId: jsonValues.medicalCenterId,
-      medicalCenterName: jsonValues.medicalCenterName,
-      medicalCenterAddress: jsonValues.medicalCenterAddress,
-      medicalCenterTelNumber: jsonValues.medicalCenterTelNumber,
-      StateStateId: jsonValues.StateStateId,
-      CityCityId: jsonValues.CityCityId,
-    }),
-  })
-    .then((res) => res.json())
-    .then((data) => { setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(data)}`); },
-      (error) => { setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(error)}`); });
-  setLog("TRACE", __filename, funcName, `Creating the user`);
-  // var query = `INSERT into ${process.env.MYSQL_D_B_}.Users (email,password,token,createdAt,updatedAt) VALUE (?,?,?,NOW(),NOW())`;
-  db.user.create({
-    email: jsonValues.email,
-    password: jsonValues.password,
-    token: jsonValues.token,
-  })
-    .then((rows) => {
-      setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
-      response.status(201).json({
-        message: apiMessage["201"][1] + "\n" + apiMessage["204"][1],
-        ok: true,
-        roles: rows,
-      });
-      // Going to send the email to verify the user/password
-      const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token
-        }&Token=${getToken("12h", jsonValues.RolesArray, 0)}`;
-      setLog("TRACE", __filename, funcName, `To send email:${urlRoute}`);
-      sendEmail(jsonValues.email, "Activar Cuenta.", urlRoute, 1);
-      // Get the userId based on the email address
-      var userId = getUserbyEmail(jsonValues, true);
+  } else {
+    addMedicalCenter(jsonValues);
+    setLog("TRACE", __filename, funcName, `Creating the user`);
+    // var query = `INSERT into ${process.env.MYSQL_D_B_}.Users (email,password,token,createdAt,updatedAt) VALUE (?,?,?,NOW(),NOW())`;
+    await db.user.create({
+      email: jsonValues.email,
+      password: jsonValues.password,
+      token: jsonValues.token,
+    })
+      .then(async (rows) => {
+        await setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
+        response.status(201).json({
+          message: apiMessage["201"][1] + "\n" + apiMessage["204"][1],
+          ok: true,
+          roles: rows,
+        });
 
-    })
-    .catch((err) => {
-      setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
-      response.status(501).json({
-        message: apiMessage["501"][1],
-        ok: false,
-        error: err,
-      });
-    })
-    .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`); });
+        var userId = await getUserbyEmail(jsonValues, 0);
+        if (await userId > 0) {
+          // Going to send the email to verify the user/password
+          const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken("12h", jsonValues.RolesArray, 0)}`;
+          await setLog("TRACE", __filename, funcName, `To send email:${urlRoute}`);
+          await sendEmail(jsonValues.email, "Activar Cuenta.", urlRoute, 1);
+          // Get the userId based on the email address
+        } else {
+          await setLog("ERROR", __filename, funcName, `${apiUrl}.userId:${userId}`);
+          response.status(501).json({
+            message: apiMessage["501"][1],
+            ok: false,
+            error: userId,
+          });
+        }
+
+      })
+      .catch((err) => {
+        setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
+        response.status(501).json({
+          message: apiMessage["501"][1],
+          ok: false,
+          error: err,
+        });
+      })
+      .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`); });
+  }
+
+
 
   // To Test in Postman use POST with this URL 'http://localhost:49146//api/auth/signup'
   // in 'Body' use raw and select JSON, put this JSON:
