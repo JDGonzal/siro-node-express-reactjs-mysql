@@ -44,7 +44,7 @@ routePatientPet.get("/api/patientpet/:medicalCenterArray", [auth, viewer], async
       error: validationResponse,
     });
   } else {
-    db.patientPet.query(query, {
+    db.sequelize.query(query, {
       replacements: { medicalCenterArray: jsonValues.medicalCenterArray },
       type: QueryTypes.SELECT,
     }).then((rows) => {
@@ -98,7 +98,7 @@ routePatientPet.post("/api/patientpet/get", [auth, viewer], async (request, resp
       error: validationResponse,
     });
   } else {
-    db.patientPet.query(query, {
+    db.sequelize.query(query, {
       replacements: { medicalCenterArray: jsonValues.medicalCenterArray },
       type: QueryTypes.SELECT,
     }).then((rows) => {
@@ -127,19 +127,19 @@ routePatientPet.post("/api/patientpet/getpatientpetid", [auth, viewer], async (r
   var jsonValues = await {
     patientPetName: request.body["patientPetName"],
     petOwnerName: request.body["petOwnerName"],
-    PetOwnerPetOwnerId: request.body["PetOwnerPetOwnerId"],
+    petOwnerId: request.body["PetOwnerPetOwnerId"],
   };
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   var query = await `SELECT pp.patientPetId 
     FROM ${process.env.MYSQL_D_B_}.PatientPets pp
     INNER JOIN petowners pw ON pp.PetOwnerPetOwnerId = pw.petOwnerId
-    WHERE pp.patientPetName = :patientPetName AND (pw.petOwnerName = :petOwnerName OR pw.petOwnerId = >PetOwnerPetOwnerId)
+    WHERE pp.patientPetName = :patientPetName AND (pw.petOwnerName = :petOwnerName OR pw.petOwnerId = :petOwnerId)
     LIMIT 1`;
 
   const schema = await {
     patientPetName: { type: "string", optional: false, max: 100, min: 2 },
     petOwnerName: { type: "string", optional: true, max: 100, min: 0 },
-    PetOwnerPetOwnerId: {
+    petOwnerId: {
       type: "number",
       optional: true,
       positive: true,
@@ -159,8 +159,8 @@ routePatientPet.post("/api/patientpet/getpatientpetid", [auth, viewer], async (r
       error: validationResponse,
     });
   } else {
-    db.patientPet.query(query, {
-      replacements: { medicalCenterArray: jsonValues.medicalCenterArray },
+    db.sequelize.query(query, {
+      replacements: jsonValues,
       type: QueryTypes.SELECT,
     }).then((rows) => {
       setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
@@ -507,7 +507,7 @@ routePatientPet.delete("/api/patientpet/:id", [auth, admin], async (request, res
     });
   } else {
     db.patientPet.destroy({
-      where: { jsonValues }
+      where:  jsonValues 
     }).then((rows) => {
       response.status(202).json({
         message: apiMessage["202"][1],

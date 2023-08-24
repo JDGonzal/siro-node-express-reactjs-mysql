@@ -1,4 +1,5 @@
 const express = require("express");
+const { QueryTypes } = require("sequelize");
 
 // Import middlewares
 const auth = require("../middleware/auth.js");
@@ -28,16 +29,15 @@ routeBreed.get("/api/breed/:id", [auth, clinic], (request, response) => {
     });
   } else {
     setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
-    db.sequelize
-      .query(query, {
+    db.sequelize.query (query, {
         replacements: { speciesId: values },
         type: QueryTypes.SELECT,
       })
-      .then((rows)=>{
-        setLog("DEBUG",__filename,funcName,`${apiUrl}.rows:${JSON.stringify(rows)}`);
+      .then((rows) => {
+        setLog("DEBUG", __filename, funcName, `${apiUrl}.rows:${JSON.stringify(rows)}`);
         response.send(rows)
       })
-      .catch((err)=>{
+      .catch((err) => {
         response.status(501).json({
           message: apiMessage["501"][1],
           ok: false,
@@ -45,8 +45,8 @@ routeBreed.get("/api/breed/:id", [auth, clinic], (request, response) => {
         });
         setLog("ERROR", __filename, funcName, JSON.stringify(err));
       })
-      .finally(()=>{
-        setLog("INFO",__filename,funcName,`(${apiUrl}${JSON.stringify(values)}).end`);
+      .finally(() => {
+        setLog("INFO", __filename, funcName, `(${apiUrl}${JSON.stringify(values)}).end`);
       });
   }
 

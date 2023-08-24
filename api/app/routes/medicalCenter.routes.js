@@ -25,7 +25,6 @@ routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
     where: { medicalCenterId: jsonValues.medicalCenterId },
   })
     .then((rows) => {
-      console.log(rows);
       setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(rows)}`);
       if (rows[0].dataValues.found === 0 && jsonValues.medicalCenterId > 0) {
         jsonValues = {
@@ -168,16 +167,12 @@ routeMedicalCenter.post("/api/medicalcenter/user",
   }
 );
 
-routeMedicalCenter.get(
-  "/api/medicalcenter/medicalcentername/:id",
-  async (request, response) => {
+routeMedicalCenter.get( "/api/medicalcenter/medicalcentername/:id", async (request, response) => {
     const funcName = arguments.callee.name + "routeMedicalCenter.get(";
     const apiUrl = "/api/medicalcenter/medicalcentername/:";
-    var jsonValues = await {
-      medicalCenterId: parseInt(request.params.id),
-    };
+    var jsonValues = { medicalCenterId: parseInt(request.params.id) };
     setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
-    const schema = await {
+    const schema =  {
       medicalCenterId: {
         type: "number",
         optional: false,
@@ -190,7 +185,7 @@ routeMedicalCenter.get(
     const v = await new Validator();
     const validationResponse = await v.validate(jsonValues, schema);
     if ((await validationResponse) !== true) {
-      setLog( "ERROR", __filename, funcName, `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`);
+      setLog("ERROR", __filename, funcName, `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`);
       return response.status(400).json({
         found: 0,
         message: apiMessage["400"][1],
@@ -203,17 +198,16 @@ routeMedicalCenter.get(
       attributes: [
         [db.sequelize.fn("COUNT", db.sequelize.col("medicalCenterId")), "found"],
       ],
-      where: { medicalCenterId: jsonValues.medicalCenterId },
+      where: jsonValues,
     })
       .then((rows) => {
-        console.log(apiUrl, rows);
         setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)},${rows[0].dataValues.found}`);
         if (rows[0].dataValues.found > 0) {
           // query = `SELECT medicalCenterId as found, medicalCenterName, medicalCenterAddress, medicalCenterTelNumber, StateStateId, CityCityId from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`
           db.medicalCenter.findAll({
             attributes:
               [['medicalCenterId', 'found'], 'medicalCenterName', 'medicalCenterAddress', 'medicalCenterTelNumber', 'StateStateId', 'CityCityId'],
-            where: { emamedicalCenterId: jsonValues.medicalCenterId },
+            where: { medicalCenterId: jsonValues.medicalCenterId },
           }).then((rows) => {
             setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
             response.send({

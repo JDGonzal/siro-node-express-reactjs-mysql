@@ -92,8 +92,8 @@ routePetOwner.post("/api/petowner", [auth, clinic], async (request, response) =>
 });
 
 routePetOwner.get("/api/petowner/petownername/:id", [auth, clinic], async (request, response) => {
-  const funcName = arguments.callee.name + "routePetOwner.post(";
-  const apiUrl = "/api/petowner|";
+  const funcName = arguments.callee.name + "routePetOwner.get(";
+  const apiUrl = "/api/petowner/petownername/:";
   var jsonValues = { petOwnerId: parseInt(String(request.params.id)), };
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   // var query = `SELECT COUNT(petOwnerId)as found from ${process.env.MYSQL_D_B_}.petOwners where petOwnerId=?`;
@@ -175,7 +175,7 @@ routePetOwner.get("/api/petowner/petownername/:id", [auth, clinic], async (reque
 
 routePetOwner.post("/api/petowner/petownernames", [auth, clinic], async (request, response) => {
   const funcName = arguments.callee.name + "routePetOwner.post(";
-  const apiUrl = "/api/petowner|";
+  const apiUrl = "/api/petowner/petownernames|";
   var jsonValues = { patientPetName: `%${request.body.patientPetName}%`, };
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   var query = `SELECT po.petOwnerName as label, se.petOwnerId FROM
@@ -202,8 +202,8 @@ routePetOwner.post("/api/petowner/petownernames", [auth, clinic], async (request
     });
   } else {
     setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
-    db.petOwner.query(query, {
-      replacements: { stateId: jsonValues.StateStateId },
+    db.sequelize.query(query, {
+      replacements: jsonValues,
       type: QueryTypes.SELECT,
     })
       .then((rows) => {

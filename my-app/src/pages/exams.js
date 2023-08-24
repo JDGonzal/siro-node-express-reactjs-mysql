@@ -459,10 +459,10 @@ export class Exams extends Component {
     var st = '';
     for (var i = 0; i < this.state.arrayValidate.length; i++) {
       this.state.arrayValidate[i] === false ?
-        st = st + this.state.arrayMessages[i] + ', ' :
+        st = st + String(this.state.arrayMessages[i]) + ', ' :
         st = st + '';
     };
-    st.length > 3 ? st = st.substring(0, st.length - 2) : st = '';
+    st.length > 3 ? st = st.substring(0, String(st).length - 2) : st = '';
     st.length > 1 ? st = 'Datos pendientes: ' + st : st = '+'
     this.setState({ validateMessage: st });
   }
@@ -492,10 +492,10 @@ export class Exams extends Component {
   }
 
   onBlurPetOwner = async (e) => {
-    await (this.state.petOwnerName.length > this.lim || this.state.PetOwnerPetOwnerId > 0) ?
+    await (String(this.state.petOwnerName).length > this.lim || (this.state.PetOwnerPetOwnerId) > 0) ?
       this.state.arrayValidate[1] = await true :
       this.state.arrayValidate[1] = await false;
-    await (this.state.petOwnerName.length > this.lim || this.state.PetOwnerPetOwnerId > 0) &&
+    await (String(this.state.petOwnerName).length > this.lim || this.state.PetOwnerPetOwnerId > 0) &&
       this.state.patientPetName.length > this.lim - 3 ?
       await this.getPatientPetId() :
       this.state.arrayValidate[0] = await false;
@@ -523,7 +523,7 @@ export class Exams extends Component {
   }
 
   onBlurVeterinarian = async (e) => {
-    await this.state.veterinarianName.length > this.lim && String(this.state.VeterinarianVeterinarianId).length > this.lim ?
+    await String(this.state.veterinarianName).length > this.lim && String(this.state.VeterinarianVeterinarianId).length > this.lim ?
       this.state.arrayValidate[2] = await true :
       this.state.arrayValidate[2] = await false;
     await this.onBlurPetOwner();
@@ -996,13 +996,13 @@ export class Exams extends Component {
       this.state.createdAt, this.state.patientPetHeight, this.state.patientPetWeight);*/
     try {
       return (
-        (this.state.patientPetName.length > this.lim - 3 || this.state.patientPetId > 0) &&
-        (this.state.petOwnerName.length > this.lim || this.state.PetOwnerPetOwnerId > 0) &&
-        this.state.veterinarianName.length > this.lim && String(this.state.VeterinarianVeterinarianId).length > this.lim &&
+        (String(this.state.patientPetName).length > this.lim - 3 || this.state.patientPetId > 0) &&
+        (String(this.state.petOwnerName).length > this.lim || this.state.PetOwnerPetOwnerId > 0) &&
+        String(this.state.veterinarianName).length > this.lim && String(this.state.VeterinarianVeterinarianId).length > this.lim &&
         this.state.arrTypeOfSamples.length > 0 &&
-        (this.state.arrTypeOfSamples.indexOf('0') === -1 || this.state.patientAnotherTypeOfSample.length > this.lim) &&
+        (this.state.arrTypeOfSamples.indexOf('0') === -1 || String(this.state.patientAnotherTypeOfSample).length > this.lim) &&
         (this.validateLabTests()) && 
-        String(this.state.patientExamTelNumber).length > this.lim && this.state.patientExamAddress.length > this.lim &&
+        String(this.state.patientExamTelNumber).length > this.lim && String(this.state.patientExamAddress).length > this.lim &&
         this.state.badToken === false
       );
     } catch (e) {

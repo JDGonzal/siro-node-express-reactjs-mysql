@@ -11,6 +11,7 @@ const auth = require("../middleware/auth.js");
 const { admin, clinic, laboratory, viewer } = require("../middleware/roles.js");
 const db = require("../models");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeAuth
 const routePatientExam = express.Router();
@@ -142,14 +143,13 @@ routePatientExam.post("/api/patientexam/get", [auth, viewer], async (request, re
       errors: validationResponse,
     });
   } else {
-    db.sequelize
-      .query(query, {
-        replacements: { arrayValues: jsonValues.medicalCenterArray },
-        type: QueryTypes.SELECT,
-      }).then((rows) => {
-        setLog("INFO", __filename, funcName, `${apiUrl}rows:${JSON.stringify(rows)}`);
-        response.send(rows);
-      })
+    db.sequelize.query(query, {
+      replacements: { arrayValues: jsonValues.medicalCenterArray },
+      type: QueryTypes.SELECT,
+    }).then((rows) => {
+      setLog("INFO", __filename, funcName, `${apiUrl}rows:${JSON.stringify(rows)}`);
+      response.send(rows);
+    })
       .catch((err) => {
         response.status(501).json({
           message: apiMessage["501"][1],
@@ -209,7 +209,7 @@ async function addTypeOfSample(jsonValues) {
 
 async function addLaboratoryTest(jsonValues) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `${JSON.stringify(jsonValues)}`);
   if (jsonValues.arrLabTests[0] && jsonValues.patientExamId > 0) {
     fetch(process.env.EMAIL_API_ + "patientexam_laboratorytest", {
       method: "POST",
@@ -490,7 +490,7 @@ routePatientExam.delete("/api/patientexam/:id", [auth, admin], async (request, r
     });
   } else {
     db.patientExam.destroy({
-      where: { jsonValues }
+      where:  jsonValues 
     }).then((rows) => {
       setLog("TRACE", __filename, funcName, `${apiUrl}.arrLabTests:${arrLabTests}.rows:${rows}`);
       response.status(202).json({

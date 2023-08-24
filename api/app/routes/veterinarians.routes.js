@@ -7,7 +7,6 @@ const { QueryTypes } = require("sequelize");
 const auth = require("../middleware/auth.js");
 const { admin, clinic } = require("../middleware/roles.js");
 const db = require("../models");
-
 const apiMessage = require("../utils/messages.js");
 const setLog = require("../utils/logs.utils.js")
 
@@ -71,8 +70,8 @@ routeVeterinarian.post("/api/veterinarian", [auth, clinic], async (request, resp
                 response.status(201).json({
                   message: apiMessage["201"][1],
                   ok: true,
-                  petOwnerId: jsonValues.veterinarianId,
-                  petOwnerName: jsonValues["veterinarianName"],
+                  veterinarianId: jsonValues.veterinarianId,
+                  veterinarianName: jsonValues["veterinarianName"],
                 });
               })
               .catch((err) => {
@@ -110,7 +109,7 @@ routeVeterinarian.post("/api/veterinarian", [auth, clinic], async (request, resp
 routeVeterinarian.get("/api/veterinarian/veterinarianname/:id", [auth, clinic], async (request, response) => {
   const funcName = arguments.callee.name + "routeVeterinarian.get(";
   const apiUrl = "/api/veterinarian/veterinarianname:";
-  var jsonValues = { veterinarianId: String(parseInt(request.params.id)) };
+  var jsonValues = { veterinarianId: parseInt(String(request.params.id)) };
   setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
   // var query = `SELECT COUNT(veterinarianId)as found from ${process.env.MYSQL_D_B_}.veterinarians where veterinarianId=?`;
 
@@ -143,7 +142,7 @@ routeVeterinarian.get("/api/veterinarian/veterinarianname/:id", [auth, clinic], 
     })
       .then((rows) => {
         setLog("DEBUG", __filename, funcName, `${apiUrl}${JSON.stringify(rows)}`);
-        if (rows[0].found > 0) {
+        if (rows[0].dataValues.found > 0) {
           // query = `SELECT veterinarianId as found, veterinarianName from ${process.env.MYSQL_D_B_}.veterinarians where veterinarianId=?`;
           db.veterinarian.findAll({
             attributes: [['veterinarianId', 'found'], 'veterinarianName'],
@@ -154,7 +153,7 @@ routeVeterinarian.get("/api/veterinarian/veterinarianname/:id", [auth, clinic], 
               response.send({
                 ok: true,
                 found: rows[0].found,
-                petOwnerName: rows[0].veterinarianName,
+                veterinarianName: rows[0].veterinarianName,
               });
             })
             .catch((err) => {
@@ -170,7 +169,7 @@ routeVeterinarian.get("/api/veterinarian/veterinarianname/:id", [auth, clinic], 
         } else {
           response.send({
             ok: true,
-            found: rows[0].found,
+            found: rows[0].dataValues.found,
           });
         }
       })
@@ -218,7 +217,7 @@ routeVeterinarian.post("/api/veterinarian/veterinariannames", [auth, clinic], as
     });
   } else {
     setLog("TRACE", __filename, funcName, `${apiUrl}${query}`);
-    db.veterinarian.query(query, {
+    db.sequelize.query(query, {
       replacements: { patientPetName: jsonValues.patientPetName },
       type: QueryTypes.SELECT,
     })

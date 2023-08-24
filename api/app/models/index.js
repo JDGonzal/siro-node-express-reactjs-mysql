@@ -69,30 +69,30 @@ db.user.belongsToMany(db.medicalCenter, {
   foreignKey: 'userId',
   otherKey: 'medicalCenterId'
 });
-/*======== PatientExam_TypeOfSamples ========= */
-db.patientExam_TypeOfSamples = require('./patientExam_TypeOfSamples.model.js')(sequelize, Sequelize);
+/*======== patientexam_typeofsamples ========= */
+db.patientexam_typeofsamples = require('./patientexam_typeofsamples.model.js')(sequelize, Sequelize);
 db.patientExam.belongsToMany(db.typeOfSample, {
-  through: 'PatientExam_TypeOfSamples',
+  through: 'patientexam_typeofsamples',
   foreignKey: 'patientExamId',
   otherKey: 'typeOfSampleId'
 });
 
 db.typeOfSample.belongsToMany(db.patientExam, {
-  through: 'PatientExam_TypeOfSamples',
+  through: 'patientexam_typeofsamples',
   foreignKey: 'typeOfSampleId',
   otherKey: 'patientExamId'
 });
 
-/*======== PatientExam_LaboratoryTests ========= */
-db.patientExam_LaboratoryTests = require('./patientExam_LaboratoryTests.model.js')(sequelize, Sequelize);
+/*======== patientexam_laboratorytests ========= */
+db.patientexam_laboratorytests = require('./patientexam_laboratorytests.model.js')(sequelize, Sequelize);
 db.patientExam.belongsToMany(db.laboratoryTest, {
-  through: 'PatientExam_LaboratoryTests',
+  through: 'patientexam_laboratorytests',
   foreignKey: 'patientExamId',
   otherKey: 'laboratoryTestId'
 });
 
 db.laboratoryTest.belongsToMany(db.patientExam, {
-  through: 'PatientExam_LaboratoryTests',
+  through: 'patientexam_laboratorytests',
   foreignKey: 'laboratoryTestId',
   otherKey: 'patientExamId'
 });

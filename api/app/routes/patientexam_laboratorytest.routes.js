@@ -26,8 +26,8 @@ routePatientexam_Laboratorytest.post("/api/patientexam_laboratorytest", [auth, c
       errors: apiMessage["400"][1],
     });
   } else {
-    db.patientExam_LaboratoryTests.destroy({
-      where: { jsonValues }
+    db.patientexam_laboratorytests.destroy({
+      where: jsonValues
     })
       .then((rows) => {
         var arrLabTests = request.body["arrLabTests"];
@@ -35,7 +35,10 @@ routePatientexam_Laboratorytest.post("/api/patientexam_laboratorytest", [auth, c
         // query = `INSERT into ${process.env.MYSQL_D_B_}.patientexam_laboratorytests (createdAt, updatedAt, patientExamId, laboratoryTestId) VALUE (NOW(), NOW(), ?, ?)`;
         for (var i = 0; i < arrLabTests.length; i++) {
           jsonValues['laboratoryTestId'] = parseInt(arrLabTests[i]); //{patientExamId: X, laboratoryTestId: Y}
-          db.patientExam_LaboratoryTests.create(jsonValues)
+          db.patientexam_laboratorytests.create({
+            patientExamId: jsonValues.patientExamId,
+            laboratoryTestId: jsonValues.laboratoryTestId,
+          })
             .then((rows) => { setLog("TRACE", __filename, funcName, `${apiUrl}.created:${JSON.stringify(jsonValues)}.rows:${rows}`); })
             .catch((err) => {
               setLog("ERROR", __filename, funcName, `${apiUrl}.creating:${JSON.stringify(jsonValues)}.error:${JSON.stringify(err)}`);
@@ -54,7 +57,7 @@ routePatientexam_Laboratorytest.post("/api/patientexam_laboratorytest", [auth, c
           ok: false,
           error: err,
         });
-        setLog("ERROR", __filename, funcName, JSON.stringify(err));
+        setLog("ERROR", __filename, funcName, `${apiUrl}.deleting:${JSON.stringify(err)}`);
       })
       .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
   }

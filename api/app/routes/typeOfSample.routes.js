@@ -1,10 +1,12 @@
 const express = require("express");
+const { Op } = require("sequelize");
 
 // Import middlewares
 const auth = require("../middleware/auth.js");
 const { admin, laboratory, clinic } = require("../middleware/roles.js");
 const db = require("../models");
 const apiMessage = require("../utils/messages.js");
+const setLog = require("../utils/logs.utils.js");
 
 // Setup the express server routeRoles
 const routeTypeOfSample = express.Router();

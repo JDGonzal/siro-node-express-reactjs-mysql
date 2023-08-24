@@ -26,8 +26,8 @@ routePatientexam_TypeOfSample.post("/api/patientexam_typeofsample", [auth, clini
       errors: apiMessage["400"][1],
     });
   } else {
-    db.patientExam_TypeOfSamples.destroy({
-      where: { jsonValues }
+    db.patientexam_typeofsamples.destroy({
+      where: jsonValues
     })
       .then((rows) => {
         var arrTypeOfSamples = request.body["arrTypeOfSamples"];
@@ -35,9 +35,11 @@ routePatientexam_TypeOfSample.post("/api/patientexam_typeofsample", [auth, clini
         // query = `INSERT into ${process.env.MYSQL_D_B_}.patientexam_typeofsamples (createdAt, updatedAt, patientExamId, typeOfSampleId)  VALUE (NOW(), NOW(), ?, ?)`;
         for (var i = 0; i < arrTypeOfSamples.length; i++) {
           jsonValues['typeOfSampleId'] = parseInt(arrTypeOfSamples[i]); //{patientExamId: X, typeOfSampleId: Y}
-          db.patientExam_TypeOfSamples.create(
-            jsonValues
-          ).then((rows) => { setLog("TRACE", __filename, funcName, `${apiUrl}.created:${JSON.stringify(jsonValues)}.rows:${rows}`); })
+          db.patientexam_typeofsamples.create({
+            patientExamId: jsonValues.patientExamId,
+            typeOfSampleId: jsonValues.typeOfSampleId,
+          })
+            .then((rows) => { setLog("TRACE", __filename, funcName, `${apiUrl}.created:${JSON.stringify(jsonValues)}.rows:${rows}`); })
             .catch((err) => {
               setLog("ERROR", __filename, funcName, `${apiUrl}.creating:${JSON.stringify(jsonValues)}.error:${JSON.stringify(err)}`);
               response.status(501).json({
@@ -55,7 +57,7 @@ routePatientexam_TypeOfSample.post("/api/patientexam_typeofsample", [auth, clini
           ok: false,
           error: err,
         });
-        setLog("ERROR", __filename, funcName, JSON.stringify(err));
+        setLog("ERROR", __filename, funcName, `${apiUrl}.deleting:${JSON.stringify(err)}`);
       })
       .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
   }
