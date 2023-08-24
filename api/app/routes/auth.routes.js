@@ -29,7 +29,6 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
     password: request.body["password"], // Never "encrypt" because the "compare" will not work
   };
   setLog("TRACE", __filename, funcName, `${apiUrl}${jsonValues.email}`);
-  // console.log('password:', encrypted(jsonValues.password));
   db.user
     .findAll({
       attributes: ["password"],
@@ -62,11 +61,10 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
         from ${process.env.MYSQL_D_B_}.Users u
         where email=:email or password=:password`;
         setLog("DEBUG", __filename, funcName, `${apiUrl}query:${query}, replacements:${jsonValues.email}`);
-        db.sequelize
-          .query(query, {
-            replacements: jsonValues,
-            type: QueryTypes.SELECT,
-          })
+        db.sequelize.query(query, {
+          replacements: jsonValues,
+          type: QueryTypes.SELECT,
+        })
           .then((rows) => {
             setLog("INFO", __filename, funcName, `${apiUrl}rows2: ${JSON.stringify(rows)}`);
             // response.send(rows);

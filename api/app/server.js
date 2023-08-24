@@ -26,22 +26,22 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use(require("./routes/auth.routes.js"));
-app.use(require("./routes/role.routes.js"));
-app.use(require("./routes/medicalCenter.routes.js"));
-app.use(require("./routes/state.routes.js"));
-app.use(require("./routes/city.routes.js"));
-app.use(require("./routes/patientPet.routes.js"));
-app.use(require("./routes/species.routes.js"));
 app.use(require("./routes/breed.routes.js"));
-app.use(require("./routes/petOwner.routes.js"));
-app.use(require("./routes/sqlQuery.routes.js"));
-app.use(require("./routes/patientExam.routes.js"));
-app.use(require("./routes/veterinarians.routes.js"));
-app.use(require("./routes/typeOfSample.routes.js"));
-app.use(require("./routes/testType.routes.js"));
+app.use(require("./routes/city.routes.js"));
 app.use(require("./routes/laboratoryTest.routes.js"));
+app.use(require("./routes/medicalCenter.routes.js"));
 app.use(require("./routes/patientexam_laboratorytest.routes.js"));
 app.use(require("./routes/patientexam_typeofsample.routes.js"));
+app.use(require("./routes/patientExam.routes.js"));
+app.use(require("./routes/patientPet.routes.js"));
+app.use(require("./routes/petOwner.routes.js"));
+app.use(require("./routes/role.routes.js"));
+app.use(require("./routes/species.routes.js"));
+app.use(require("./routes/sqlQuery.routes.js"));
+app.use(require("./routes/state.routes.js"));
+app.use(require("./routes/testType.routes.js"));
+app.use(require("./routes/typeOfSample.routes.js"));
+app.use(require("./routes/veterinarians.routes.js"));
 
 // set port, listen for requests
 const PORT = process.env.PORT || 49146;
