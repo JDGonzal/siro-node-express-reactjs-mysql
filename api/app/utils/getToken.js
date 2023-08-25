@@ -3,7 +3,8 @@ require("dotenv").config(); // import config = require('config');
 const setLog = require("./logs.utils")
 
 const getToken = function (expiresIn, rolesArray, userId) {
-  setLog("DEBUG",__filename,arguments.callee.name,`'rolesArray:', ${rolesArray}, 'userId:', ${userId}, 'expiresIn', ${expiresIn}`);
+  setLog("DEBUG",__filename,arguments.callee.name,`'rolesArray:', ${JSON.stringify(rolesArray)}, 'userId:', ${userId}, 'expiresIn', ${expiresIn}`);
+  console.log(__filename,arguments.callee.name,'rolesArray:', rolesArray, 'userId:', userId, 'expiresIn', expiresIn);
   return token = jwt.sign({
     id: userId,
     roles: rolesArray,
