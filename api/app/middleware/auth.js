@@ -22,7 +22,9 @@ module.exports = (req, res, next) => {
         error = "Token expired";
         setLog("DEBUG", __filename, funcName, `${apiUrl}.decoded:${JSON.stringify(decoded)}`);
         req.user = decoded; //{ id: 7, roles: [ 'viewer' ], iat: 1635632856, exp: 1635636456 }
+        setLog("info", __filename, funcName, `${apiUrl}.req.user:${JSON.stringify(req.user)}`);
     } catch (err) {
+        console.log(__filename, funcName, 'error:', err);
         setLog("ERROR", __filename, funcName, `${apiUrl}.error:${error} - ${JSON.stringify(err)}`);
         return res.status(401).send({
             ok: false,

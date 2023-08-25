@@ -19,6 +19,25 @@ const setLog = require("../utils/logs.utils.js");
 // Setup the express server routeAuth
 const routeAuth = express.Router();
 
+async function getRolesArray(jsonValues, userRole) {
+  const funcName = arguments.callee.name;
+  setLog("TRACE", __filename, funcName, `${JSON.stringify(jsonValues)},${userRole}`);
+  let rolesArray = [];
+  if (String(userRole).length > 0) {
+    userRole.includes("1") ? rolesArray.push("viewer") : null;
+    userRole.includes("2") ? rolesArray.push("clinic") : null;
+    userRole.includes("3") ? rolesArray.push("laboratory") : null;
+    userRole.includes("4") ? rolesArray.push("admin") : null;
+  } else {
+    jsonValues.RolesArray[0] === "viewer" ? rolesArray.push("viewer") : null;
+    jsonValues.RolesArray[1] === "clinic" ? rolesArray.push("clinic") : null;
+    jsonValues.RolesArray[2] === "laboratory" ? rolesArray.push("laboratory") : null;
+    jsonValues.RolesArray[3] === "admin" ? rolesArray.push("admin") : null;
+  }
+
+  setLog("TRACE", __filename, funcName, `${rolesArray}`);
+  return rolesArray;
+}
 // On post
 routeAuth.post("/api/auth/signin", async (request, response) => {
   const funcName = arguments.callee.name + "routeAuth.post(";
@@ -29,7 +48,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
     password: request.body["password"], // Never "encrypt" because the "compare" will not work
   };
   setLog("TRACE", __filename, funcName, `${apiUrl}${jsonValues.email}`);
-  db.user
+  await db.user
     .findAll({
       attributes: ["password"],
       where: { email: jsonValues.email },
@@ -45,13 +64,9 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
       const v = new Validator();
       const validationResponse = v.validate(jsonValues, schema);
 
-      setLog("DEBUG", __filename, funcName, `${apiUrl}isValid:${isValid} = compare(${jsonValues.password},${rows[0].password}); 
+      setLog("DEBUG", __filename, funcName, `${apiUrl}compare.isValid:${isValid}); 
       validationResponse:${validationResponse}`);
-      if (
-        isValid &&
-        rows[0].dataValues.password.length > 0 &&
-        validationResponse === true
-      ) {
+      if (isValid && rows[0].dataValues.password.length > 0 && validationResponse === true) {
         const query = `SELECT u.*, (SELECT GROUP_CONCAT(ur.roleId SEPARATOR ',')
               FROM ${process.env.MYSQL_D_B_}.user_roles ur 
             WHERE ur.userId = u.userId) AS userRole,
@@ -65,12 +80,12 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
           replacements: jsonValues,
           type: QueryTypes.SELECT,
         })
-          .then((rows) => {
+          .then(async (rows) => {
             setLog("INFO", __filename, funcName, `${apiUrl}rows2: ${JSON.stringify(rows)}`);
             // response.send(rows);
             setLog("TRACE", __filename, funcName, `${apiUrl}isActive: ${rows[0].isActive}`);
             //The user must be active in true
-            const isActive = rows[0].isActive;
+            const isActive = await rows[0].isActive;
             if (!isActive && isActive === 0) {
               setLog("ERROR", __filename, funcName, apiMessage["511"][1]);
               response.status(511).json({
@@ -78,14 +93,10 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
                 ok: false,
               });
             } else {
-              let rolesArray = [];
-              rows[0].userRole.includes("1") ? rolesArray.push("viewer") : null;
-              rows[0].userRole.includes("2") ? rolesArray.push("clinic") : null;
-              rows[0].userRole.includes("3")
-                ? rolesArray.push("laboratory")
-                : null;
-              rows[0].userRole.includes("4") ? rolesArray.push("admin") : null;
-              setLog("TRACE", __filename, funcName, `${apiUrl}roles:${rolesArray}`);
+              const userRole = await rows[0].userRole;
+              const rolesArray = await getRolesArray(jsonValues, userRole);
+              setLog("TRACE", __filename, funcName, `${apiUrl}userRoles:"${userRole}", rolesArray${JSON.stringify(rolesArray)}`);
+
               const token = getToken("8h", rolesArray, rows[0].userId); //Expires in 8 hours
               const medicalCenterArray = rows[0].medicalCenterArray.split(",");
               response.send({
@@ -108,7 +119,7 @@ routeAuth.post("/api/auth/signin", async (request, response) => {
               error: err,
             });
           })
-          .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}jsonValues:${JSON.stringify(jsonValues)}).end`); });
+          .finally(() => { setLog("INFO", __filename, funcName, `(${apiUrl}).end`); });
       } else {
         if (validationResponse !== true) {
           response.status(400).json({
@@ -186,30 +197,22 @@ routeAuth.get("/api/auth/signup/:email", async (request, response) => {
   // in 'Body' use none
 });
 
-async function addUserRole(jsonValues, userId, lastChar) {
+async function addUserRole(userId, roleId) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `POST"medicalCenter/user",userId:${userId}, lastChar:${lastChar}, ${JSON.stringify(jsonValues)}`);
-  await fetch(process.env.EMAIL_API_ + "auth/signup/role" + lastChar, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "x-auth-token": jsonValues.TokenExternal,
-    },
-    body: JSON.stringify({
-      userId: userId,
-    }),
+  setLog("TRACE", __filename, funcName, `user_roles.creating(userId:${userId},roleId:${roleId})`);
+
+  await db.user_roles.create({
+    roleId: roleId,
+    userId: userId
   })
-    .then((res) => res.json())
-    .then(
-      (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/role${lastChar}":${JSON.stringify(data)}`); },
-      (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/role${lastChar}".error:${JSON.stringify(error)}`); }
-    );
+    .then((rows) => { setLog("INFO", __filename, funcName, `user_roles.created:${JSON.stringify(rows)}`); })
+    .catch((err) => { setLog("ERROR", __filename, funcName, `user_roles.error:${JSON.stringify(err)}`); })
+    .finally(() => { setLog("DEBUG", __filename, funcName, `(user_roles.created).end`); });
 }
 
-async function addUserMedicalCenter(jsonValues) {
+async function addUserMedicalCenter(jsonValues, userId) {
   const funcName = arguments.callee.name;
-  setLog("TRACE", __filename, funcName, `POST"medicalCenter/user"${JSON.stringify(jsonValues)}`);
+  setLog("TRACE", __filename, funcName, `POST"medicalCenter/user"${jsonValues.medicalCenterId},${userId}`);
   await fetch(process.env.EMAIL_API_ + "medicalCenter/user", {
     method: "POST",
     headers: {
@@ -229,6 +232,7 @@ async function addUserMedicalCenter(jsonValues) {
 
 async function getUserbyEmail(jsonValues, firstTry) {
   const funcName = arguments.callee.name;
+  var userId = 0;
   setLog("TRACE", __filename, funcName, `firstTry:${firstTry}, ${JSON.stringify(jsonValues)}`);
   setLog("TRACE", __filename, funcName, `GET"${process.env.EMAIL_API_}auth/signup/${jsonValues.email}"`);
   await fetch(process.env.EMAIL_API_ + "auth/signup/" + jsonValues.email, {
@@ -239,20 +243,15 @@ async function getUserbyEmail(jsonValues, firstTry) {
     },
   })
     .then((res) => res.json())
-    .then(async (data) => {
-      await setLog("INFO", __filename, funcName, `ok: ${JSON.stringify(rows)}`);
-      await addUserRole(jsonValues, data.found, 'V');
-      await addUserRole(jsonValues, data.found, 'E');
-      await addUserRole(jsonValues, data.found, 'L');
-      await addUserRole(jsonValues, data.found, 'A');
-      await addUserMedicalCenter(jsonValues);
-      return rows[0].userId;
+    .then((data) => {
+      userId = data[0].found;
+      setLog("INFO", __filename, funcName, `userId: ${userId}`);
     },
       (error) => {
         setLog("ERROR", __filename, funcName, JSON.stringify(error));
-        if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000)
-        else return 0;
+        if (firstTry === true) setTimeout(() => { getUserbyEmail(jsonValues, false); }, 2000);
       });
+  return userId;
 }
 
 async function addMedicalCenter(jsonValues) {
@@ -281,6 +280,7 @@ async function addMedicalCenter(jsonValues) {
 routeAuth.post("/api/auth/signup", async (request, response) => {
   const funcName = arguments.callee.name + "routeAuth.post(";
   const apiUrl = "/api/auth/signup|";
+
   var jsonValues = {
     email: await String(request.body["email"]).toLowerCase(),
     password: await encrypted(request.body["password"]),
@@ -295,11 +295,12 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
     CityCityId: await request.body["CityCityId"],
   };
   setLog("TRACE", __filename, funcName, `${apiUrl}body:${JSON.stringify(jsonValues)}`);
+  let rolesArray = [];
   try {
-    if ((await jsonValues.RolesArray[0]) === true) jsonValues.RolesArray[0] = "viewer";
-    if ((await jsonValues.RolesArray[1]) === true) jsonValues.RolesArray[1] = "clinic";
-    if ((await jsonValues.RolesArray[2]) === true) jsonValues.RolesArray[2] = "laboratory";
-    if ((await jsonValues.RolesArray[3]) === true) jsonValues.RolesArray[3] = "admin";
+    if ((await jsonValues.RolesArray[0]) === true) { jsonValues.RolesArray[0] = "viewer"; }
+    if ((await jsonValues.RolesArray[1]) === true) { jsonValues.RolesArray[1] = "clinic"; }
+    if ((await jsonValues.RolesArray[2]) === true) { jsonValues.RolesArray[2] = "laboratory"; }
+    if ((await jsonValues.RolesArray[3]) === true) { jsonValues.RolesArray[3] = "admin"; }
   } catch (err) {
     setLog("ERROR", __filename, funcName, `${apiUrl}RolesArray.error:${JSON.stringify(err)}`);
   }
@@ -354,8 +355,8 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
       errors: validationResponse,
     });
   } else {
-    addMedicalCenter(jsonValues);
-    setLog("TRACE", __filename, funcName, `Creating the user`);
+    await addMedicalCenter(jsonValues);
+    await setLog("TRACE", __filename, funcName, `Creating the user`);
     // var query = `INSERT into ${process.env.MYSQL_D_B_}.Users (email,password,token,createdAt,updatedAt) VALUE (?,?,?,NOW(),NOW())`;
     await db.user.create({
       email: jsonValues.email,
@@ -370,10 +371,19 @@ routeAuth.post("/api/auth/signup", async (request, response) => {
           roles: rows,
         });
 
-        var userId = await getUserbyEmail(jsonValues, true);
+        var userId = await rows.userId === 0 ? getUserbyEmail(jsonValues, true) : rows.userId;
         if (await userId > 0) {
+          const rolesArray = getRolesArray(jsonValues, '');
+
+          await jsonValues.RolesArray[0] === "viewer" ? addUserRole(userId, 1) : null;
+          await jsonValues.RolesArray[1] === "clinic" ? addUserRole(userId, 2) : null;
+          await jsonValues.RolesArray[2] === "laboratory" ? addUserRole(userId, 3) : null;
+          await jsonValues.RolesArray[3] === "admin" ? addUserRole(userId, 4) : null;
+          await addUserMedicalCenter(jsonValues, userId);
+
           // Going to send the email to verify the user/password
-          const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}&Token=${getToken("12h", jsonValues.RolesArray, 0)}`;
+          const urlRoute = `${process.env.EMAIL_APP_}token?value=${jsonValues.token}`
+            + `&Token=${getToken("12h", jsonValues.RolesArray, 0)}`;
           await setLog("TRACE", __filename, funcName, `To send email:${urlRoute}`);
           await sendEmail(jsonValues.email, "Activar Cuenta.", urlRoute, 1);
           // Get the userId based on the email address
@@ -457,41 +467,6 @@ routeAuth.put("/api/token/activate", [auth, viewer], async (request, response) =
             message: apiMessage["203"][1],
             ok: true,
           });
-          setLog("TRACE", __filename, funcName, `POST"auth/signup/roleE"`);
-          fetch(process.env.EMAIL_API_ + "auth/signup/roleE", {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-              "x-auth-token": jsonValues.TokenExternal,
-            },
-            body: JSON.stringify({
-              userId: userId,
-            }),
-          })
-            .then((res) => res.json())
-            .then(
-              (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleE":${JSON.stringify(data)}`); },
-              (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
-            );
-
-          setLog("TRACE", __filename, funcName, `${apiUrl}POST"auth/signup/roleL"`);
-          fetch(process.env.EMAIL_API_ + "auth/signup/roleL", {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-              "x-auth-token": jsonValues.TokenExternal,
-            },
-            body: JSON.stringify({
-              userId: userId,
-            }),
-          })
-            .then((res) => res.json())
-            .then(
-              (data) => { setLog("DEBUG", __filename, funcName, `POST"auth/signup/roleL"${JSON.stringify(data)}`); },
-              (error) => { setLog("ERROR", __filename, funcName, `POST"auth/signup/roleE".error:${JSON.stringify(error)}`); }
-            );
         })
           .catch((err) => {
             setLog("ERROR", __filename, funcName, `${apiUrl}user.update.error:${JSON.stringify(err)}`);

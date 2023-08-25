@@ -100,12 +100,13 @@ routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
           StateStateId: jsonValues.StateStateId,
           CityCityId: jsonValues.CityCityId,
         })
-          .then(() => {
+          .then((rows) => {
+
             response.status(201).json({
               message: apiMessage["201"][1],
               ok: true,
-              medicalCenterId: jsonValues.medicalCenterId,
-              medicalCenterName: jsonValues.medicalCenterName,
+              medicalCenterId: rows[0].dataValues.medicalCenterId,
+              medicalCenterName: rows[0].dataValues.medicalCenterName,
             });
           })
           .catch((err) => {
@@ -118,7 +119,7 @@ routeMedicalCenter.post("/api/medicalcenter", async (request, response) => {
           .finally(() => { setLog("DEBUG", __filename, funcName, `(${apiUrl}).create.end`); });
 
       } else {
-        setLog("TRACE", __filename, funcName, `(${apiUrl}).medicalCenterId:${JSON.stringify(values[0])}.Exists:${rows[0].found}`);
+        setLog("TRACE", __filename, funcName, `(${apiUrl}).medicalCenterId:${jsonValues.medicalCenterId}.Exists:${rows[0].dataValues.found}`);
         response.send({
           ok: true,
           found: rows[0].dataValues.found,
@@ -150,7 +151,7 @@ routeMedicalCenter.post("/api/medicalcenter/user",
       medicalCenterId: jsonValues.medicalCenterId,
       userId: jsonValues.userId,
     })
-      .then(() => {
+      .then((rows) => {
         response.status(201).json({
           message: apiMessage["201"][1],
           ok: true,
@@ -167,98 +168,97 @@ routeMedicalCenter.post("/api/medicalcenter/user",
   }
 );
 
-routeMedicalCenter.get( "/api/medicalcenter/medicalcentername/:id", async (request, response) => {
-    const funcName = arguments.callee.name + "routeMedicalCenter.get(";
-    const apiUrl = "/api/medicalcenter/medicalcentername/:";
-    var jsonValues = { medicalCenterId: parseInt(request.params.id) };
-    setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
-    const schema =  {
-      medicalCenterId: {
-        type: "number",
-        optional: false,
-        positive: true,
-        integer: true,
-        min: 10000,
-        max: 9999999999,
-      },
-    };
-    const v = await new Validator();
-    const validationResponse = await v.validate(jsonValues, schema);
-    if ((await validationResponse) !== true) {
-      setLog("ERROR", __filename, funcName, `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`);
-      return response.status(400).json({
-        found: 0,
-        message: apiMessage["400"][1],
-        ok: false,
-        errors: validationResponse,
-      });
-    }
-    // var query = `SELECT COUNT(MedicalCenterId)as found from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`;
-    db.medicalCenter.findAll({
-      attributes: [
-        [db.sequelize.fn("COUNT", db.sequelize.col("medicalCenterId")), "found"],
-      ],
-      where: jsonValues,
-    })
-      .then((rows) => {
-        setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)},${rows[0].dataValues.found}`);
-        if (rows[0].dataValues.found > 0) {
-          // query = `SELECT medicalCenterId as found, medicalCenterName, medicalCenterAddress, medicalCenterTelNumber, StateStateId, CityCityId from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`
-          db.medicalCenter.findAll({
-            attributes:
-              [['medicalCenterId', 'found'], 'medicalCenterName', 'medicalCenterAddress', 'medicalCenterTelNumber', 'StateStateId', 'CityCityId'],
-            where: { medicalCenterId: jsonValues.medicalCenterId },
-          }).then((rows) => {
-            setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
-            response.send({
-              ok: true,
-              found: rows[0].found,
-              medicalCenterName: rows[0].medicalCenterName,
-              medicalCenterAddress: rows[0].medicalCenterAddress,
-              medicalCenterTelNumber: rows[0].medicalCenterTelNumber,
-              StateStateId: rows[0].StateStateId,
-              CityCityId: rows[0].CityCityId,
-            });
-          })
-            .catch((err) => {
-              setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
-              response.status(501).json({
-                message: apiMessage["501"][1],
-                ok: false,
-                error: err,
-              });
-            })
-            .finally(() => {
-              setLog("DEBUG", __filename, funcName, `(db.medicalCenter.findAll).end`);
-            })
-        } else {
-
+routeMedicalCenter.get("/api/medicalcenter/medicalcentername/:id", async (request, response) => {
+  const funcName = arguments.callee.name + "routeMedicalCenter.get(";
+  const apiUrl = "/api/medicalcenter/medicalcentername/:";
+  var jsonValues = { medicalCenterId: parseInt(request.params.id) };
+  setLog("TRACE", __filename, funcName, `${apiUrl}${JSON.stringify(jsonValues)}`);
+  const schema = {
+    medicalCenterId: {
+      type: "number",
+      optional: false,
+      positive: true,
+      integer: true,
+      min: 10000,
+      max: 9999999999,
+    },
+  };
+  const v = await new Validator();
+  const validationResponse = await v.validate(jsonValues, schema);
+  if ((await validationResponse) !== true) {
+    setLog("ERROR", __filename, funcName, `${apiUrl}validationResponse.error:${JSON.stringify(validationResponse)}`);
+    return response.status(400).json({
+      found: 0,
+      message: apiMessage["400"][1],
+      ok: false,
+      errors: validationResponse,
+    });
+  }
+  // var query = `SELECT COUNT(MedicalCenterId)as found from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`;
+  db.medicalCenter.findAll({
+    attributes: [
+      [db.sequelize.fn("COUNT", db.sequelize.col("medicalCenterId")), "found"],
+    ],
+    where: jsonValues,
+  })
+    .then((rows) => {
+      setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)},${rows[0].dataValues.found}`);
+      if (rows[0].dataValues.found > 0) {
+        // query = `SELECT medicalCenterId as found, medicalCenterName, medicalCenterAddress, medicalCenterTelNumber, StateStateId, CityCityId from ${process.env.MYSQL_D_B_}.MedicalCenters where medicalCenterId=?`
+        db.medicalCenter.findAll({
+          attributes:
+            [['medicalCenterId', 'found'], 'medicalCenterName', 'medicalCenterAddress', 'medicalCenterTelNumber', 'StateStateId', 'CityCityId'],
+          where: { medicalCenterId: jsonValues.medicalCenterId },
+        }).then((rows) => {
+          setLog("INFO", __filename, funcName, `${apiUrl}rows: ${JSON.stringify(rows)}`);
           response.send({
             ok: true,
-            found: rows[0].dataValues.found,
-            medicalCenterName: '',
-            medicalCenterAddress: '',
-            medicalCenterTelNumber: '',
-            StateStateId: 0,
-            CityCityId: 0,
+            found: rows[0].found,
+            medicalCenterName: rows[0].medicalCenterName,
+            medicalCenterAddress: rows[0].medicalCenterAddress,
+            medicalCenterTelNumber: rows[0].medicalCenterTelNumber,
+            StateStateId: rows[0].StateStateId,
+            CityCityId: rows[0].CityCityId,
           });
-        }
-      })
-      .catch((err) => {
-        setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
-        response.status(501).json({
-          message: apiMessage["501"][1],
-          ok: false,
-          error: err,
+        })
+          .catch((err) => {
+            setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
+            response.status(501).json({
+              message: apiMessage["501"][1],
+              ok: false,
+              error: err,
+            });
+          })
+          .finally(() => {
+            setLog("DEBUG", __filename, funcName, `(db.medicalCenter.findAll).end`);
+          })
+      } else {
+        response.send({
+          ok: true,
+          found: rows[0].dataValues.found,
+          medicalCenterName: '',
+          medicalCenterAddress: '',
+          medicalCenterTelNumber: '',
+          StateStateId: 0,
+          CityCityId: 0,
         });
-      })
-      .finally(() => {
-        setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
+      }
+    })
+    .catch((err) => {
+      setLog("ERROR", __filename, funcName, `${apiUrl}${JSON.stringify(err)}`);
+      response.status(501).json({
+        message: apiMessage["501"][1],
+        ok: false,
+        error: err,
       });
+    })
+    .finally(() => {
+      setLog("DEBUG", __filename, funcName, `(${apiUrl}).end`);
+    });
 
-    // To Test in Postman use GET with this URL 'http://localhost:49146//api/medicalcenter/medicalcentername/909090'
-    // in 'Body' use none
-  }
+  // To Test in Postman use GET with this URL 'http://localhost:49146//api/medicalcenter/medicalcentername/909090'
+  // in 'Body' use none
+}
 );
 
 // Export the routeMedicalCenter
